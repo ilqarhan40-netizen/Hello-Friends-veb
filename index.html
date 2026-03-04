@@ -32,17 +32,11 @@
         @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         .popover-panel { transition: opacity 0.2s ease, transform 0.2s ease; }
 
-        /* ОВЕРЛЕИ ЗВОНКОВ НА ВЕСЬ ЭКРАН */
+        /* ВАША ИДЕАЛЬНАЯ СЕТКА КОНФЕРЕНЦИИ */
         .call-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; flex-direction: column; overflow: hidden; }
         
-        /* === ИСПРАВЛЕННАЯ СЕТКА === */
-        .grid-conf { display: grid; grid-template-columns: repeat(1, 1fr); gap: 16px; width: 100%; max-width: 1400px; margin: 0 auto; align-content: start; }
-        @media (min-width: 768px) { .grid-conf { grid-template-columns: repeat(2, 1fr); } }
-        @media (min-width: 1024px) { .grid-conf { grid-template-columns: repeat(3, 1fr); } }
-        
-        .user-card { position: relative; aspect-ratio: 16 / 9; background: #1e1e1e; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); width: 100%; }
-        /* ========================== */
-
+        .grid-conf { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 1400px; margin: 0 auto; align-content: center; }
+        .user-card { position: relative; aspect-ratio: 16 / 9; background: #1e1e1e; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
         .speaker-card { border: 2px solid #00C4CC; box-shadow: 0 0 25px rgba(0, 196, 204, 0.4); transform: scale(1.02); z-index: 10; }
         .user-photo { width: 100%; height: 100%; object-fit: cover; }
         .translation-bar { position: absolute; bottom: 12px; left: 12px; right: 12px; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); border-radius: 8px; height: 32px; display: flex; align-items: center; overflow: hidden; transition: opacity 0.3s; }
@@ -285,20 +279,15 @@
     <div class="grid-conf overflow-y-auto flex-grow p-4 md:p-8">
         <div class="user-card"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Sarah (UK)</div><img src="https://flagcdn.com/w40/gb.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="en" data-flag="🇬🇧">🇬🇧 Waiting for speaker...</div></div></div>
         <div class="user-card"><img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Klaus (DE)</div><img src="https://flagcdn.com/w40/de.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="de" data-flag="🇩🇪">🇩🇪 Waiting for speaker...</div></div></div>
-        <div class="user-card"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Marinella (IT)</div><img src="https://flagcdn.com/w40/it.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="it" data-flag="🇮🇹">🇮🇹 Waiting for speaker...</div></div></div>
-        <div class="user-card"><img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">John (UK)</div><img src="https://flagcdn.com/w40/gb.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="en" data-flag="🇬🇧">🇬🇧 Waiting for speaker...</div></div></div>
-        
         <div class="user-card speaker-card">
             <img src="https://images.unsplash.com/photo-1557862921-37829c790f19?w=800&h=450&fit=crop&crop=faces" class="user-photo">
             <div class="name-tag text-indigo-600 dark:text-[#00C4CC] font-bold">Ilgar (You)</div>
             <img src="https://flagcdn.com/w40/az.png" class="flag-icon">
             <div class="translation-bar"><div class="marquee-text text-white font-bold" id="conf-speaker-marquee">🇦🇿 Ready to speak...</div></div>
         </div>
-        
+        <div class="user-card"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Marinella (IT)</div><img src="https://flagcdn.com/w40/it.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="it" data-flag="🇮🇹">🇮🇹 Waiting for speaker...</div></div></div>
+        <div class="user-card"><img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">John (UK)</div><img src="https://flagcdn.com/w40/gb.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="en" data-flag="🇬🇧">🇬🇧 Waiting for speaker...</div></div></div>
         <div class="user-card"><img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Elena (ES)</div><img src="https://flagcdn.com/w40/es.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="es" data-flag="🇪🇸">🇪🇸 Waiting for speaker...</div></div></div>
-        <div class="user-card"><img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Yuki (JP)</div><img src="https://flagcdn.com/w40/jp.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="ja" data-flag="🇯🇵">🇯🇵 Waiting for speaker...</div></div></div>
-        <div class="user-card"><img src="https://images.unsplash.com/photo-1556157382-97eda2d62296?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Wei (CN)</div><img src="https://flagcdn.com/w40/cn.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="zh-CN" data-flag="🇨🇳">🇨🇳 Waiting for speaker...</div></div></div>
-        <div class="user-card"><img src="https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Carlos (BR)</div><img src="https://flagcdn.com/w40/br.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="pt" data-flag="🇧🇷">🇧🇷 Waiting for speaker...</div></div></div>
     </div>
 
     <div class="w-full shrink-0 mt-auto pb-8 pt-4 flex justify-center z-50 bg-gradient-to-t from-gray-100 dark:from-[#0f172a] to-transparent">
