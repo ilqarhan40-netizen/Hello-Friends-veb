@@ -107,6 +107,23 @@
                 <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors"><i class="fa-solid fa-user w-6"></i> Profile</a>
                 <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors"><i class="fa-solid fa-gear w-6"></i> Settings</a>
                 <button id="menu-theme-toggle" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors text-left"><i class="fa-solid fa-moon w-6"></i> Change Theme</button>
+                
+                <div class="border-t dark:border-slate-700 my-1"></div>
+                <div class="flex items-center justify-between px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer">
+                    <div class="flex items-center"><i class="fa-solid fa-microphone-lines w-6 text-red-500"></i> Mic Lang:</div>
+                    <select id="global-mic-lang" class="bg-transparent text-indigo-600 dark:text-indigo-400 font-bold outline-none cursor-pointer" onclick="event.stopPropagation()">
+                        <option value="az-AZ">🇦🇿 Azərbaycanca</option>
+                        <option value="ru-RU">🇷🇺 Русский</option>
+                        <option value="en-US">🇬🇧 English</option>
+                        <option value="tr-TR">🇹🇷 Türkçe</option>
+                        <option value="de-DE">🇩🇪 Deutsch</option>
+                        <option value="it-IT">🇮🇹 Italiano</option>
+                        <option value="es-ES">🇪🇸 Español</option>
+                        <option value="fr-FR">🇫🇷 Français</option>
+                    </select>
+                </div>
+                <div class="border-t dark:border-slate-700 my-1"></div>
+
                 <a href="#" onclick="openBankTransferModal(); return false;" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors">
                     <i class="fa-solid fa-money-bill-transfer w-6 text-green-500"></i> Bank Transfer
                 </a>
@@ -817,7 +834,7 @@
         chatRec.onend = () => { chatMicBtn.classList.remove('text-red-500', 'animate-pulse'); if(chatInput) chatInput.placeholder = "Type message or click mic..."; };
         chatRec.onerror = () => { chatMicBtn.classList.remove('text-red-500', 'animate-pulse'); };
         chatRec.onresult = (e) => { if(chatInput) { chatInput.value = e.results[0][0].transcript; sendFirebaseMsg(); } };
-        chatMicBtn.addEventListener('click', () => { chatRec.lang = 'az-AZ'; try { chatRec.start(); } catch(e){} });
+        chatMicBtn.addEventListener('click', () => { chatRec.lang = document.getElementById('global-mic-lang').value; try { chatRec.start(); } catch(e){} });
     }
 
     // --- ФУНКЦИЯ ВОЛШЕБНОЙ ПАЛОЧКИ ИИ ---
@@ -1153,7 +1170,7 @@
     if(vrMicBtn) {
         vrMicBtn.addEventListener('click', () => {
             if (vrRec) {
-                vrRec.lang = 'az-AZ'; 
+                vrRec.lang = document.getElementById('global-mic-lang').value; 
                 try { vrRec.start(); } catch(e){}
             } else { alert("Mic not supported."); }
         });
@@ -1243,7 +1260,7 @@
     if(mainConfMicBtn) {
         mainConfMicBtn.addEventListener('click', () => {
             if (confRec) {
-                confRec.lang = 'az-AZ'; 
+                confRec.lang = document.getElementById('global-mic-lang').value; 
                 try { confRec.start(); } catch(e){}
             } else { alert("Mic not supported."); }
         });
