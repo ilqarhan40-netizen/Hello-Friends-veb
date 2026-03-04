@@ -104,11 +104,6 @@
             <button id="header-menu-btn" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"><i class="fa-solid fa-bars text-xl"></i></button>
 
             <div id="menu-panel" class="popover-panel absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-800 p-2 rounded-lg shadow-xl hidden opacity-0 transform scale-95 z-50 transition-colors border border-gray-100 dark:border-slate-700">
-                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors"><i class="fa-solid fa-user w-6"></i> Profile</a>
-                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors"><i class="fa-solid fa-gear w-6"></i> Settings</a>
-                <button id="menu-theme-toggle" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors text-left"><i class="fa-solid fa-moon w-6"></i> Change Theme</button>
-                
-                <div class="border-t dark:border-slate-700 my-1"></div>
                 <div class="flex items-center justify-between px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer">
                     <div class="flex items-center"><i class="fa-solid fa-microphone-lines w-6 text-red-500"></i> Mic Lang:</div>
                     <select id="global-mic-lang" class="bg-transparent text-indigo-600 dark:text-indigo-400 font-bold outline-none cursor-pointer" onclick="event.stopPropagation()">
@@ -123,7 +118,12 @@
                     </select>
                 </div>
                 <div class="border-t dark:border-slate-700 my-1"></div>
-
+                
+                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors"><i class="fa-solid fa-user w-6"></i> Profile</a>
+                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors"><i class="fa-solid fa-gear w-6"></i> Settings</a>
+                <button id="menu-theme-toggle" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors text-left"><i class="fa-solid fa-moon w-6"></i> Change Theme</button>
+                
+                <div class="border-t dark:border-slate-700 my-1"></div>
                 <a href="#" onclick="openBankTransferModal(); return false;" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors">
                     <i class="fa-solid fa-money-bill-transfer w-6 text-green-500"></i> Bank Transfer
                 </a>
@@ -623,6 +623,9 @@
 
     document.getElementById('header-menu-btn').addEventListener('click', (e) => { e.stopPropagation(); togglePanel('menu-panel'); });
     document.getElementById('actions-btn')?.addEventListener('click', (e) => { e.stopPropagation(); togglePanel('actions-panel'); });
+    
+    // Закрытие меню при клике в любое пустое место экрана
+    document.addEventListener('click', () => { window.closeDropdown(); });
 
     // --- НАВИГАЦИЯ ---
     const navLinks = document.querySelectorAll('.nav-link');
