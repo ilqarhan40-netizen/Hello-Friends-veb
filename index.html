@@ -102,21 +102,26 @@
             </button>
             <button onclick="openEmailModal()" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors" title="Email"><i class="fa-solid fa-envelope text-xl"></i></button>
             <button id="header-menu-btn" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"><i class="fa-solid fa-bars text-xl"></i></button>
-
-            <div id="menu-panel" class="popover-panel absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-800 p-2 rounded-lg shadow-xl hidden opacity-0 transform scale-95 z-50 transition-colors border border-gray-100 dark:border-slate-700">
-                <div class="flex items-center justify-between px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer">
-                    <div class="flex items-center"><i class="fa-solid fa-microphone-lines w-6 text-red-500"></i> Mic Lang:</div>
-                    <select id="global-mic-lang" class="bg-transparent text-indigo-600 dark:text-indigo-400 font-bold outline-none cursor-pointer" onclick="event.stopPropagation()">
-                        <option value="az-AZ">🇦🇿 Azərbaycanca</option>
-                        <option value="ru-RU">🇷🇺 Русский</option>
-                        <option value="en-US">🇬🇧 English</option>
-                        <option value="tr-TR">🇹🇷 Türkçe</option>
-                        <option value="de-DE">🇩🇪 Deutsch</option>
-                        <option value="it-IT">🇮🇹 Italiano</option>
-                        <option value="es-ES">🇪🇸 Español</option>
-                        <option value="fr-FR">🇫🇷 Français</option>
+<div id="menu-panel" class="popover-panel absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-800 p-2 rounded-lg shadow-xl hidden opacity-0 transform scale-95 z-50 transition-colors border border-gray-100 dark:border-slate-700">
+                
+                <div class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer relative">
+                    <i class="fa-solid fa-globe text-blue-500 w-5 text-center"></i>
+                    <select id="app-lang-select" onchange="window.changeAppLanguage(this.value)" class="bg-transparent font-bold outline-none cursor-pointer appearance-none w-full pr-6 text-gray-800 dark:text-white" onclick="event.stopPropagation()">
+                        <option value="en">🇬🇧 English</option>
+                        <option value="ru">🇷🇺 Русский</option>
+                        <option value="az">🇦🇿 Azərbaycanca</option>
+                        <option value="tr">🇹🇷 Türkçe</option>
+                        <option value="de">🇩🇪 Deutsch</option>
+                        <option value="it">🇮🇹 Italiano</option>
+                        <option value="es">🇪🇸 Español</option>
+                        <option value="fr">🇫🇷 Français</option>
+                        <option value="zh">🇨🇳 中文</option>
+                        <option value="ja">🇯🇵 日本語</option>
+                        <option value="ar">🇦🇪 العربية</option>
                     </select>
+                    <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
                 </div>
+
                 <div class="border-t dark:border-slate-700 my-1"></div>
                 
                 <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors"><i class="fa-solid fa-user w-6"></i> Profile</a>
@@ -132,7 +137,6 @@
                 <div class="border-t dark:border-slate-700 my-1"></div>
                 <a href="#" onclick="switchTestUser(); return false;" class="flex items-center px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-slate-700 rounded-md transition-colors"><i class="fa-solid fa-right-from-bracket w-6"></i> Logout</a>
             </div>
-        </div>
     </header>
 
     <nav id="main-nav" class="bg-white dark:bg-slate-800 md:rounded-xl shadow-md hidden md:flex flex-wrap justify-center gap-2 mb-4 p-2 transition-colors duration-300">
