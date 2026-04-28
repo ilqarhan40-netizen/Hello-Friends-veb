@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello Friends - Web Library Edition</title>
+    <title>Hello Friends App</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -30,7 +30,7 @@
         </div>
         
         <nav class="flex-grow px-4 space-y-2 mt-4">
-            <a href="#" data-target="page-chat" class="nav-link active flex items-center justify-center md:justify-start gap-4 p-4 rounded-xl transition-all duration-200 group text-indigo-600">
+            <a href="#" data-target="page-chat" class="nav-link active flex items-center justify-center md:justify-start gap-4 p-4 rounded-xl transition-all duration-200 group">
                 <i class="fa-solid fa-comment-dots text-lg"></i>
                 <span class="hidden md:block font-semibold">Messenger</span>
             </a>
@@ -84,7 +84,7 @@
 
         <div id="page-chat" class="page-section active flex-grow flex flex-col relative overflow-hidden">
             <div class="h-8 bg-indigo-50 dark:bg-indigo-900/10 border-b border-indigo-100 dark:border-indigo-900/20 flex items-center px-6 overflow-hidden text-[11px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
-                <div class="marquee-content">🌍 GLOBAL NETWORK ACTIVE • 12 LANGUAGES SUPPORTED • SMART TRANSLATION ACTIVE • END-TO-END ENCRYPTED </div>
+                <div class="marquee-content">🌍 GLOBAL NETWORK ACTIVE • 12 LANGUAGES SUPPORTED • SMART TRANSLATION • END-TO-END ENCRYPTED </div>
             </div>
             
             <div id="chat-messages" class="flex-grow overflow-y-auto p-6 md:p-10 flex flex-col bg-gray-50 dark:bg-slate-950/20"></div>
@@ -129,12 +129,12 @@
         </div>
 
         <div id="page-talents" class="page-section flex-grow overflow-y-auto p-8 bg-gray-50 dark:bg-slate-950">
-            <h2 class="text-3xl font-bold mb-8 flex items-center gap-4 text-gray-900 dark:text-white">Global Talents <span class="bg-indigo-600 text-white text-xs px-3 py-1 rounded-full uppercase tracking-tighter">Verified</span></h2>
+            <h2 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">Global Talents</h2>
             <div id="web-profession-list" class="grid grid-cols-1 xl:grid-cols-2 gap-8 pb-20"></div>
         </div>
 
         <div id="page-archive" class="page-section flex-grow overflow-y-auto p-8 bg-gray-50 dark:bg-slate-950">
-            <h2 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">Archive & History</h2>
+            <h2 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">History</h2>
             <div id="archive-list" class="max-w-3xl space-y-6 pb-20">
                 <div id="empty-archive-msg" class="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-gray-200 dark:border-slate-700 text-gray-400">
                     <i class="fa-solid fa-folder-open text-5xl mb-4 opacity-20"></i>
@@ -145,10 +145,7 @@
     </main>
 
     <aside class="hidden lg:flex w-72 bg-white dark:bg-slate-900 border-l border-gray-200 dark:border-slate-800 flex-col overflow-y-auto z-40">
-        <div class="p-6 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
-            <h3 class="font-bold text-gray-800 dark:text-white">Participants</h3>
-            <span class="text-xs bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-full text-indigo-500 font-bold">Online</span>
-        </div>
+        <div class="p-6 border-b border-gray-100 dark:border-slate-800"><h3 class="font-bold text-gray-800 dark:text-white">Participants</h3></div>
         <div class="p-6 flex flex-wrap gap-6 participants-container justify-center"></div>
     </aside>
 
@@ -160,26 +157,124 @@
             </div>
             <form onsubmit="window.saveCvData(event)" class="p-6 space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div><label class="text-xs font-bold text-gray-500 uppercase">Name</label><input id="cv-edit-name" type="text" class="w-full p-3 rounded-lg border dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
-                    <div><label class="text-xs font-bold text-gray-500 uppercase">Profession</label><input id="cv-edit-profession" type="text" class="w-full p-3 rounded-lg border dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
-                    <div><label class="text-xs font-bold text-gray-500 uppercase">Languages</label><input id="cv-edit-langs" type="text" class="w-full p-3 rounded-lg border dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
-                    <div><label class="text-xs font-bold text-gray-500 uppercase">Country</label><input id="cv-edit-country" type="text" class="w-full p-3 rounded-lg border dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
-                    <div><label class="text-xs font-bold text-gray-500 uppercase">Phone</label><input id="cv-edit-phone" type="tel" class="w-full p-3 rounded-lg border dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
-                    <div><label class="text-xs font-bold text-gray-500 uppercase">Email</label><input id="cv-edit-email" type="email" class="w-full p-3 rounded-lg border dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
+                    <div><label class="text-xs font-bold text-gray-500 uppercase">Name</label><input id="cv-edit-name" type="text" class="w-full p-3 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
+                    <div><label class="text-xs font-bold text-gray-500 uppercase">Profession</label><input id="cv-edit-profession" type="text" class="w-full p-3 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
+                    <div><label class="text-xs font-bold text-gray-500 uppercase">Languages</label><input id="cv-edit-langs" type="text" class="w-full p-3 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
+                    <div><label class="text-xs font-bold text-gray-500 uppercase">Country</label><input id="cv-edit-country" type="text" class="w-full p-3 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
+                    <div><label class="text-xs font-bold text-gray-500 uppercase">Phone</label><input id="cv-edit-phone" type="tel" class="w-full p-3 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
+                    <div><label class="text-xs font-bold text-gray-500 uppercase">Email</label><input id="cv-edit-email" type="email" class="w-full p-3 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
                 </div>
-                <div><label class="text-xs font-bold text-gray-500 uppercase">Core Competencies</label><input id="cv-edit-competencies" type="text" class="w-full p-3 rounded-lg border dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
-                <div><label class="text-xs font-bold text-gray-500 uppercase">Experience</label><input id="cv-edit-experience" type="text" class="w-full p-3 rounded-lg border dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
-                <div><label class="text-xs font-bold text-gray-500 uppercase">Education</label><input id="cv-edit-education" type="text" class="w-full p-3 rounded-lg border dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
-                <div><label class="text-xs font-bold text-gray-500 uppercase">About Me (CV)</label><textarea id="cv-edit-about" rows="3" class="w-full p-3 rounded-lg border dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none resize-none"></textarea></div>
-                <button id="save-cv-btn" type="submit" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg transition">Save CV</button>
+                <div><label class="text-xs font-bold text-gray-500 uppercase">Core Competencies</label><input id="cv-edit-competencies" type="text" class="w-full p-3 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div><label class="text-xs font-bold text-gray-500 uppercase">Experience</label><input id="cv-edit-experience" type="text" class="w-full p-3 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
+                    <div><label class="text-xs font-bold text-gray-500 uppercase">Education</label><input id="cv-edit-education" type="text" class="w-full p-3 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none"></div>
+                </div>
+                <div><label class="text-xs font-bold text-gray-500 uppercase">About Me (CV)</label><textarea id="cv-edit-about" rows="3" class="w-full p-3 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50 text-gray-900 dark:text-white outline-none resize-none"></textarea></div>
+                <button id="save-cv-btn" type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg transition">Save CV</button>
             </form>
+        </div>
+    </div>
+
+    <div id="search-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] items-center justify-center p-4 transition-all duration-300 opacity-0">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg p-6 shadow-2xl transform scale-95 transition-all duration-300 border border-gray-100 dark:border-slate-800">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-white">Global Search</h3>
+                <button onclick="window.closeSearchModal()" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-4 text-gray-400"></i>
+                <input type="text" id="global-search-input" oninput="if(window.performLiveSearch) window.performLiveSearch()" class="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:border-indigo-500 transition" placeholder="Search people, places, skills...">
+            </div>
+            <div id="search-results-area" class="mt-4 max-h-60 overflow-y-auto"></div>
+            <button onclick="if(window.doGoogleSearch) window.doGoogleSearch()" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition">Search Web</button>
+            <iframe id="search-result-frame" class="w-full h-64 mt-4 rounded-xl hidden border border-gray-200 dark:border-slate-700 bg-white"></iframe>
+        </div>
+    </div>
+
+    <div id="transfer-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] items-center justify-center p-4 transition-all duration-300 opacity-0">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-sm p-6 shadow-2xl transform scale-95 transition-all duration-300 border border-gray-100 dark:border-slate-800">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-white"><i class="fa-solid fa-building-columns text-green-500 mr-2"></i>Bank Transfer</h3>
+                <button onclick="window.closeBankTransferModal()" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form onsubmit="if(window.sendMoney) window.sendMoney(event)">
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Recipient</label>
+                    <select id="transfer-recipient" class="w-full p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white outline-none">
+                        <option value="klaus">Klaus (Germany)</option>
+                        <option value="marinella">Marinella (Italy)</option>
+                        <option value="john">John (UK)</option>
+                    </select>
+                </div>
+                <div class="mb-6 relative">
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Amount (USD)</label>
+                    <span class="absolute left-4 bottom-3 text-gray-500 font-bold">$</span>
+                    <input type="number" id="transfer-amount" min="1" class="w-full pl-8 pr-4 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white outline-none" required placeholder="0.00">
+                </div>
+                <button id="submit-transfer-btn" type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl transition">Send Money</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="location-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] items-center justify-center p-4 transition-all duration-300 opacity-0">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md p-6 shadow-2xl transform scale-95 transition-all duration-300 border border-gray-100 dark:border-slate-800">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-white"><i class="fa-solid fa-map-location-dot text-red-500 mr-2"></i>My Location</h3>
+                <button onclick="window.closeLocationModal()" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="location-map" class="w-full h-64 bg-gray-100 dark:bg-slate-800 rounded-xl flex flex-col items-center justify-center text-gray-500">
+                <i class="fa-solid fa-spinner fa-spin text-2xl text-indigo-500 mb-2"></i>
+                <span>Loading map...</span>
+            </div>
+            <button onclick="window.closeLocationModal()" class="w-full mt-4 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-800 dark:text-white font-bold py-3 rounded-xl transition">Close</button>
+        </div>
+    </div>
+
+    <div id="email-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] items-center justify-center p-4 transition-all duration-300 opacity-0">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md p-6 shadow-2xl transform scale-95 transition-all duration-300 border border-gray-100 dark:border-slate-800">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-white"><i class="fa-solid fa-envelope text-blue-500 mr-2"></i>Send Email</h3>
+                <button onclick="window.closeEmailModal()" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form onsubmit="if(window.sendEmailForm) window.sendEmailForm(event)">
+                <input type="email" id="email-to-input" class="w-full p-3 mb-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white outline-none" placeholder="To: email@example.com" required>
+                <input type="text" id="email-subject-input" class="w-full p-3 mb-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white outline-none" placeholder="Subject" required>
+                <textarea id="email-message-input" rows="4" class="w-full p-3 mb-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-900 dark:text-white outline-none resize-none" placeholder="Write your message..." required></textarea>
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl transition">Send <i class="fa-solid fa-paper-plane ml-2"></i></button>
+            </form>
+        </div>
+    </div>
+
+    <div id="trash-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] items-center justify-center p-4 transition-all duration-300 opacity-0">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-sm p-6 shadow-2xl transform scale-95 transition-all duration-300 border border-gray-100 dark:border-slate-800 text-center">
+            <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500 text-2xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">Clear Chat History?</h3>
+            <p class="text-gray-500 text-sm mb-6">This action cannot be undone. All messages in this room will be deleted for you.</p>
+            <div class="flex gap-3">
+                <button onclick="window.closeTrashModal()" class="flex-1 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-800 dark:text-white font-bold py-3 rounded-xl transition">Cancel</button>
+                <button onclick="if(window.smartAction) window.smartAction('delete')" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl transition">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="auth-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] items-center justify-center p-4 transition-all duration-300 opacity-0">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-sm p-8 shadow-2xl transform scale-95 transition-all duration-300 border border-gray-100 dark:border-slate-800 text-center">
+            <div class="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-600 text-2xl shadow-inner">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">Account Login</h3>
+            <p class="text-gray-500 text-sm mb-6">Switch active user or create new</p>
+            <button onclick="if(window.switchTestUser) window.switchTestUser(); window.closeAuthModal();" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition mb-3">Change User Name</button>
+            <button onclick="window.closeAuthModal()" class="w-full bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-800 dark:text-white font-bold py-3 rounded-xl transition">Close</button>
         </div>
     </div>
 
     <div id="conference-overlay" class="call-overlay bg-slate-900 text-white z-[9999]">
         <div class="h-20 bg-black/40 flex items-center justify-between px-10">
             <h2 class="text-xl font-bold flex items-center gap-4"><i class="fa-solid fa-video text-indigo-400"></i> Global Video Conference</h2>
-            <button onclick="window.closeCalls()" class="bg-red-600 px-6 py-2 rounded-lg font-bold">End Session</button>
+            <button onclick="if(window.closeCalls) window.closeCalls()" class="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg font-bold transition">End Session</button>
         </div>
         <div class="grid-conf flex-grow p-10 overflow-y-auto">
             <div class="user-card speaker-card">
@@ -200,6 +295,21 @@
         </div>
     </div>
 
+    <div id="phone-choice-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] items-center justify-center p-4 transition-all duration-300">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-sm p-6 shadow-2xl transform transition-all duration-300 border border-gray-100 dark:border-slate-800 text-center">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-6">Choose Call Method</h3>
+            <div class="flex flex-col gap-4">
+                <button onclick="if(window.startInAppCall) window.startInAppCall()" class="bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 font-bold py-4 rounded-xl border border-indigo-100 dark:border-indigo-500/30 transition flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-headset text-xl"></i> Secure In-App Call
+                </button>
+                <button onclick="if(window.startExternalCall) window.startExternalCall()" class="bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 font-bold py-4 rounded-xl border border-green-100 dark:border-green-500/30 transition flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-mobile-screen text-xl"></i> Cellular Call
+                </button>
+                <button onclick="if(window.closePhoneChoiceModal) window.closePhoneChoiceModal()" class="mt-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-semibold transition">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/core/firebase-init.js"></script>
     <script src="js/web/web-chat.js"></script>
     <script src="js/web/web-calls.js"></script>
@@ -208,8 +318,13 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Инициализация запуска
-            setTimeout(() => { if(window.switchWebChat) window.switchWebChat('global'); }, 500);
+            setTimeout(() => { 
+                if(window.switchWebChat) {
+                    window.switchWebChat('global'); 
+                } else {
+                    console.warn("Library files not loaded correctly. Check folder paths.");
+                }
+            }, 500);
         });
     </script>
 </body>
