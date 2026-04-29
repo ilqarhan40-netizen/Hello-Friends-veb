@@ -1,14 +1,20 @@
 // ==========================================
+// HELLO FRIENDS - CALLS & WEBRTC CONTROLLER
+// Файл: js/web/web-calls.js
+// Назначение: Управление видео и аудио звонками, перевод в звонках
+// ==========================================
+
+// ==========================================
 // 1. УПРАВЛЕНИЕ ОКНАМИ ЗВОНКОВ И КОНФЕРЕНЦИЙ
 // ==========================================
 window.openConference = function() { 
-    if(window.closeDropdown) window.closeDropdown(); 
+    if(typeof window.closeDropdown === 'function') window.closeDropdown(); 
     const overlay = document.getElementById('conference-overlay');
     if(overlay) overlay.style.display = 'flex'; 
 };
 
 window.openVoiceChat = function() { 
-    if(window.closeDropdown) window.closeDropdown(); 
+    if(typeof window.closeDropdown === 'function') window.closeDropdown(); 
     const overlay = document.getElementById('voice-overlay');
     if(overlay) overlay.style.display = 'flex'; 
 };
@@ -21,7 +27,7 @@ window.closeCalls = function() {
 };
 
 window.openPhoneChoiceModal = function() { 
-    if(window.closeDropdown) window.closeDropdown(); 
+    if(typeof window.closeDropdown === 'function') window.closeDropdown(); 
     const modal = document.getElementById('phone-choice-modal');
     if(modal) {
         modal.classList.remove('hidden'); 
@@ -75,16 +81,12 @@ window.toggleConfCC = function() {
     const btn = document.getElementById('conf-cc-btn');
     
     if (window.isConfCCEnabled) {
-        if (btn) {
-            btn.classList.remove('bg-gray-600', 'text-gray-300');
-            btn.classList.add('bg-indigo-600', 'dark:bg-[#00C4CC]', 'text-white', 'dark:text-black');
-        }
+        btn?.classList.remove('bg-gray-600', 'text-gray-300');
+        btn?.classList.add('bg-indigo-600', 'dark:bg-[#00C4CC]', 'text-white', 'dark:text-black');
         document.querySelectorAll('#conference-overlay .translation-bar').forEach(bar => bar.style.display = 'flex');
     } else {
-        if (btn) {
-            btn.classList.remove('bg-indigo-600', 'dark:bg-[#00C4CC]', 'text-white', 'dark:text-black');
-            btn.classList.add('bg-gray-600', 'text-gray-300');
-        }
+        btn?.classList.remove('bg-indigo-600', 'dark:bg-[#00C4CC]', 'text-white', 'dark:text-black');
+        btn?.classList.add('bg-gray-600', 'text-gray-300');
         document.querySelectorAll('#conference-overlay .translation-bar').forEach(bar => bar.style.display = 'none');
     }
 };
@@ -113,15 +115,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if(confInput) confInput.value = '';
 
         const speakerMarquee = document.getElementById('conf-speaker-marquee');
-        let myFlag = window.myProfileInfo?.flag || '🌐';
+        
+        // ИСПРАВЛЕНИЕ: Берем данные из нашей реальной базы
+        const me = window.profilesData ? window.profilesData['me'] : null;
+        let myFlag = me ? me.flagEmoji : '🌐';
+        
         if(speakerMarquee) speakerMarquee.innerHTML = `${myFlag} You: ${text}`;
 
         document.querySelectorAll('.conf-listener-marquee').forEach(async (m) => {
             const lang = m.getAttribute('data-lang');
             const flag = m.getAttribute('data-flag');
             try {
-                // Функция translateText берется из web-chat.js
-                let translated = window.translateText ? await window.translateText(text, lang) : text;
+                let translated = (typeof window.translateText === 'function') ? await window.translateText(text, lang) : text;
                 m.innerHTML = `➔ ${flag} <span class="text-green-400 font-bold">${translated}</span>`;
             } catch(e) {
                 m.innerHTML = `${flag} Error...`;
@@ -132,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('conf-send-btn')?.addEventListener('click', () => window.sendConfMessage());
     document.getElementById('conf-text-input')?.addEventListener('keypress', e => { if(e.key === 'Enter') window.sendConfMessage(); });
 
-    // Инициализация голосового ввода (если браузер поддерживает)
+    // Инициализация голосового ввода
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
         const confMicBtn = document.getElementById('main-conf-mic-btn');
@@ -147,7 +152,9 @@ document.addEventListener('DOMContentLoaded', () => {
             confRec.onresult = (e) => { window.sendConfMessage(e.results[0][0].transcript); };
             
             confMicBtn.addEventListener('click', () => { 
-                confRec.lang = document.getElementById('global-mic-lang')?.value || window.myProfileInfo?.langCode || 'en-US'; 
+                // ИСПРАВЛЕНИЕ: Берем язык из базы
+                const me = window.profilesData ? window.profilesData['me'] : null;
+                confRec.lang = document.getElementById('global-mic-lang')?.value || (me ? me.langCode : 'en-US'); 
                 try { confRec.start(); } catch(e){} 
             });
         }
