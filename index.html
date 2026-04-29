@@ -73,73 +73,113 @@
 </head>
 <body class="bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-gray-100 relative transition-colors duration-300">
 
-<input type="file" id="import-export-input" class="hidden">
-<input type="file" id="attachment-input" class="hidden" accept="image/*, .pdf, .doc, .docx, .txt">
+<div id="security-lock" class="fixed inset-0 z-[999999] flex flex-col justify-center items-center bg-gray-100 dark:bg-slate-900 px-6 transition-opacity duration-500">
+    <div id="auth-spinner" class="flex flex-col items-center">
+        <i class="fa-solid fa-circle-notch fa-spin text-indigo-600 text-5xl mb-6"></i>
+        <h2 class="text-gray-900 dark:text-white font-bold text-2xl tracking-widest uppercase">Hello Friends</h2>
+        <p class="text-gray-500 dark:text-gray-400 text-sm mt-2">Connecting to Secure Cloud...</p>
+    </div>
 
-<div id="toast-notification" class="toast-notification border border-indigo-300">
-    <img id="toast-img" src="" class="w-12 h-12 rounded-full object-cover border-2 border-white shrink-0" style="display: none;">
-    <div id="toast-icon-wrap" class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-xl shrink-0 border-2 border-white">🌍</div>
-    <div class="flex flex-col flex-grow ml-2">
-        <div class="flex items-center gap-2">
-            <span id="toast-flag" class="text-lg">🌍</span>
-            <span id="toast-name" class="font-bold text-lg text-white">Group Chat</span>
+    <div id="auth-login-box" class="hidden flex-col items-center bg-white dark:bg-slate-800 p-10 rounded-3xl shadow-2xl border border-gray-100 dark:border-slate-700 max-w-sm w-full">
+        <div class="w-20 h-20 rounded-full bg-indigo-50 dark:bg-slate-700 flex items-center justify-center text-3xl mb-6 shadow-inner">
+            <i class="fa-brands fa-google text-red-500"></i>
         </div>
-        <span id="toast-info" class="text-xs text-indigo-100 font-sans leading-snug mt-1">Switched to Global Room</span>
+        <h2 class="text-gray-900 dark:text-white font-bold text-2xl mb-2 tracking-tight">Welcome Back</h2>
+        <p class="text-gray-500 dark:text-gray-400 text-sm mb-8 text-center uppercase tracking-widest font-semibold">Secure Cloud Network</p>
+        
+        <button onclick="signInWithGoogle()" class="w-full bg-white dark:bg-slate-700 text-gray-700 dark:text-white border border-gray-200 dark:border-slate-600 py-3.5 px-6 rounded-xl font-bold text-base transition-all hover:bg-gray-50 dark:hover:bg-slate-600 flex items-center justify-center gap-3 shadow-md active:scale-95">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5" alt="Google">
+            Sign in with Google
+        </button>
     </div>
 </div>
 
-<div class="container mx-auto md:max-w-4xl md:p-8">
+<div id="app-wrapper" class="flex flex-col h-full w-full opacity-0 transition-opacity duration-500">
 
-    <header class="bg-white dark:bg-slate-800 md:rounded-xl shadow-md p-4 md:p-6 mb-0 md:mb-8 flex justify-between items-center relative transition-colors duration-300">
-        <div class="flex items-center gap-4">
-            <div class="w-12 h-12 md:w-16 md:h-16 bg-indigo-600 rounded-full flex items-center justify-center text-white text-2xl md:text-3xl font-bold shadow-lg flex-shrink-0">HF</div>
-            <div><p class="text-lg md:text-xl font-semibold">Hello Friends</p></div>
-        </div>
-        
-        <div class="hidden md:flex items-center gap-2 relative">
-            <button onclick="openSearchModal()" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors" title="Global Search">
-                <i class="fa-solid fa-magnifying-glass text-xl text-indigo-500"></i>
-            </button>
-            <button onclick="openEmailModal()" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors" title="Email"><i class="fa-solid fa-envelope text-xl"></i></button>
-            <button id="header-menu-btn" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"><i class="fa-solid fa-bars text-xl"></i></button>
-<div id="menu-panel" class="popover-panel absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-800 p-2 rounded-lg shadow-xl hidden opacity-0 transform scale-95 z-50 transition-colors border border-gray-100 dark:border-slate-700">
-                
-                <div class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer relative">
-                    <i class="fa-solid fa-globe text-blue-500 w-5 text-center"></i>
-                    <select id="app-lang-select" onchange="window.changeAppLanguage(this.value)" class="bg-transparent font-bold outline-none cursor-pointer appearance-none w-full pr-6 text-gray-800 dark:text-white" onclick="event.stopPropagation()">
-                        <option value="en">🇬🇧 English</option>
-                        <option value="ru">🇷🇺 Русский</option>
-                        <option value="az">🇦🇿 Azərbaycanca</option>
-                        <option value="tr">🇹🇷 Türkçe</option>
-                        <option value="de">🇩🇪 Deutsch</option>
-                        <option value="it">🇮🇹 Italiano</option>
-                        <option value="es">🇪🇸 Español</option>
-                        <option value="fr">🇫🇷 Français</option>
-                        <option value="zh">🇨🇳 中文</option>
-                        <option value="ja">🇯🇵 日本語</option>
-                        <option value="ar">🇦🇪 العربية</option>
-                    </select>
-                    <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
-                </div>
+    <input type="file" id="import-export-input" class="hidden">
+    <input type="file" id="attachment-input" class="hidden" accept="image/*, .pdf, .doc, .docx, .txt">
 
-                <div class="border-t dark:border-slate-700 my-1"></div>
-                
-                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors"><i class="fa-solid fa-user w-6"></i> Profile</a>
-                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors"><i class="fa-solid fa-gear w-6"></i> Settings</a>
-                <button id="menu-theme-toggle" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors text-left"><i class="fa-solid fa-moon w-6"></i> Change Theme</button>
-                
-                <div class="border-t dark:border-slate-700 my-1"></div>
-                <a href="#" onclick="openBankTransferModal(); return false;" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors">
-                    <i class="fa-solid fa-money-bill-transfer w-6 text-green-500"></i> Bank Transfer
-                </a>
-                <a href="#" onclick="openAuthModal(); return false;" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors"><i class="fa-solid fa-shield-halved w-6 text-indigo-500"></i> Authentication</a>
-                <a href="#" onclick="triggerImportExport(); return false;" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors"><i class="fa-solid fa-file-import w-6"></i> Import - Export</a>
-                <div class="border-t dark:border-slate-700 my-1"></div>
-                <a href="#" onclick="switchTestUser(); return false;" class="flex items-center px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-slate-700 rounded-md transition-colors"><i class="fa-solid fa-right-from-bracket w-6"></i> Logout</a>
+    <div id="toast-notification" class="toast-notification border border-indigo-300">
+        <img id="toast-img" src="" class="w-12 h-12 rounded-full object-cover border-2 border-white shrink-0" style="display: none;">
+        <div id="toast-icon-wrap" class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-xl shrink-0 border-2 border-white">🌍</div>
+        <div class="flex flex-col flex-grow ml-2">
+            <div class="flex items-center gap-2">
+                <span id="toast-flag" class="text-lg">🌍</span>
+                <span id="toast-name" class="font-bold text-lg text-white">Group Chat</span>
             </div>
-    </header>
+            <span id="toast-info" class="text-xs text-indigo-100 font-sans leading-snug mt-1">Switched to Global Room</span>
+        </div>
+    </div>
 
-    <nav id="main-nav" class="bg-white dark:bg-slate-800 md:rounded-xl shadow-md hidden md:flex flex-wrap justify-center gap-2 mb-4 p-2 transition-colors duration-300">
+    <div class="container mx-auto md:max-w-4xl md:p-8">
+
+        <header class="bg-white dark:bg-slate-800 md:rounded-xl shadow-md p-4 md:p-6 mb-0 md:mb-8 flex justify-between items-center relative transition-colors duration-300">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 md:w-16 md:h-16 bg-indigo-600 rounded-full flex items-center justify-center text-white text-2xl md:text-3xl font-bold shadow-lg flex-shrink-0">HF</div>
+                <div><p class="text-lg md:text-xl font-semibold">Hello Friends</p></div>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-2 relative">
+                <button onclick="openSearchModal()" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors" title="Global Search">
+                    <i class="fa-solid fa-magnifying-glass text-xl text-indigo-500"></i>
+                </button>
+                <button onclick="openEmailModal()" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors" title="Email"><i class="fa-solid fa-envelope text-xl"></i></button>
+                
+                <button id="header-menu-btn" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"><i class="fa-solid fa-ellipsis-vertical text-xl"></i></button>
+                
+                <div id="menu-panel" class="popover-panel absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-800 p-2 rounded-lg shadow-xl hidden opacity-0 transform scale-95 z-50 transition-colors border border-gray-100 dark:border-slate-700">
+                    
+                    <div class="px-4 py-2 border-b dark:border-slate-700 mb-1">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest" data-i18n="menu">Settings</span>
+                    </div>
+
+                    <a onclick="openMyProfile()" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer">
+                        <i class="fa-solid fa-user text-indigo-500 w-6"></i> <span data-i18n="profile">Profile</span>
+                    </a>
+
+                    <div class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer relative">
+                        <i class="fa-solid fa-globe text-blue-500 w-5 text-center"></i>
+                        <select id="app-lang-select" onchange="window.changeAppLanguage(this.value)" class="bg-transparent font-bold outline-none cursor-pointer appearance-none w-full pr-6 text-gray-800 dark:text-white" onclick="event.stopPropagation()">
+                            <option value="auto">🤖 Auto</option>
+                            <option value="en">🇬🇧 English</option>
+                            <option value="ru">🇷🇺 Русский</option>
+                            <option value="az">🇦🇿 Azərbaycanca</option>
+                            <option value="de">🇩🇪 Deutsch</option>
+                            <option value="tr">🇹🇷 Türkçe</option>
+                            <option value="ar">🇦🇪 العربية</option>
+                            <option value="it">🇮🇹 Italiano</option>
+                            <option value="es">🇪🇸 Español</option>
+                            <option value="fr">🇫🇷 Français</option>
+                            <option value="pt">🇵🇹 Português</option>
+                            <option value="ja">🇯🇵 日本語</option>
+                            <option value="zh">🇨🇳 中文</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
+                    </div>
+
+                    <a onclick="openBankTransferModal()" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer">
+                        <i class="fa-solid fa-wallet text-green-500 w-6"></i> <span data-i18n="wallet">Wallet</span>
+                    </a>
+
+                    <a onclick="openEmailStore()" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer">
+                        <i class="fa-solid fa-store text-indigo-400 w-6"></i> <span data-i18n="email_store">Email Store</span>
+                    </a>
+
+                    <div class="border-t dark:border-slate-700 my-1"></div>
+
+                    <button id="menu-theme-toggle" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors text-left">
+                        <i class="fa-solid fa-moon text-indigo-500 w-6"></i> <span data-i18n="theme">Change Theme</span>
+                    </button>
+                    
+                    <div class="border-t dark:border-slate-700 my-1"></div>
+                    
+                    <a onclick="signOutGoogle()" class="flex items-center px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer">
+                        <i class="fa-solid fa-right-from-bracket w-6"></i> <span data-i18n="logout">Logout</span>
+                    </a>
+                </div>
+            </div>
+        </header>
+   <nav id="main-nav" class="bg-white dark:bg-slate-800 md:rounded-xl shadow-md hidden md:flex flex-wrap justify-center gap-2 mb-4 p-2 transition-colors duration-300">
         <a href="#" data-target="chat" class="nav-link active px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">Chat</a>
         <a href="#" onclick="openVoiceChat(); return false;" class="px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">Voice Chat</a>
         <a href="#" onclick="openConference(); return false;" class="px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">Conference</a>
@@ -221,6 +261,7 @@
                 <div class="relative flex-grow flex items-center bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-full overflow-visible focus-within:ring-2 focus-within:ring-indigo-500 transition-colors shadow-inner px-2">
                     
                     <button id="emoji-toggle-btn" class="p-3 text-gray-500 hover:text-yellow-500 transition-colors"><i class="fa-regular fa-face-smile text-xl"></i></button>
+                    <button onclick="document.getElementById('attachment-input').click();" class="p-3 text-gray-500 hover:text-blue-500 transition-colors" title="Attach File"><i class="fa-solid fa-paperclip text-xl"></i></button>
                     
                     <div id="emoji-picker" class="hidden absolute bottom-full left-0 mb-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-3 rounded-xl grid grid-cols-5 gap-3 text-2xl shadow-xl z-50">
                         <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertEmoji('😀')">😀</span>
@@ -245,12 +286,10 @@
                 
                 <div class="relative">
                     <button id="actions-btn" class="w-12 h-12 bg-gray-200 dark:bg-slate-700 rounded-full flex items-center justify-center hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors"><i class="fa-solid fa-plus text-gray-600 dark:text-gray-300 text-xl"></i></button>
-                    <div id="actions-panel" class="popover-panel absolute bottom-full right-0 mb-2 bg-white dark:bg-slate-800 p-3 rounded-lg shadow-xl grid grid-cols-3 gap-2 hidden opacity-0 transform scale-95 z-20 transition-colors border border-gray-100 dark:border-slate-700 w-64">
+                    <div id="actions-panel" class="popover-panel absolute bottom-full right-0 mb-2 bg-white dark:bg-slate-800 p-3 rounded-lg shadow-xl grid grid-cols-2 gap-2 hidden opacity-0 transform scale-95 z-20 transition-colors border border-gray-100 dark:border-slate-700 w-48">
                         <button onclick="openLocationModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 rounded-lg"><i class="fa-solid fa-location-dot text-xl mb-1"></i><span class="text-[10px] font-medium">Location</span></button>
-                        <button onclick="document.getElementById('attachment-input').click(); window.closeDropdown();" class="flex flex-col items-center justify-center p-3 text-gray-500 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 rounded-lg"><i class="fa-solid fa-paperclip text-xl mb-1"></i><span class="text-[10px] font-medium">Attach</span></button>
                         <button onclick="openSearchModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 rounded-lg"><i class="fa-solid fa-magnifying-glass text-xl mb-1"></i><span class="text-[10px] font-medium">Search</span></button>
                         <button onclick="openTrashModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-slate-700 hover:text-red-600 rounded-lg"><i class="fa-solid fa-trash text-xl mb-1"></i><span class="text-[10px] font-medium">Clear</span></button>
-                        <button onclick="openPhoneChoiceModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 rounded-lg"><i class="fa-solid fa-phone text-xl mb-1"></i><span class="text-[10px] font-medium">Call</span></button>
                         <button onclick="openConference(); window.closeDropdown();" class="flex flex-col items-center justify-center p-3 text-gray-500 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 rounded-lg"><i class="fa-solid fa-video text-xl mb-1"></i><span class="text-[10px] font-medium">Video</span></button>
                     </div>
                 </div>
@@ -258,7 +297,13 @@
         </section>
 
         <section id="profession" class="page-section bg-white dark:bg-slate-800 md:rounded-xl shadow-md p-4 md:p-8 transition-colors duration-300">
-            <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Professional Community</h2>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Professional Community</h2>
+            
+            <div class="w-full overflow-x-auto pb-4 scrollbar-hide mb-4">
+                <div id="rhombus-slider" class="flex gap-4 min-w-max px-2 py-2">
+                    </div>
+            </div>
+
             <p class="text-gray-500 dark:text-gray-400 mb-6">Explore the CVs of our members.</p>
             <div id="web-profession-list" class="flex flex-col gap-8"></div>
         </section>
@@ -281,17 +326,17 @@
     </div>
     
     <div class="grid-conf overflow-y-auto flex-grow p-4 md:p-8">
-        <div class="user-card"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Sarah (UK)</div><img src="https://flagcdn.com/w40/gb.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="en" data-flag="🇬🇧">🇬🇧 Waiting for speaker...</div></div></div>
-        <div class="user-card"><img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Klaus (DE)</div><img src="https://flagcdn.com/w40/de.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="de" data-flag="🇩🇪">🇩🇪 Waiting for speaker...</div></div></div>
-        <div class="user-card speaker-card">
+        <div class="user-card" onclick="openPersonalLangModal('remote1')"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Sarah (UK)</div><img src="https://flagcdn.com/w40/gb.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="en" data-flag="🇬🇧">🇬🇧 Waiting for speaker...</div></div></div>
+        <div class="user-card" onclick="openPersonalLangModal('remote2')"><img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Klaus (DE)</div><img src="https://flagcdn.com/w40/de.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="de" data-flag="🇩🇪">🇩🇪 Waiting for speaker...</div></div></div>
+        <div class="user-card speaker-card" onclick="openPersonalLangModal('user')">
             <img src="https://images.unsplash.com/photo-1557862921-37829c790f19?w=800&h=450&fit=crop&crop=faces" class="user-photo">
             <div class="name-tag text-indigo-600 dark:text-[#00C4CC] font-bold">Ilgar (You)</div>
             <img src="https://flagcdn.com/w40/az.png" class="flag-icon">
             <div class="translation-bar"><div class="marquee-text text-white font-bold" id="conf-speaker-marquee">🇦🇿 Ready to speak...</div></div>
         </div>
-        <div class="user-card"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Marinella (IT)</div><img src="https://flagcdn.com/w40/it.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="it" data-flag="🇮🇹">🇮🇹 Waiting for speaker...</div></div></div>
-        <div class="user-card"><img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">John (UK)</div><img src="https://flagcdn.com/w40/gb.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="en" data-flag="🇬🇧">🇬🇧 Waiting for speaker...</div></div></div>
-        <div class="user-card"><img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Elena (ES)</div><img src="https://flagcdn.com/w40/es.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="es" data-flag="🇪🇸">🇪🇸 Waiting for speaker...</div></div></div>
+        <div class="user-card" onclick="openPersonalLangModal('remote3')"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Marinella (IT)</div><img src="https://flagcdn.com/w40/it.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="it" data-flag="🇮🇹">🇮🇹 Waiting for speaker...</div></div></div>
+        <div class="user-card" onclick="openPersonalLangModal('remote4')"><img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">John (UK)</div><img src="https://flagcdn.com/w40/gb.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="en" data-flag="🇬🇧">🇬🇧 Waiting for speaker...</div></div></div>
+        <div class="user-card" onclick="openPersonalLangModal('remote5')"><img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Elena (ES)</div><img src="https://flagcdn.com/w40/es.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="es" data-flag="🇪🇸">🇪🇸 Waiting for speaker...</div></div></div>
     </div>
 
     <div class="w-full shrink-0 mt-auto pb-8 pt-4 flex justify-center z-50 bg-gradient-to-t from-gray-100 dark:from-[#0f172a] to-transparent">
@@ -594,6 +639,63 @@
     </div>
 </div>
 
+<div id="avatar-actions-modal" class="fixed inset-0 z-[105] hidden flex-col items-center justify-center bg-black/60 backdrop-blur-sm px-4 opacity-0 transition-opacity duration-300" onclick="if(event.target===this) closeAvatarActionsModal()">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-6 w-full max-w-sm transform scale-95 transition-transform duration-300 border border-gray-100 dark:border-slate-700 relative">
+        <button onclick="closeAvatarActionsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+            <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+        
+        <div class="flex flex-col items-center mb-6 mt-2">
+            <img id="action-modal-avatar" src="" class="w-24 h-24 rounded-full object-cover border-4 border-indigo-50 shadow-lg mb-3">
+            <h3 id="action-modal-name" class="text-xl font-bold text-gray-900 dark:text-white">Name</h3>
+            <p id="action-modal-country" class="text-sm text-gray-500 font-medium">Country</p>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-3">
+            <button onclick="actionPrivateChat()" class="flex flex-col items-center justify-center p-3.5 bg-gray-50 dark:bg-slate-700/50 rounded-2xl hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/30 transition-colors border border-transparent dark:border-slate-600">
+                <i class="fa-solid fa-message text-xl mb-2 text-indigo-500"></i>
+                <span class="text-xs font-bold" data-i18n="action_chat">Private Chat</span>
+            </button>
+            <button onclick="actionVoiceRoom()" class="flex flex-col items-center justify-center p-3.5 bg-gray-50 dark:bg-slate-700/50 rounded-2xl hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-900/30 transition-colors border border-transparent dark:border-slate-600">
+                <i class="fa-solid fa-phone text-xl mb-2 text-green-500"></i>
+                <span class="text-xs font-bold" data-i18n="action_voice">Voice Room</span>
+            </button>
+            <button onclick="actionVideoConf()" class="flex flex-col items-center justify-center p-3.5 bg-gray-50 dark:bg-slate-700/50 rounded-2xl hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/30 transition-colors border border-transparent dark:border-slate-600">
+                <i class="fa-solid fa-video text-xl mb-2 text-blue-500"></i>
+                <span class="text-xs font-bold" data-i18n="action_video">Video Conf</span>
+            </button>
+            <button onclick="actionSendEmail()" class="flex flex-col items-center justify-center p-3.5 bg-gray-50 dark:bg-slate-700/50 rounded-2xl hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/30 transition-colors border border-transparent dark:border-slate-600">
+                <i class="fa-solid fa-envelope text-xl mb-2 text-red-500"></i>
+                <span class="text-xs font-bold" data-i18n="action_email">Send Email</span>
+            </button>
+            <button onclick="actionCellularCall()" class="col-span-2 flex items-center justify-center gap-3 p-4 bg-gray-900 dark:bg-slate-950 text-white rounded-2xl hover:bg-gray-800 transition-colors mt-1 shadow-md">
+                <i class="fa-solid fa-mobile-screen-button text-lg"></i>
+                <span class="text-sm font-bold tracking-wide" data-i18n="action_cellular">Cellular Call</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="personal-lang-modal" class="fixed inset-0 z-[105] hidden flex-col items-center justify-center bg-black/50 backdrop-blur-sm px-4 opacity-0 transition-opacity duration-300" onclick="if(event.target===this) closePersonalLangModal()">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-6 w-full max-w-xs transform scale-95 transition-transform duration-300 border border-gray-100 dark:border-slate-700">
+        <h3 class="text-lg font-bold mb-4 text-center text-gray-900 dark:text-white" data-i18n="select_room_lang">Room Language</h3>
+        <div class="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
+            <button onclick="setPersonalLang('en')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇬🇧 English</button>
+            <button onclick="setPersonalLang('ru')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇷🇺 Русский</button>
+            <button onclick="setPersonalLang('az')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇦🇿 Azərbaycanca</button>
+            <button onclick="setPersonalLang('tr')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇹🇷 Türkçe</button>
+            <button onclick="setPersonalLang('de')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇩🇪 Deutsch</button>
+            <button onclick="setPersonalLang('it')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇮🇹 Italiano</button>
+            <button onclick="setPersonalLang('es')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇪🇸 Español</button>
+            <button onclick="setPersonalLang('fr')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇫🇷 Français</button>
+            <button onclick="setPersonalLang('pt')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇵🇹 Português</button>
+            <button onclick="setPersonalLang('ar')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇦🇪 العربية</button>
+            <button onclick="setPersonalLang('ja')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇯🇵 日本語</button>
+            <button onclick="setPersonalLang('zh')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇨🇳 中文</button>
+        </div>
+        <button onclick="closePersonalLangModal()" class="w-full mt-5 py-3 bg-gray-100 dark:bg-slate-600 rounded-xl font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-500 transition-colors" data-i18n="cancel">Cancel</button>
+    </div>
+</div>
 <script>
     // --- ПАНЕЛИ И МЕНЮ ---
     window.closeDropdown = function() {
