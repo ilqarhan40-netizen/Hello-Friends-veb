@@ -1,129 +1,167 @@
 // ==========================================
-// 1. ЛОГИКА ОТКРЫТИЯ И СОХРАНЕНИЯ РЕЗЮМЕ
+// HELLO FRIENDS - WEB CV & PROFILES ENGINE
+// Файл: js/web/web-cv.js
+// Назначение: База пользователей, Сетка талантов, Слайдер фото, Профили
 // ==========================================
-window.openCvEditModal = function() {
-    if (window.closeDropdown) window.closeDropdown();
-    
-    const p = window.myProfileInfo || {};
-    
-    // Заполняем поля резюме
-    document.getElementById('cv-edit-name').value = p.name || window.myUsername || '';
-    document.getElementById('cv-edit-profession').value = p.profession || '';
-    document.getElementById('cv-edit-langs').value = p.profileLangs || p.langCode || '';
-    document.getElementById('cv-edit-country').value = p.country || '';
-    document.getElementById('cv-edit-phone').value = p.phone || '';
-    document.getElementById('cv-edit-email').value = p.email || '';
-    document.getElementById('cv-edit-competencies').value = p.competencies || '';
-    document.getElementById('cv-edit-experience').value = p.experience || '';
-    document.getElementById('cv-edit-education').value = p.education || '';
-    document.getElementById('cv-edit-about').value = p.desc || '';
 
-    const modal = document.getElementById('cv-edit-modal');
+// --- 1. ГЛОБАЛЬНАЯ БАЗА ПРОФИЛЕЙ ---
+window.profilesData = {
+    'me': { name: 'Ilgar (You)', email: 'ilgar@hellofriends.com', phone: '+994 50 123 4567', country: 'Azerbaijan', img: 'https://images.unsplash.com/photo-1557862921-37829c790f19?w=400', flag: 'https://flagcdn.com/w40/az.png', flagEmoji: '🇦🇿', desc: 'Azerbaijan is a country in the South Caucasus region of Eurasia.', prof: 'CEO & Founder', langs: 'Azerbaijani, Russian, English', pop: '~10.1M', seas: 'Caspian Sea', langCode: 'az' },
+    'ai': { name: 'Dual AI Co-Pilot', email: 'ai@hellofriends.com', phone: 'API-Driven', country: 'Cloud Server', img: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=400', flag: 'https://flagcdn.com/w40/un.png', flagEmoji: '🤖', desc: 'Powered by Google Gemini & OpenAI ChatGPT. Ask me anything!', prof: 'Super Intelligence', langs: 'All languages', pop: 'Infinite', seas: 'Data Oceans', langCode: 'en' },
+    'klaus': { name: 'Klaus', email: 'klaus@hellofriends.com', phone: '+491761234567', country: 'Germany', img: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400', flag: 'https://flagcdn.com/w40/de.png', flagEmoji: '🇩🇪', desc: 'Germany is a country in Central Europe, known for its rich history.', prof: 'Senior Engineer', langs: 'German, English', pop: '~84M', seas: 'Baltic Sea, North Sea', langCode: 'de' },
+    'marinella': { name: 'Marinella', email: 'marinella@hellofriends.com', phone: '+393331234567', country: 'Italy', img: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400', flag: 'https://flagcdn.com/w40/it.png', flagEmoji: '🇮🇹', desc: 'Italy is a country in Southern Europe, famous for art and cuisine.', prof: 'Marketing Director', langs: 'Italian, English', pop: '~59M', seas: 'Mediterranean, Adriatic', langCode: 'it' },
+    'john': { name: 'John', email: 'john@hellofriends.com', phone: '+447700900077', country: 'United Kingdom', img: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400', flag: 'https://flagcdn.com/w40/gb.png', flagEmoji: '🇬🇧', desc: 'The United Kingdom is an island nation in northwestern Europe.', prof: 'Lead Designer', langs: 'English', pop: '~67M', seas: 'North Sea, Atlantic Ocean', langCode: 'en' }
+};
+
+// --- 2. ГЕНЕРАЦИЯ ГОРИЗОНТАЛЬНОГО СЛАЙДЕРА АВАТАРОВ ---
+window.generateAvatarSlider = function() {
+    const slider = document.getElementById('rhombus-slider');
+    if (!slider) return;
+    
+    let html = '';
+    // Выводим всех, кроме AI
+    ['klaus', 'marinella', 'john', 'me'].forEach(id => {
+        const p = profilesData[id];
+        html += `
+            <div class="relative group cursor-pointer shrink-0" onclick="openAvatarActionsModal('${id}')">
+                <img src="${p.img}" class="w-20 h-20 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-lg group-hover:scale-105 transition-transform duration-300">
+                <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-indigo-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10 shadow whitespace-nowrap">
+                    ${p.name.replace(' (You)', '')}
+                </div>
+            </div>
+        `;
+    });
+    slider.innerHTML = html;
+};
+
+// Переопределяем функцию открытия окна действий (чтобы подставлять данные юзера)
+window.openAvatarActionsModal = function(id) {
+    if(typeof window.closeDropdown === 'function') window.closeDropdown();
+    
+    const p = profilesData[id];
+    if(p) {
+        document.getElementById('action-modal-avatar').src = p.img;
+        document.getElementById('action-modal-name').innerText = p.name.replace(' (You)', '');
+        document.getElementById('action-modal-country').innerText = `${p.flagEmoji} ${p.country}`;
+        
+        // Привязываем кнопки к конкретному юзеру (логика звонков/чата будет в web-chat.js)
+        window.currentActionUserId = id; 
+    }
+
+    const modal = document.getElementById('avatar-actions-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            modal.querySelector('div').classList.remove('scale-95');
+        }, 10);
+    }
+};
+
+// --- 3. ГЕНЕРАЦИЯ СЕТКИ ПРОФЕССИОНАЛОВ (CV) ---
+window.generateProfessionGrid = function() {
+    const grid = document.getElementById('web-profession-list');
+    if(!grid) return;
+    let html = '';
+    ['me', 'klaus', 'marinella', 'john'].forEach(id => {
+        const p = profilesData[id];
+        html += `
+            <div class="bg-gray-50 dark:bg-slate-900/50 p-6 md:p-8 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                <div class="flex flex-col md:flex-row items-center md:items-start gap-6 mb-8 border-b dark:border-slate-700 pb-6">
+                    <img src="${p.img}" class="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-indigo-100 dark:border-slate-700 shadow-md">
+                    <div class="text-center md:text-left">
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">${p.name.replace(' (You)', '')}</h3>
+                        <p class="text-indigo-600 dark:text-indigo-400 font-semibold mb-3">${p.prof}</p>
+                        <div class="flex flex-wrap justify-center md:justify-start gap-2">
+                            <span class="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs font-bold rounded-full">Pro</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8 text-sm">
+                    <div class="flex flex-col"><span class="text-gray-500 dark:text-gray-400 font-medium mb-1"><i class="fa-solid fa-briefcase w-5 text-indigo-500"></i> Profession</span><span class="font-semibold text-gray-800 dark:text-gray-200 text-base">${p.prof}</span></div>
+                    <div class="flex flex-col"><span class="text-gray-500 dark:text-gray-400 font-medium mb-1"><i class="fa-solid fa-language w-5 text-indigo-500"></i> Languages</span><span class="font-semibold text-gray-800 dark:text-gray-200 text-base">${p.langs}</span></div>
+                    <div class="flex flex-col"><span class="text-gray-500 dark:text-gray-400 font-medium mb-1"><i class="fa-solid fa-globe w-5 text-indigo-500"></i> Country</span><span class="font-semibold text-gray-800 dark:text-gray-200 text-base flex items-center gap-2"><img src="${p.flag}" class="h-4 rounded-sm"> ${p.country}</span></div>
+                    <div class="flex flex-col"><span class="text-gray-500 dark:text-gray-400 font-medium mb-1"><i class="fa-solid fa-users w-5 text-indigo-500"></i> Population</span><span class="font-semibold text-gray-800 dark:text-gray-200 text-base">${p.pop}</span></div>
+                    <div class="flex flex-col"><span class="text-gray-500 dark:text-gray-400 font-medium mb-1"><i class="fa-solid fa-water w-5 text-indigo-500"></i> Seas</span><span class="font-semibold text-gray-800 dark:text-gray-200 text-base">${p.seas}</span></div>
+                    <div class="flex flex-col"><span class="text-gray-500 dark:text-gray-400 font-medium mb-1"><i class="fa-solid fa-phone w-5 text-indigo-500"></i> Phone</span><span class="font-semibold text-gray-800 dark:text-gray-200 text-base">${p.phone}</span></div>
+                </div>
+                <div class="mt-8 border-t dark:border-slate-700 pt-6 flex gap-3 flex-wrap">
+                    <button onclick="document.querySelector('.nav-link[data-target=\\'chat\\']').click(); if(typeof switchWebChat === 'function') switchWebChat('${id === 'me' ? 'me' : id}');" class="flex-1 md:flex-none flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors shadow-md"><i class="fa-solid fa-comment"></i> Chat</button>
+                    <button onclick="window.location.href='sms:${p.phone.replace(/\s+/g, '')}'" class="flex-1 md:flex-none flex items-center justify-center gap-2 bg-green-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-green-700 transition-colors shadow-md"><i class="fa-solid fa-comment-sms"></i> SMS</button>
+                    <button onclick="if(typeof openEmailModal === 'function') { openEmailModal(); document.getElementById('email-to-input').value = '${p.email}'; }" class="flex-1 md:flex-none flex items-center justify-center gap-2 bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-colors shadow-md"><i class="fa-solid fa-paper-plane"></i> Email</button>
+                </div>
+            </div>`;
+    });
+    grid.innerHTML = html;
+};
+
+// --- 4. ОКНО ИНФОРМАЦИИ ОБ АВАТАРЕ (Чат / Глобальный поиск) ---
+window.openAvatarModal = function(id, mode = 'cv') {
+    const p = profilesData[id];
+    if(!p) return;
+    
+    document.getElementById('modal-avatar-img').src = p.img;
+    document.getElementById('modal-avatar-name').innerText = p.name.replace(' (You)', '');
+    document.getElementById('modal-avatar-country').innerText = p.country;
+    document.getElementById('modal-avatar-flag').src = p.flag;
+    document.getElementById('modal-avatar-prof').innerText = p.prof;
+    document.getElementById('modal-avatar-langs').innerText = p.langs;
+    document.getElementById('modal-avatar-pop').innerText = p.pop;
+    document.getElementById('modal-avatar-seas').innerText = p.seas;
+    document.getElementById('modal-avatar-desc').innerHTML = p.desc;
+    
+    const actionButtons = document.getElementById('modal-action-buttons');
+    const profRow = document.getElementById('modal-prof-row');
+
+    if (mode === 'chat' || id === 'ai') {
+        actionButtons.style.display = 'none'; profRow.style.display = 'none'; 
+    } else {
+        actionButtons.style.display = 'flex'; profRow.style.display = 'flex'; 
+        document.getElementById('modal-chat-btn').onclick = () => { 
+            window.closeAvatarModal(); 
+            document.querySelector('.nav-link[data-target="chat"]').click(); 
+            if(typeof switchWebChat === 'function') switchWebChat(id === 'me' ? 'me' : id); 
+        };
+    }
+    
+    if(typeof window.closeDropdown === 'function') window.closeDropdown();
+    const modal = document.getElementById('avatar-modal');
     if(modal) {
         modal.classList.remove('hidden'); modal.classList.add('flex');
         setTimeout(() => { modal.classList.remove('opacity-0'); modal.querySelector('div').classList.remove('scale-95'); }, 10);
     }
 };
 
-window.closeCvEditModal = function() {
-    const modal = document.getElementById('cv-edit-modal');
+window.closeAvatarModal = function() {
+    const modal = document.getElementById('avatar-modal');
     if(modal) {
         modal.classList.add('opacity-0'); modal.querySelector('div').classList.add('scale-95');
         setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
     }
-};
+}
 
-window.saveCvData = function(e) {
-    e.preventDefault();
-    const btn = document.getElementById('save-cv-btn');
-    const origText = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
-    
-    // Собираем данные ТОЛЬКО из полей резюме
-    const newData = {
-        name: document.getElementById('cv-edit-name').value.trim(),
-        profession: document.getElementById('cv-edit-profession').value.trim(),
-        profileLangs: document.getElementById('cv-edit-langs').value.trim(),
-        country: document.getElementById('cv-edit-country').value.trim(),
-        phone: document.getElementById('cv-edit-phone').value.trim(),
-        email: document.getElementById('cv-edit-email').value.trim(),
-        competencies: document.getElementById('cv-edit-competencies').value.trim(),
-        experience: document.getElementById('cv-edit-experience').value.trim(),
-        education: document.getElementById('cv-edit-education').value.trim(),
-        desc: document.getElementById('cv-edit-about').value.trim(),
-    };
-
-    window.myProfileInfo = { ...window.myProfileInfo, ...newData };
-    window.myUsername = window.myProfileInfo.name;
-    if (window.profilesData) window.profilesData['me'] = { ...window.myProfileInfo, id: 'me' };
-
-    if (window.db && window.myProfileInfo.id && window.myProfileInfo.id !== 'guest') {
-        window.db.ref('users/' + window.myProfileInfo.id).update(newData)
-        .then(() => {
-            btn.innerHTML = 'Saved!';
-            setTimeout(() => { btn.innerHTML = origText; window.closeCvEditModal(); window.generateProfessionGrid(); }, 1000);
-        }).catch(err => {
-            console.error(err); btn.innerHTML = 'Error';
-            setTimeout(() => { btn.innerHTML = origText; }, 2000);
-        });
-    } else {
-        setTimeout(() => { btn.innerHTML = origText; window.closeCvEditModal(); window.generateProfessionGrid(); }, 500);
+window.openActiveChatProfile = function() {
+    // currentRoomId будет браться из web-chat.js
+    if(typeof currentRoomId !== 'undefined') {
+        if(currentRoomId === 'global') return alert("This is a group chat. Select a specific user from the list above to view their profile.");
+        openAvatarModal(currentRoomId, 'chat');
     }
 };
 
-// ==========================================
-// 2. ОТРИСОВКА CV В ВЕБ-ДИЗАЙНЕ
-// ==========================================
-window.generateProfessionGrid = function() {
-    const grid = document.getElementById('web-profession-list');
-    if(!grid) return;
-    let html = '';
-    
-    const usersToDisplay = [window.profilesData['me'], ...window.participants.filter(p => p.id !== 'ai')];
-    
-    usersToDisplay.forEach(p => {
-        if(!p) return;
-        const isMe = p.id === 'me' || p.id === window.myProfileInfo?.id;
-        let pName = isMe ? window.myUsername : (p.name || 'User').split(' ')[0];
-        
-        html += `
-            <div class="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm relative">
-                
-                ${isMe ? `<button onclick="window.openCvEditModal()" class="absolute top-6 right-6 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2 px-4 rounded-lg text-sm transition"><i class="fa-solid fa-pen mr-2"></i>Edit</button>` : ''}
+// Запуск рендера при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+    generateProfessionGrid();
+    generateAvatarSlider();
+});
 
-                <div class="flex flex-col md:flex-row items-center md:items-start gap-6 mb-6 pb-6 border-b border-gray-100 dark:border-slate-800">
-                    <img src="${p.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-24 h-24 rounded-full object-cover shadow-sm bg-gray-50">
-                    <div class="text-center md:text-left mt-2">
-                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center justify-center md:justify-start gap-2">${pName} ${isMe ? '<span class="bg-indigo-100 text-indigo-600 text-[10px] px-2 py-0.5 rounded uppercase font-bold tracking-wider">You</span>' : ''}</h3>
-                        <p class="text-indigo-500 font-medium mb-1">${p.profession || 'Profession not set'}</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-8 text-sm mb-6 pb-6 border-b border-gray-100 dark:border-slate-800">
-                    <div class="flex flex-col"><span class="text-gray-400 font-medium mb-1 flex items-center gap-2"><i class="fa-solid fa-briefcase w-4 text-indigo-400"></i> Profession</span><span class="font-semibold text-gray-800 dark:text-gray-200">${p.profession || '-'}</span></div>
-                    <div class="flex flex-col"><span class="text-gray-400 font-medium mb-1 flex items-center gap-2"><i class="fa-solid fa-language w-4 text-indigo-400"></i> Languages</span><span class="font-semibold text-gray-800 dark:text-gray-200">${p.profileLangs || p.langCode || '-'}</span></div>
-                    <div class="flex flex-col"><span class="text-gray-400 font-medium mb-1 flex items-center gap-2"><i class="fa-solid fa-globe w-4 text-indigo-400"></i> Location</span><span class="font-semibold text-gray-800 dark:text-gray-200">${p.flag || '🌐'} ${p.country || '-'}</span></div>
-                    <div class="flex flex-col"><span class="text-gray-400 font-medium mb-1 flex items-center gap-2"><i class="fa-solid fa-phone w-4 text-indigo-400"></i> Phone</span><span class="font-semibold text-gray-800 dark:text-gray-200">${p.phone || '-'}</span></div>
-                    ${p.pop ? `<div class="flex flex-col"><span class="text-gray-400 font-medium mb-1 flex items-center gap-2"><i class="fa-solid fa-users w-4 text-indigo-400"></i> Population</span><span class="font-semibold text-gray-800 dark:text-gray-200">${p.pop}</span></div>` : ''}
-                    ${p.seas ? `<div class="flex flex-col"><span class="text-gray-400 font-medium mb-1 flex items-center gap-2"><i class="fa-solid fa-water w-4 text-indigo-400"></i> Seas/Oceans</span><span class="font-semibold text-gray-800 dark:text-gray-200">${p.seas}</span></div>` : ''}
-                </div>
-
-                <div class="flex flex-col gap-4 text-sm mb-6">
-                    ${p.competencies ? `<div class="flex flex-col"><span class="text-gray-400 font-medium mb-1">Core Competencies</span><p class="text-gray-800 dark:text-gray-200 leading-relaxed">${p.competencies}</p></div>` : ''}
-                    ${p.experience || p.education ? `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 dark:bg-slate-800/50 p-4 rounded-xl border border-gray-100 dark:border-slate-700">
-                        ${p.experience ? `<div class="flex flex-col"><span class="text-gray-400 font-medium mb-1 text-xs uppercase tracking-wider">Experience</span><span class="font-semibold text-gray-800 dark:text-gray-200">${p.experience}</span></div>` : ''}
-                        ${p.education ? `<div class="flex flex-col"><span class="text-gray-400 font-medium mb-1 text-xs uppercase tracking-wider">Education</span><span class="font-semibold text-gray-800 dark:text-gray-200">${p.education}</span></div>` : ''}
-                    </div>` : ''}
-                    ${p.desc ? `<div class="flex flex-col"><span class="text-gray-400 font-medium mb-1">About Me</span><p class="text-gray-800 dark:text-gray-200 leading-relaxed">${p.desc}</p></div>` : ''}
-                </div>
-
-                <div class="flex gap-3 mt-auto pt-2">
-                    ${!isMe ? `<button onclick="document.querySelector('.nav-link[data-target=\\'chat\\']').click(); window.switchWebChat('${p.id}');" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition shadow-sm"><i class="fa-solid fa-comment mr-2"></i>Chat</button>` : ''}
-                    ${!isMe && p.phone ? `<button onclick="window.location.href='sms:${p.phone.replace(/\s+/g, '')}'" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-lg transition shadow-sm"><i class="fa-solid fa-comment-sms mr-2"></i>SMS</button>` : ''}
-                    ${!isMe && p.email ? `<button onclick="window.openEmailModal()" class="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 px-4 rounded-lg transition shadow-sm"><i class="fa-solid fa-envelope mr-2"></i>Email</button>` : ''}
-                </div>
-            </div>`;
-    });
-    grid.innerHTML = html;
-};
+// Кнопки-заглушки для окна действий (Action Modal) - позже свяжем с чатом
+window.actionPrivateChat = function() {
+    closeAvatarActionsModal();
+    document.querySelector('.nav-link[data-target="chat"]')?.click();
+    if(typeof switchWebChat === 'function' && window.currentActionUserId) switchWebChat(window.currentActionUserId);
+}
+window.actionVoiceRoom = function() { closeAvatarActionsModal(); if(typeof startInAppCall === 'function') startInAppCall(); }
+window.actionVideoConf = function() { closeAvatarActionsModal(); if(typeof openConference === 'function') openConference(); }
+window.actionSendEmail = function() { closeAvatarActionsModal(); if(typeof openEmailModal === 'function') { openEmailModal(); if(window.currentActionUserId) document.getElementById('email-to-input').value = profilesData[window.currentActionUserId].email; } }
+window.actionCellularCall = function() { closeAvatarActionsModal(); if(typeof startExternalCall === 'function') startExternalCall(); }
