@@ -1,7 +1,7 @@
 // ==========================================
 // HELLO FRIENDS - WEB UI CONTROLLER
 // Файл: js/web/web-ui.js
-// Назначение: Меню, Вкладки, Модальные окна, Тема
+// Назначение: Меню, Вкладки, Базовые модальные окна, Тема
 // ==========================================
 
 // --- ПАНЕЛИ И МЕНЮ ---
@@ -35,26 +35,21 @@ window.togglePanel = function(panelId) {
 
 document.getElementById('header-menu-btn')?.addEventListener('click', (e) => { e.stopPropagation(); window.togglePanel('menu-panel'); });
 document.getElementById('actions-btn')?.addEventListener('click', (e) => { e.stopPropagation(); window.togglePanel('actions-panel'); });
-
-// Закрытие меню при клике в пустое место
 document.addEventListener('click', () => { window.closeDropdown(); });
 
 // --- НАВИГАЦИЯ (ВКЛАДКИ) ---
 window.switchTab = function(tabName) {
-    // Сбрасываем стили всех кнопок
     document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.remove('active', 'bg-indigo-600', 'text-white');
         link.classList.add('text-gray-700', 'dark:text-gray-300');
     });
     
-    // Красим активную кнопку
     const activeBtn = document.querySelector(`.nav-link[data-target="${tabName}"]`);
     if (activeBtn) {
         activeBtn.classList.add('active', 'bg-indigo-600', 'text-white');
         activeBtn.classList.remove('text-gray-700', 'dark:text-gray-300');
     }
 
-    // Скрываем все секции и показываем нужную
     document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
     const targetSection = document.getElementById(tabName);
     if (targetSection) targetSection.classList.add('active');
@@ -93,15 +88,12 @@ function closeModal(modalId) {
     }
 }
 
-// Привязки функций к кнопкам HTML
+// Привязки функций к кнопкам HTML (Звонки удалены, они теперь в web-calls.js)
 window.openTrashModal = () => openModal('trash-modal');
 window.closeTrashModal = () => closeModal('trash-modal');
 
 window.openEmailModal = () => openModal('email-modal');
 window.closeEmailModal = () => closeModal('email-modal');
-
-window.openPhoneChoiceModal = () => openModal('phone-choice-modal');
-window.closePhoneChoiceModal = () => closeModal('phone-choice-modal');
 
 window.openAvatarActionsModal = () => openModal('avatar-actions-modal');
 window.closeAvatarActionsModal = () => closeModal('avatar-actions-modal');
@@ -135,13 +127,6 @@ window.openLocationModal = () => {
     }
 };
 window.closeLocationModal = () => closeModal('location-modal');
-
-// --- ЗВОНКИ ---
-window.openConference = () => { window.closeDropdown(); document.getElementById('conference-overlay').style.display = 'flex'; };
-window.openVoiceChat = () => { window.closeDropdown(); document.getElementById('voice-overlay').style.display = 'flex'; };
-window.closeCalls = () => { document.getElementById('conference-overlay').style.display = 'none'; document.getElementById('voice-overlay').style.display = 'none'; };
-window.startInAppCall = function() { window.closePhoneChoiceModal(); setTimeout(() => { window.openVoiceChat(); }, 300); }
-window.startExternalCall = function() { window.closePhoneChoiceModal(); window.location.href = "tel:+994501234567"; }
 
 // --- СМЕНА ТЕМЫ (ДЕНЬ/НОЧЬ) ---
 const themeToggleBtn = document.getElementById('menu-theme-toggle');
