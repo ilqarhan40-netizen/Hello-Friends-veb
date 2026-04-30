@@ -806,3 +806,248 @@ db.ref('users').on('value', snapshot => {
         }
     }
 });
+// ==========================================
+// ЗОЛОТОЙ СТАНДАРТ: ЕДИНЫЙ ФАЙЛ
+// Блок 8: OMNI-SEARCH И УМНАЯ КОНФЕРЕНЦИЯ
+// ==========================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. АВТО-ГЕНЕРАЦИЯ МОДАЛКИ OMNI-SEARCH
+    if (!document.getElementById('search-modal')) {
+        const searchModalHtml = `
+        <div id="search-modal" class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm hidden items-center justify-center z-[10000] opacity-0 transition-opacity duration-300" onclick="if(event.target===this) closeSearchModal()">
+            <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 w-full max-w-2xl shadow-2xl transform scale-95 transition-transform duration-300 relative border border-gray-200 dark:border-slate-700 flex flex-col max-h-[85vh]" onclick="event.stopPropagation();">
+                <button onclick="closeSearchModal()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors bg-gray-100 dark:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+                <h2 class="text-xl font-bold mb-5 text-gray-800 dark:text-white flex items-center gap-2"><i class="fa-solid fa-globe text-indigo-500"></i> Global Omni-Search</h2>
+                
+                <div class="relative w-full shrink-0 mb-5">
+                    <i class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-indigo-500 text-lg"></i>
+                    <input type="text" id="global-search-input" onkeyup="performLiveSearch()" placeholder="Search people, places, services..." class="w-full pl-12 pr-12 py-3.5 border-2 border-transparent focus:border-indigo-500 rounded-2xl bg-gray-50 dark:bg-slate-900 dark:text-white transition-colors text-lg outline-none shadow-inner">
+                    <i class="fa-solid fa-circle-xmark absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hidden hover:text-red-500 transition text-xl" id="clear-search-btn" onclick="resetGlobalSearch()" title="Clear"></i>
+                </div>
+                
+                <div class="w-full shrink-0 mb-2 overflow-y-auto custom-scrollbar pr-2" id="search-suggestions" style="max-height: 40vh;">
+                    <p class="text-[10px] text-gray-500 dark:text-gray-400 font-bold mb-3 uppercase tracking-widest">🤝 People & Skills</p>
+                    <div class="flex flex-wrap gap-2 mb-5">
+                        <button onclick="handleSmartSearch('Engineer', 'text')" class="px-4 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-indigo-500 hover:text-white transition-colors shadow-sm"><i class="fa-solid fa-laptop-code mr-1"></i> Engineer</button>
+                        <button onclick="handleSmartSearch('Designer', 'text')" class="px-4 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-indigo-500 hover:text-white transition-colors shadow-sm"><i class="fa-solid fa-palette mr-1"></i> Designer</button>
+                        <button onclick="handleSmartSearch('Marketing', 'text')" class="px-4 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-indigo-500 hover:text-white transition-colors shadow-sm"><i class="fa-solid fa-chart-line mr-1"></i> Marketing</button>
+                    </div>
+                    
+                    <p class="text-[10px] text-gray-500 dark:text-gray-400 font-bold mb-3 uppercase tracking-widest">🌍 Places & Languages</p>
+                    <div class="flex flex-wrap gap-2 mb-5">
+                        <button onclick="handleSmartSearch('Germany', 'text')" class="px-4 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-indigo-500 hover:text-white transition-colors shadow-sm">🇩🇪 Germany</button>
+                        <button onclick="handleSmartSearch('Italy', 'text')" class="px-4 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-indigo-500 hover:text-white transition-colors shadow-sm">🇮🇹 Italy</button>
+                        <button onclick="handleSmartSearch('English', 'text')" class="px-4 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-indigo-500 hover:text-white transition-colors shadow-sm">🗣️ English</button>
+                    </div>
+                    
+                    <p class="text-[10px] text-gray-500 dark:text-gray-400 font-bold mb-3 uppercase tracking-widest">💳 Services & Actions</p>
+                    <div class="flex flex-wrap gap-2 mb-5">
+                        <button onclick="handleSmartSearch('', 'transfer')" class="px-4 py-2 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-xl text-sm font-medium text-green-700 dark:text-green-400 hover:bg-green-500 hover:text-white transition-colors shadow-sm"><i class="fa-solid fa-money-bill-transfer mr-1"></i> Send Money</button>
+                        <button onclick="handleSmartSearch('', 'email')" class="px-4 py-2 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-xl text-sm font-medium text-purple-700 dark:text-purple-400 hover:bg-purple-500 hover:text-white transition-colors shadow-sm"><i class="fa-solid fa-envelope mr-1"></i> Compose Email</button>
+                    </div>
+                    
+                    <p class="text-[10px] text-gray-500 dark:text-gray-400 font-bold mb-3 uppercase tracking-widest">🌐 Web Queries</p>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="handleSmartSearch('USD exchange rate', 'web')" class="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-xl text-sm font-medium text-blue-700 dark:text-blue-400 hover:bg-blue-500 hover:text-white transition-colors shadow-sm"><i class="fa-solid fa-rotate mr-1"></i> Exchange Rates</button>
+                        <button onclick="handleSmartSearch('World News', 'web')" class="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-xl text-sm font-medium text-blue-700 dark:text-blue-400 hover:bg-blue-500 hover:text-white transition-colors shadow-sm"><i class="fa-solid fa-newspaper mr-1"></i> World News</button>
+                    </div>
+                </div>
+                
+                <div class="w-full flex-grow overflow-y-auto flex flex-col gap-2 pr-1 border-t border-gray-200 dark:border-slate-700 pt-4" id="search-results-area"></div>
+                <iframe id="search-result-frame" class="w-full h-[40vh] mt-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-white hidden shrink-0 shadow-inner" src="about:blank"></iframe>
+                
+                <button onclick="doGoogleSearch()" class="mt-4 w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-600 py-3.5 rounded-xl font-bold transition-colors flex justify-center items-center gap-2 shadow-sm text-lg">
+                    <span class="text-gray-600 dark:text-gray-300">Search Web:</span>
+                    <span class="text-[#4285F4]">G</span><span class="text-[#EA4335]">o</span><span class="text-[#FBBC05]">o</span><span class="text-[#4285F4]">g</span><span class="text-[#34A853]">l</span><span class="text-[#EA4335]">e</span>
+                </button>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', searchModalHtml);
+    }
+
+    // 2. АПГРЕЙД ФУТЕРА КОНФЕРЕНЦИИ (Добавляем Смайлы и Скрепку)
+    const confOverlay = document.getElementById('conference-overlay');
+    if (confOverlay) {
+        // Ищем контейнер с инпутом в конференции
+        const confInputContainer = confOverlay.querySelector('input#conf-text-input')?.parentElement;
+        
+        if (confInputContainer) {
+            // Заменяем простой инпут на расширенный блок
+            const upgradedInputHtml = `
+                <div class="relative flex items-center">
+                    <!-- Кнопка Эмодзи -->
+                    <button onclick="toggleConfEmoji(event)" class="p-2 text-gray-500 hover:text-yellow-500 transition-colors">
+                        <i class="fa-regular fa-face-smile text-xl"></i>
+                    </button>
+                    
+                    <!-- Панель Эмодзи (Скрыта по умолчанию) -->
+                    <div id="conf-emoji-picker" class="hidden absolute bottom-full left-0 mb-4 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-3 rounded-xl grid grid-cols-5 gap-3 text-2xl shadow-xl z-[100]">
+                        ${['😀','😂','❤️','😍','👍','🔥','🎉','😢','😎','🤔'].map(e => `<span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertConfEmoji('${e}')">${e}</span>`).join('')}
+                    </div>
+
+                    <input type="text" id="conf-text-input" placeholder="Message or mic..." class="bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white px-3 py-2.5 outline-none w-40 md:w-56 transition-colors rounded-lg">
+                    
+                    <!-- УМНАЯ СКРЕПКА (Экшен-меню) -->
+                    <div class="relative ml-1">
+                        <button onclick="toggleConfActions(event)" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors text-gray-500 hover:text-indigo-500">
+                            <i class="fa-solid fa-paperclip text-xl"></i>
+                        </button>
+                        
+                        <!-- Выпадающее меню скрепки -->
+                        <div id="conf-actions-panel" class="absolute bottom-full right-0 mb-3 bg-white dark:bg-slate-800 p-3 rounded-xl shadow-2xl grid grid-cols-3 gap-2 hidden opacity-0 transform scale-95 z-[100] transition-all border border-gray-100 dark:border-slate-700 w-64 origin-bottom-right">
+                            <button onclick="openLocationModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 rounded-lg transition-colors"><i class="fa-solid fa-location-dot text-xl mb-1"></i><span class="text-[10px] font-medium">Location</span></button>
+                            <button onclick="document.getElementById('attachment-input').click(); closeConfPanels();" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 rounded-lg transition-colors"><i class="fa-solid fa-file-arrow-up text-xl mb-1"></i><span class="text-[10px] font-medium">File</span></button>
+                            <button onclick="openSearchModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 rounded-lg transition-colors"><i class="fa-solid fa-magnifying-glass text-xl mb-1"></i><span class="text-[10px] font-medium">Search</span></button>
+                            <button onclick="openTrashModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-red-50 dark:hover:bg-slate-700 hover:text-red-600 rounded-lg transition-colors"><i class="fa-solid fa-trash text-xl mb-1"></i><span class="text-[10px] font-medium">Clear</span></button>
+                            <button onclick="openBankTransferModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-green-50 dark:hover:bg-slate-700 hover:text-green-600 rounded-lg transition-colors"><i class="fa-solid fa-money-bill-transfer text-xl mb-1"></i><span class="text-[10px] font-medium">Pay</span></button>
+                            <button onclick="openEmailModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 rounded-lg transition-colors"><i class="fa-solid fa-envelope text-xl mb-1"></i><span class="text-[10px] font-medium">Email</span></button>
+                        </div>
+                    </div>
+
+                    <button id="conf-send-btn" class="text-indigo-600 dark:text-[#00C4CC] hover:scale-110 transition-transform ml-2 mr-2">
+                        <i class="fa-solid fa-paper-plane text-xl"></i>
+                    </button>
+                </div>
+            `;
+            // Заменяем старый инпут и кнопку отправки на новый продвинутый блок
+            const oldInput = document.getElementById('conf-text-input');
+            const oldBtn = document.getElementById('conf-send-btn');
+            if(oldInput && oldBtn) {
+                oldInput.remove(); oldBtn.remove();
+                confInputContainer.insertAdjacentHTML('afterbegin', upgradedInputHtml);
+            }
+        }
+    }
+});
+
+// --- ЛОГИКА OMNI-SEARCH ---
+window.openSearchModal = function() {
+    window.closeDropdown();
+    const modal = document.getElementById('search-modal');
+    if (modal) {
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+        setTimeout(() => { modal.classList.remove('opacity-0'); modal.querySelector('div').classList.remove('scale-95'); }, 10);
+    }
+}
+window.closeSearchModal = function() {
+    const modal = document.getElementById('search-modal');
+    if (modal) {
+        modal.classList.add('opacity-0'); modal.querySelector('div').classList.add('scale-95');
+        setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); window.resetGlobalSearch(); }, 300);
+    }
+}
+window.handleSmartSearch = function(text, type = 'text') {
+    const input = document.getElementById('global-search-input');
+    if (type === 'text') { input.value = text; window.performLiveSearch(); } 
+    else if (type === 'transfer') { window.closeSearchModal(); setTimeout(window.openBankTransferModal, 350); } 
+    else if (type === 'email') { window.closeSearchModal(); setTimeout(window.openEmailModal, 350); } 
+    else if (type === 'web') { input.value = text; document.getElementById('search-results-area').innerHTML = ''; window.doGoogleSearch(); }
+};
+window.performLiveSearch = function() {
+    const query = document.getElementById('global-search-input').value.toLowerCase().trim();
+    const resultsArea = document.getElementById('search-results-area');
+    const frame = document.getElementById('search-result-frame');
+    const suggestions = document.getElementById('search-suggestions');
+    const clearBtn = document.getElementById('clear-search-btn');
+    
+    if(frame) frame.classList.add('hidden');
+    if (query.length === 0) {
+        resultsArea.innerHTML = '';
+        if(suggestions) suggestions.style.display = 'block';
+        if(clearBtn) clearBtn.classList.add('hidden');
+        return;
+    }
+    
+    if(clearBtn) clearBtn.classList.remove('hidden');
+    if(suggestions) suggestions.style.display = 'none';
+
+    let html = ''; let found = false;
+    // Поиск по живой базе Версии 1
+    if(window.appUsers) {
+        Object.keys(window.appUsers).forEach(id => {
+            const p = window.appUsers[id];
+            const cv = p.cv || {};
+            const searchStr = `${p.name} ${cv.profession} ${p.country} ${cv.languages}`.toLowerCase();
+            
+            if (searchStr.includes(query)) {
+                found = true;
+                html += `
+                    <div class="bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:border-indigo-500 transition-all shadow-sm mb-2" onclick="closeSearchModal(); setTimeout(() => openDetailedCV('${id}'), 300);">
+                        <div class="flex items-center gap-4">
+                            <img src="${p.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-slate-600 shadow-sm">
+                            <div class="flex flex-col">
+                                <span class="text-gray-900 dark:text-white text-sm font-bold">${p.name} ${p.flag || '🌍'}</span>
+                                <span class="text-indigo-500 dark:text-indigo-400 text-xs font-medium">${cv.profession || 'User'} | ${p.country || 'Global'}</span>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-gray-400 pr-2"></i>
+                    </div>`;
+            }
+        });
+    }
+    
+    if (!found) html = `<p class="text-sm text-gray-500 dark:text-gray-400 text-center mt-6 font-medium">No internal results found. Click 'Search Web' below.</p>`;
+    resultsArea.innerHTML = html;
+};
+window.resetGlobalSearch = function() {
+    const input = document.getElementById('global-search-input');
+    if(input) input.value = '';
+    window.performLiveSearch();
+};
+window.doGoogleSearch = function() {
+    const q = document.getElementById('global-search-input').value;
+    if(q.trim() === '') return alert('Enter search query first');
+    const searchUrl = 'https://www.google.com/search?igu=1&q=' + encodeURIComponent(q);
+    const iframe = document.getElementById('search-result-frame');
+    const resultsArea = document.getElementById('search-results-area');
+    const suggestions = document.getElementById('search-suggestions');
+    const clearBtn = document.getElementById('clear-search-btn');
+    
+    if(suggestions) suggestions.style.display = 'none';
+    if(resultsArea) resultsArea.innerHTML = '';
+    if(clearBtn) clearBtn.classList.remove('hidden');
+    
+    iframe.src = searchUrl; 
+    iframe.classList.remove('hidden');
+}
+
+// --- ЛОГИКА ФУТЕРА КОНФЕРЕНЦИИ ---
+window.toggleConfEmoji = function(e) {
+    e.stopPropagation();
+    const picker = document.getElementById('conf-emoji-picker');
+    const actions = document.getElementById('conf-actions-panel');
+    if(actions && !actions.classList.contains('hidden')) window.closeConfPanels();
+    if(picker) picker.classList.toggle('hidden');
+}
+window.insertConfEmoji = function(emoji) {
+    const input = document.getElementById('conf-text-input');
+    if(input) { input.value += emoji; input.focus(); }
+    document.getElementById('conf-emoji-picker')?.classList.add('hidden');
+}
+window.toggleConfActions = function(e) {
+    e.stopPropagation();
+    const actions = document.getElementById('conf-actions-panel');
+    const picker = document.getElementById('conf-emoji-picker');
+    if(picker && !picker.classList.contains('hidden')) picker.classList.add('hidden');
+    
+    if(actions) {
+        if(actions.classList.contains('hidden')) {
+            actions.classList.remove('hidden');
+            setTimeout(() => actions.classList.remove('opacity-0', 'scale-95'), 10);
+        } else {
+            window.closeConfPanels();
+        }
+    }
+}
+window.closeConfPanels = function() {
+    const actions = document.getElementById('conf-actions-panel');
+    const picker = document.getElementById('conf-emoji-picker');
+    if(picker) picker.classList.add('hidden');
+    if(actions) {
+        actions.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => actions.classList.add('hidden'), 200);
+    }
+}
+// Закрываем менюшки конференции при клике по экрану
+document.addEventListener('click', () => { if(window.closeConfPanels) window.closeConfPanels(); });
