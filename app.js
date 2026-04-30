@@ -613,6 +613,73 @@ window.applyAiMagic = function() {
 };
 // ==========================================
 // ЗОЛОТОЙ СТАНДАРТ: ЕДИНЫЙ ФАЙЛ
+// Блок 5: ГЛАВНЫЙ ЭКРАН И АВАТАРЫ ИЗ БАЗЫ
+// ==========================================
+
+window.renderMainScreenAvatars = function(usersObj) {
+    const container = document.getElementById('main-avatars-container');
+    if (!container) return;
+
+    // Сначала всегда добавляем иконки Global и AI
+    let html = `
+        <div onclick="switchWebChat('global')" class="flex flex-col items-center text-center w-20 md:w-24 cursor-pointer group">
+            <div class="w-20 h-20 rounded-full bg-indigo-500 mb-2 flex justify-center items-center text-white text-3xl font-bold group-hover:scale-110 transition-transform shadow-md border-4 border-white dark:border-slate-800">🌍</div>
+            <p class="font-semibold text-sm text-indigo-500">Group</p>
+        </div>
+        
+        <div onclick="switchWebChat('ai')" class="flex flex-col items-center text-center w-20 md:w-24 cursor-pointer group">
+            <div class="w-20 h-20 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 mb-2 flex justify-center items-center text-white text-3xl font-bold group-hover:scale-110 transition-transform shadow-lg border-4 border-purple-300">🤖</div>
+            <p class="font-bold text-sm text-purple-600 dark:text-purple-400">AI Assistant</p>
+        </div>
+    `;
+
+    // Теперь перебираем реальных пользователей из базы
+    if (usersObj) {
+        Object.keys(usersObj).forEach(uid => {
+            const user = usersObj[uid];
+            if (!user.name) return;
+
+            // Если это ты сам (Saved Messages)
+            if (window.myProfileInfo && uid === window.myProfileInfo.id) {
+                html += `
+                    <div onclick="switchWebChat('me')" class="flex flex-col items-center text-center w-20 md:w-24 cursor-pointer group">
+                        <img src="${user.photo || 'https://ui-avatars.com/api/?name=I'}" class="w-20 h-20 rounded-full object-cover mb-2 group-hover:scale-110 transition-transform duration-300 shadow-md border-4 border-indigo-400">
+                        <p class="font-semibold text-sm">${user.name.split(' ')[0]} (You)</p>
+                        <div class="flex items-center gap-1.5 mt-1">
+                            <img src="https://flagcdn.com/w20/${user.flagCode || 'az'}.png" class="h-3 rounded-sm">
+                            <p class="text-[10px] text-gray-500">Saved</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Остальные пользователи (КЛИК ПО НИМ ОТКРЫВАЕТ МЕНЮ ЗНАКОМСТВА)
+                html += `
+                    <div onclick="openAvatarModal('${uid}', 'cv')" class="flex flex-col items-center text-center w-20 md:w-24 cursor-pointer group relative">
+                        <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-20 h-20 rounded-full object-cover mb-2 group-hover:scale-110 transition-transform duration-300 shadow-md border-4 border-white dark:border-slate-800">
+                        <div class="absolute bottom-6 right-2 w-4 h-4 bg-green-500 border-2 border-white dark:border-slate-800 rounded-full"></div>
+                        <p class="font-semibold text-sm text-gray-800 dark:text-white">${user.name.split(' ')[0]}</p>
+                        <div class="flex items-center gap-1.5 mt-1">
+                            <img src="https://flagcdn.com/w20/${user.flagCode || 'de'}.png" class="h-3 rounded-sm">
+                            <p class="text-[10px] text-gray-500">${user.country || 'Global'}</p>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+    }
+
+    container.innerHTML = html;
+};
+
+// Прослушиваем базу данных и обновляем аватарки в реальном времени
+firebase.database().ref('users').on('value', snapshot => {
+    if(snapshot.exists()) {
+        window.appUsers = snapshot.val();
+        window.renderMainScreenAvatars(window.appUsers);
+    }
+});
+// ==========================================
+// ЗОЛОТОЙ СТАНДАРТ: ЕДИНЫЙ ФАЙЛ
 // Блок 6: MIC-SMART (Автоопределение языка по префиксу/флагу)
 // ==========================================
 
