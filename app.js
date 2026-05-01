@@ -88,53 +88,120 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// 4. Профиль и Авторизация (Подготовка под CORE-AUTH)
-window.openMyProfile = function() {
-    window.closeDropdown();
+// --- 1. ФИКС ТЕМНОЙ ТЕМЫ ДЛЯ МЕНЮ И СТИЛИ ПРОФИЛЯ ---
+const profileStyles = document.createElement('style');
+profileStyles.innerHTML = `
+    .dark #app-lang-select option { background-color: #1e293b; color: white; }
+    .dark #app-lang-select { color: white; background-color: transparent; }
     
-    // Временно проверяем авторизацию. В будущем здесь будет привязка к Firebase Auth
-    if (window.myProfileInfo && window.myProfileInfo.phone === "+994503398020") {
-         console.log("Opening owner profile:", window.myProfileInfo.name);
-         // Здесь вызовем функцию открытия модалки профиля владельца
-    } else {
-         // Если система тебя еще не узнала, требуем авторизацию
-         console.log("Not authorized. Opening auth modal.");
-         if(typeof window.openAuthModal === 'function') window.openAuthModal();
+    .avatar-upload-wrap { position: relative; cursor: pointer; display: inline-block; }
+    .avatar-upload-wrap:hover .camera-overlay { opacity: 1; }
+    .camera-overlay { 
+        position: absolute; inset: 0; background: rgba(0,0,0,0.5); 
+        border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+        opacity: 0; transition: 0.3s; color: white; font-size: 1.5rem;
+    }
+`;
+document.head.appendChild(profileStyles);
+
+// --- 2. ИЗОЛИРОВАННЫЙ ПРОФИЛЬ (Личные данные + География) ---
+window.openMyProfile = function() {
+    if (!window.myProfileInfo) return alert("Пожалуйста, авторизуйтесь!");
+    window.closeDropdown(); 
+    
+    const user = window.myProfileInfo;
+    
+    let modal = document.getElementById('profile-modal-container');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'profile-modal-container';
+        modal.className = 'fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[10000] flex justify-center items-center p-4 transition-opacity';
+        document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-slate-800 w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative flex flex-col md:flex-row" onclick="event.stopPropagation()">
+            <button onclick="document.getElementById('profile-modal-container').remove()" class="absolute top-4 right-4 w-8 h-8 bg-gray-100 dark:bg-slate-700 hover:bg-red-500 hover:text-white text-gray-500 dark:text-gray-300 rounded-full flex items-center justify-center transition-colors z-50"><i class="fa-solid fa-xmark"></i></button>
+
+            <!-- Левая колонка: Фото и Статус -->
+            <div class="bg-gray-50 dark:bg-slate-900/50 p-8 flex flex-col items-center border-r border-gray-200 dark:border-slate-700 w-full md:w-2/5 text-center relative">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6" data-i18n="profile">Profile</h2>
+                
+                <!-- Замена фото (Фотоаппарат) -->
+                <div class="avatar-upload-wrap w-32 h-32 mb-4" onclick="document.getElementById('attachment-input').click()">
+                    <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full rounded-full object-cover border-4 border-indigo-500 shadow-md">
+                    <div class="camera-overlay"><i class="fa-solid fa-camera"></i></div>
+                </div>
+                
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">${user.name}</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-slate-800 px-3 py-1 rounded-full"><i class="fa-solid fa-lock text-green-500"></i> Personal Info</p>
+
+                <!-- Создатель -->
+                <div class="mt-auto flex flex-col items-center gap-2 pt-8 border-t border-gray-200 dark:border-slate-700 w-full">
+                    <img src="https://images.unsplash.com/photo-1557862921-37829c790f19?w=100" class="w-12 h-12 rounded-full border-2 border-indigo-500 shadow-sm object-cover">
+                    <div class="text-center">
+                        <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-tighter">Создатель Messenger</p>
+                        <p class="text-xs font-bold text-gray-800 dark:text-white">HELLO FRIENDS</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая колонка: Основные + География -->
+            <div class="p-8 w-full md:w-3/5 flex flex-col justify-center space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">Имя пользователя</label>
+                        <input type="text" id="prof-name" value="${user.name || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">E-mail адрес</label>
+                        <input type="email" id="prof-email" value="${user.email || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">Номер телефона</label>
+                    <div class="flex">
+                        <span class="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-gray-400 rounded-l-xl"><i class="fa-solid fa-phone"></i></span>
+                        <input type="text" id="prof-phone" value="${user.phone || ''}" class="rounded-none rounded-r-xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white block flex-1 min-w-0 w-full px-4 py-3 outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">Население (Population)</label>
+                        <input type="text" id="prof-pop" value="${user.population || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">Моря (Seas)</label>
+                        <input type="text" id="prof-seas" value="${user.seas || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <button onclick="saveProfileData()" class="mt-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all" data-i18n="save">Сохранить Профиль</button>
+            </div>
+        </div>
+    `;
+    window.applySystemLanguage();
+};
+
+window.saveProfileData = function() {
+    const btn = event.target; btn.disabled = true;
+    const data = {
+        name: document.getElementById('prof-name').value.trim(),
+        email: document.getElementById('prof-email').value.trim(),
+        phone: document.getElementById('prof-phone').value.trim(),
+        population: document.getElementById('prof-pop').value.trim(),
+        seas: document.getElementById('prof-seas').value.trim()
+    };
+    if (window.firebase) {
+        firebase.database().ref('users/' + window.myProfileInfo.id).update(data).then(() => {
+            Object.assign(window.myProfileInfo, data);
+            document.getElementById('profile-modal-container').remove();
+            if(typeof window.renderMainScreenAvatars === 'function') window.renderMainScreenAvatars(window.appUsers, window.myProfileInfo.id);
+        });
     }
 };
-// ==========================================
-// ЗОЛОТОЙ СТАНДАРТ: ЕДИНЫЙ ФАЙЛ
-// Блок 2: CORE-AUTH (Firebase Авторизация и Идентификация)
-// ==========================================
-
-window.myProfileInfo = null;
-
-// Главная функция: вызывается, когда Firebase подтвердил вход
-window.onUserAuthenticated = function(firebaseUser) {
-    const userRef = firebase.database().ref('users/' + firebaseUser.uid);
-    
-    userRef.once('value').then((snapshot) => {
-        let userData = snapshot.val();
-        
-        // Если пользователя еще нет в базе — создаем его
-        if (!userData) {
-            // Проверяем, не твой ли это номер (Магия распознавания владельца)
-            const isOwner = (firebaseUser.phoneNumber === "+994503398020");
-            
-            userData = {
-                id: firebaseUser.uid,
-                name: isOwner ? "Ilgar (Owner)" : (firebaseUser.displayName || "New User"),
-                email: firebaseUser.email || "",
-                photo: firebaseUser.photoURL || "https://ui-avatars.com/api/?name=" + (isOwner ? "I" : "U"),
-                phone: firebaseUser.phoneNumber || "",
-                country: isOwner ? "Azerbaijan" : "Unknown",
-                flag: isOwner ? "🇦🇿" : "🌍",
-                flagCode: isOwner ? "az" : "en",
-                langCode: isOwner ? "az" : "en",
-                profileLangs: isOwner ? "ru, az, en" : "en"
-            };
-            userRef.set(userData);
-        }
 
         // Сохраняем в память нашего Единого Мозга
         window.myProfileInfo = userData;
@@ -795,183 +862,177 @@ window.renderProfessionSection = function(usersObj) {
         
         const cv = user.cv || {};
         const role = cv.role || 'Professional';
-        
-        // Карточка в стиле веб (белая/темно-синяя в зависимости от темы)
-        html += `
-            <div class="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-3xl p-6 flex flex-col items-center relative overflow-hidden group hover:shadow-xl hover:border-indigo-500/50 transition-all duration-300">
-                
-                <div onclick="openDetailedCV('${uid}')" class="relative w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-gray-50 dark:border-slate-700 shadow-sm mb-4 cursor-pointer overflow-hidden transform group-hover:scale-105 transition-transform">
-                    <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full object-cover">
-                </div>
-                
-                <h3 class="font-bold text-gray-900 dark:text-white text-lg text-center w-full truncate">${user.name.split(' ')[0]}</h3>
-                <p class="text-xs text-indigo-500 dark:text-indigo-400 mb-5 font-medium uppercase tracking-wide text-center w-full truncate">${role}</p>
-                
-                <button onclick="openDetailedCV('${uid}')" class="w-full bg-gray-50 hover:bg-gray-100 dark:bg-slate-700/50 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 font-semibold text-sm py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 transition-colors">
-                    View CV
-                </button>
-            </div>
-        `;
-    });
+// --- 3. ИЗОЛИРОВАННОЕ ПРОФЕССИОНАЛЬНОЕ CV И СМАРТ-КНОПКИ ---
 
-    html += `</div></div>`;
-    cvContainer.innerHTML = html;
-};
-
-// 3. Открытие Детальной Анкеты (Как на твоем правом скрине: синий Pro-дизайн)
 window.openDetailedCV = function(uid) {
     const user = window.appUsers[uid];
     if (!user) return;
-    
     const cv = user.cv || {};
-    const wrapper = document.getElementById('cv-modals-wrapper');
+    const wrapper = document.getElementById('cv-modals-wrapper') || document.body;
     
-    wrapper.innerHTML = `
-        <div id="detailed-cv-modal" class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-50 flex justify-center items-center p-4" onclick="closeCVModals(event)">
-            <div class="bg-[#1e293b] w-full max-w-2xl rounded-3xl border border-[#334155] shadow-2xl overflow-hidden relative" onclick="event.stopPropagation()">
-                
-                <!-- Шапка модалки -->
-                <div class="p-6 md:p-8 bg-gradient-to-b from-[#1e3a8a]/60 to-[#1e293b] border-b border-[#334155]">
-                    <div class="flex flex-col md:flex-row items-center gap-6">
-                        <div class="relative">
-                            <div class="absolute inset-0 bg-blue-500 rounded-full blur-xl opacity-40"></div>
-                            <img src="${user.photo}" class="relative w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-white/10 shadow-lg object-cover">
-                        </div>
-                        <div class="text-center md:text-left">
-                            <h2 class="text-2xl md:text-3xl font-bold text-white mb-1 flex items-center justify-center md:justify-start gap-2">
-                                ${user.name} <span class="bg-indigo-500 text-white text-[10px] uppercase px-2 py-0.5 rounded-full">Pro</span>
-                            </h2>
-                            <p class="text-blue-400 font-semibold text-base md:text-lg">${cv.role || 'Professional Member'}</p>
-                        </div>
-                    </div>
-                </div>
+    let modalContainer = document.getElementById('detailed-cv-modal');
+    if (!modalContainer) {
+        modalContainer = document.createElement('div');
+        modalContainer.id = 'detailed-cv-modal';
+        modalContainer.className = 'fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-[10000] flex justify-center items-center p-4 transition-opacity';
+        wrapper.appendChild(modalContainer);
+    }
 
-                <!-- Информация (Сетка 2x3) -->
-                <div class="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-8">
+    modalContainer.innerHTML = `
+        <div class="bg-[#1e293b] w-full max-w-2xl rounded-3xl border border-[#334155] shadow-2xl overflow-hidden relative" onclick="event.stopPropagation()">
+            <div class="p-6 md:p-8 bg-gradient-to-b from-[#1e3a8a]/60 to-[#1e293b] border-b border-[#334155]">
+                <div class="flex items-center gap-6">
+                    <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-24 h-24 rounded-full border-4 border-white/10 shadow-lg object-cover">
                     <div>
-                        <p class="text-gray-400 text-xs flex items-center gap-2 mb-1"><i class="fa-solid fa-briefcase"></i> Profession</p>
-                        <p class="text-white font-semibold text-sm md:text-base">${cv.profession || 'Not specified'}</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400 text-xs flex items-center gap-2 mb-1"><i class="fa-solid fa-language"></i> Languages</p>
-                        <p class="text-white font-semibold text-sm md:text-base">${cv.languages || user.profileLangs || 'Not specified'}</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400 text-xs flex items-center gap-2 mb-1"><i class="fa-solid fa-globe"></i> Country</p>
-                        <p class="text-white font-semibold text-sm md:text-base flex items-center gap-2"><img src="https://flagcdn.com/w20/${user.flagCode || 'az'}.png" class="h-3 rounded-sm"> ${cv.country || user.country || 'Unknown'}</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400 text-xs flex items-center gap-2 mb-1"><i class="fa-solid fa-users"></i> Population</p>
-                        <p class="text-white font-semibold text-sm md:text-base">${cv.population || '~10.1M'}</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400 text-xs flex items-center gap-2 mb-1"><i class="fa-solid fa-water"></i> Seas</p>
-                        <p class="text-white font-semibold text-sm md:text-base">${cv.seas || 'Caspian Sea'}</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400 text-xs flex items-center gap-2 mb-1"><i class="fa-solid fa-phone"></i> Phone</p>
-                        <p class="text-white font-semibold text-sm md:text-base">${user.phone || 'Hidden'}</p>
+                        <h2 class="text-2xl md:text-3xl font-bold text-white mb-1 flex items-center gap-2">
+                            ${user.name} <span class="bg-indigo-500 text-white text-[10px] uppercase px-2 py-0.5 rounded-full">Pro</span>
+                        </h2>
+                        <p class="text-blue-400 font-semibold md:text-lg">${cv.role || 'Professional'}</p>
                     </div>
                 </div>
-
-                <!-- Новые разделы: О себе и Навыки -->
-                <div class="px-6 md:px-8 pb-6 space-y-4">
-                    ${cv.about ? `
-                    <div class="bg-[#0f172a]/80 p-4 rounded-xl border border-[#334155]">
-                        <h4 class="text-gray-400 text-[10px] md:text-xs mb-2 uppercase font-bold tracking-wider">About Me</h4>
-                        <p class="text-gray-200 text-xs md:text-sm leading-relaxed">${cv.about}</p>
-                    </div>` : ''}
-                    
-                    ${cv.skills ? `
-                    <div class="bg-[#0f172a]/80 p-4 rounded-xl border border-[#334155]">
-                        <h4 class="text-gray-400 text-[10px] md:text-xs mb-2 uppercase font-bold tracking-wider">Work Skills</h4>
-                        <p class="text-blue-300 text-xs md:text-sm font-medium">${cv.skills}</p>
-                    </div>` : ''}
-                </div>
-
-                <!-- Кнопки действий -->
-                <div class="p-6 bg-[#0f172a] border-t border-[#334155] flex flex-wrap gap-3">
-                    <button onclick="actionPrivateChatFromCV('${uid}')" class="flex-1 bg-[#3b82f6] hover:bg-blue-600 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg transition-all flex justify-center items-center gap-2 text-sm md:text-base">
-                        <i class="fa-solid fa-comment"></i> Chat
-                    </button>
-                    <button onclick="openPhoneChoiceModal()" class="flex-1 bg-[#22c55e] hover:bg-green-600 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg transition-all flex justify-center items-center gap-2 text-sm md:text-base">
-                        <i class="fa-solid fa-comment-sms"></i> SMS
-                    </button>
-                    <button onclick="openEmailModal()" class="flex-1 bg-[#8b5cf6] hover:bg-purple-600 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg transition-all flex justify-center items-center gap-2 text-sm md:text-base">
-                        <i class="fa-solid fa-paper-plane"></i> Email
-                    </button>
-                </div>
-                
-                <button onclick="closeCVModals()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-black/20 hover:bg-black/40 rounded-full w-8 h-8 flex items-center justify-center transition-colors">
-                    <i class="fa-solid fa-times"></i>
-                </button>
             </div>
+
+            <!-- ИНФОРМАЦИЯ: Только Профессия, Языки и Контакты -->
+            <div class="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-8">
+                <div>
+                    <p class="text-gray-400 text-xs flex items-center gap-2 mb-1"><i class="fa-solid fa-briefcase"></i> Profession</p>
+                    <p class="text-white font-semibold text-sm">${cv.profession || 'Not specified'}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-xs flex items-center gap-2 mb-1"><i class="fa-solid fa-language"></i> Languages</p>
+                    <p class="text-white font-semibold text-sm">${cv.languages || user.profileLangs || 'Not specified'}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-xs flex items-center gap-2 mb-1"><i class="fa-solid fa-phone"></i> Phone Number</p>
+                    <p class="text-white font-semibold text-sm">${user.phone || 'Hidden'}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-xs flex items-center gap-2 mb-1"><i class="fa-solid fa-envelope"></i> Email Address</p>
+                    <p class="text-white font-semibold text-sm">${user.email || 'Hidden'}</p>
+                </div>
+            </div>
+
+            <div class="px-6 md:px-8 pb-6 space-y-4">
+                ${cv.about ? `
+                <div class="bg-[#0f172a]/80 p-4 rounded-xl border border-[#334155]">
+                    <h4 class="text-gray-400 text-[10px] mb-2 uppercase font-bold tracking-wider">About Profession</h4>
+                    <p class="text-gray-200 text-xs leading-relaxed">${cv.about}</p>
+                </div>` : ''}
+                ${cv.skills ? `
+                <div class="bg-[#0f172a]/80 p-4 rounded-xl border border-[#334155]">
+                    <h4 class="text-gray-400 text-[10px] mb-2 uppercase font-bold tracking-wider">Work Skills</h4>
+                    <p class="text-blue-300 text-xs font-medium">${cv.skills}</p>
+                </div>` : ''}
+            </div>
+
+            <!-- СМАРТ КНОПКИ -->
+            <div class="p-6 bg-[#0f172a] border-t border-[#334155] flex gap-3">
+                <button onclick="actionPrivateChatFromCV('${uid}')" class="flex-1 bg-[#3b82f6] hover:bg-blue-600 text-white font-bold py-2.5 rounded-xl shadow-lg transition-all flex justify-center items-center gap-2"><i class="fa-solid fa-comment"></i> Chat</button>
+                <button onclick="actionSMSFromCV('${uid}')" class="flex-1 bg-[#22c55e] hover:bg-green-600 text-white font-bold py-2.5 rounded-xl shadow-lg transition-all flex justify-center items-center gap-2"><i class="fa-solid fa-comment-sms"></i> SMS</button>
+                <button onclick="actionEmailFromCV('${uid}')" class="flex-1 bg-[#8b5cf6] hover:bg-purple-600 text-white font-bold py-2.5 rounded-xl shadow-lg transition-all flex justify-center items-center gap-2"><i class="fa-solid fa-paper-plane"></i> Email</button>
+            </div>
+            
+            <button onclick="document.getElementById('detailed-cv-modal').remove()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-black/20 hover:bg-black/40 rounded-full w-8 h-8 flex items-center justify-center transition-colors"><i class="fa-solid fa-times"></i></button>
         </div>
     `;
 };
 
-// Переход в чат прямо из CV
+// --- ФУНКЦИИ-ПЕРЕХВАТЧИКИ ДЛЯ КНОПОК CV ---
 window.actionPrivateChatFromCV = function(uid) {
-    window.switchWebChat(uid);
-    window.switchTab('chat');
-    window.closeCVModals();
+    document.getElementById('detailed-cv-modal')?.remove();
+    if(typeof window.switchWebChat === 'function') window.switchWebChat(uid);
+    const chatNavLink = document.querySelector('.nav-link[data-target="chat"]');
+    if(chatNavLink) chatNavLink.click();
 };
 
-// 4. Форма Редактирования CV (Сохранение в Firebase)
+window.actionSMSFromCV = function(uid) {
+    const user = window.appUsers[uid];
+    if (user && user.phone) {
+        window.location.href = `sms:${user.phone}`;
+        document.getElementById('detailed-cv-modal')?.remove();
+    } else {
+        alert("Пользователь не указал номер телефона.");
+    }
+};
+
+window.actionEmailFromCV = function(uid) {
+    const user = window.appUsers[uid];
+    if (user && user.email) {
+        document.getElementById('detailed-cv-modal')?.remove();
+        if(typeof window.openEmailModal === 'function') window.openEmailModal();
+        setTimeout(() => {
+            const emailInput = document.getElementById('email-to-input');
+            if (emailInput) emailInput.value = user.email;
+        }, 100);
+    } else {
+        alert("Пользователь не указал Email.");
+    }
+};
+
+// --- РЕДАКТИРОВАНИЕ CV (Убрали Моря и Население) ---
 window.openEditCVModal = function() {
     if (!window.myProfileInfo) return alert("Пожалуйста, авторизуйтесь!");
-    
     const cv = window.myProfileInfo.cv || {};
-    const wrapper = document.getElementById('cv-modals-wrapper');
     
-    wrapper.innerHTML = `
-        <div id="edit-cv-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex justify-center items-center p-4" onclick="closeCVModals(event)">
-            <div class="bg-white dark:bg-slate-800 w-full max-w-lg rounded-3xl shadow-2xl p-6 relative" onclick="event.stopPropagation()">
-                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Edit Profile</h3>
-                
-                <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Role / Title</label>
-                        <input type="text" id="cv-edit-role" value="${cv.role || ''}" placeholder="e.g. CEO & Founder" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Profession</label>
-                        <input type="text" id="cv-edit-prof" value="${cv.profession || ''}" placeholder="e.g. Software Engineer" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Languages</label>
-                        <input type="text" id="cv-edit-lang" value="${cv.languages || ''}" placeholder="e.g. Azerbaijani, English, Russian" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Population</label>
-                            <input type="text" id="cv-edit-pop" value="${cv.population || ''}" placeholder="e.g. ~10.1M" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Seas</label>
-                            <input type="text" id="cv-edit-seas" value="${cv.seas || ''}" placeholder="e.g. Caspian Sea" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none">
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">About Me</label>
-                        <textarea id="cv-edit-about" rows="3" placeholder="Tell us about yourself..." class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none resize-none">${cv.about || ''}</textarea>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Work Skills</label>
-                        <input type="text" id="cv-edit-skills" value="${cv.skills || ''}" placeholder="e.g. Management, JavaScript, Design" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none">
-                    </div>
+    let modal = document.getElementById('edit-cv-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'edit-cv-modal';
+        modal.className = 'fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[10000] flex justify-center items-center p-4';
+        document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-slate-800 w-full max-w-lg rounded-3xl shadow-2xl p-6 relative" onclick="event.stopPropagation()">
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Edit Professional CV</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Role / Title</label>
+                    <input type="text" id="cv-edit-role" value="${cv.role || ''}" placeholder="e.g. CEO & Founder" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2 text-gray-900 dark:text-white outline-none">
                 </div>
-                
-                <div class="mt-6 flex justify-end gap-3">
-                    <button onclick="closeCVModals()" class="px-5 py-2.5 rounded-xl font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">Cancel</button>
-                    <button onclick="saveCVData()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition-colors flex items-center gap-2">
-                        <i class="fa-solid fa-save"></i> Save Profile
-                    </button>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Profession</label>
+                    <input type="text" id="cv-edit-prof" value="${cv.profession || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2 text-gray-900 dark:text-white outline-none">
                 </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Languages (Work)</label>
+                    <input type="text" id="cv-edit-lang" value="${cv.languages || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2 text-gray-900 dark:text-white outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">About Profession</label>
+                    <textarea id="cv-edit-about" rows="3" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2 text-gray-900 dark:text-white outline-none resize-none">${cv.about || ''}</textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Work Skills</label>
+                    <input type="text" id="cv-edit-skills" value="${cv.skills || ''}" placeholder="e.g. Management, IT, Design" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2 text-gray-900 dark:text-white outline-none">
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button onclick="document.getElementById('edit-cv-modal').remove()" class="px-5 py-2.5 rounded-xl font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">Cancel</button>
+                <button onclick="saveCVData()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition-colors"><i class="fa-solid fa-save"></i> Save CV</button>
             </div>
         </div>
     `;
+};
+
+window.saveCVData = function() {
+    const cvData = {
+        role: document.getElementById('cv-edit-role').value.trim(),
+        profession: document.getElementById('cv-edit-prof').value.trim(),
+        languages: document.getElementById('cv-edit-lang').value.trim(),
+        about: document.getElementById('cv-edit-about').value.trim(),
+        skills: document.getElementById('cv-edit-skills').value.trim()
+    };
+    
+    if (window.firebase) {
+        firebase.database().ref('users/' + window.myProfileInfo.id + '/cv').set(cvData)
+        .then(() => {
+            window.myProfileInfo.cv = cvData;
+            document.getElementById('edit-cv-modal').remove();
+            if(typeof window.renderProfessionSection === 'function') window.renderProfessionSection(window.appUsers);
+        })
+        .catch(e => alert("Ошибка сохранения CV: " + e.message));
+    }
 };
 
 // Сохранение данных в базу
