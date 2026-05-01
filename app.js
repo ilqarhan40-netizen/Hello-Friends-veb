@@ -1260,3 +1260,280 @@ window.closeConfPanels = function() {
 }
 // Закрываем менюшки конференции при клике по экрану
 document.addEventListener('click', () => { if(window.closeConfPanels) window.closeConfPanels(); });
+// ==========================================
+// ЗОЛОТОЙ СТАНДАРТ: ЕДИНЫЙ ФАЙЛ
+// Блок 9: ЭКОСИСТЕМА (12 ЯЗЫКОВ) + WEB МОДАЛКИ (Профиль, Кошелек, Стор)
+// ==========================================
+
+// --- 1. ГЛОБАЛЬНЫЙ СЛОВАРЬ (12 Языков) ---
+window.appTranslations = {
+    'en': { menu: "Settings", profile: "Profile", wallet: "Wallet", email_store: "Email Store", theme: "Change Theme", logout: "Logout", action_chat: "Private Chat", action_voice: "Voice Room", action_video: "Video Conf", action_email: "Send Email", action_cellular: "Cellular Call", select_room_lang: "Room Language", cancel: "Cancel", save: "Save Profile", send: "Send Money", purchase: "Purchase Now" },
+    'ru': { menu: "Настройки", profile: "Мой Профиль", wallet: "Кошелек", email_store: "Email Стор", theme: "Сменить тему", logout: "Выйти", action_chat: "Личный чат", action_voice: "Голосовая", action_video: "Видео", action_email: "Письмо", action_cellular: "Сотовый звонок", select_room_lang: "Язык комнаты", cancel: "Отмена", save: "Сохранить", send: "Отправить", purchase: "Купить" },
+    'az': { menu: "Tənzimləmələr", profile: "Profilim", wallet: "Pul kisəsi", email_store: "Email Mağaza", theme: "Mövzunu dəyiş", logout: "Çıxış", action_chat: "Şəxsi Çat", action_voice: "Səsli Otaq", action_video: "Video Zəng", action_email: "Email Göndər", action_cellular: "Mobil Zəng", select_room_lang: "Otaq Dili", cancel: "Ləğv et", save: "Yadda saxla", send: "Göndər", purchase: "Al" },
+    'de': { menu: "Einstellungen", profile: "Mein Profil", wallet: "Brieftasche", email_store: "E-Mail Shop", theme: "Design ändern", logout: "Abmelden", action_chat: "Privater Chat", action_voice: "Sprachraum", action_video: "Videoanruf", action_email: "E-Mail senden", action_cellular: "Handyanruf", select_room_lang: "Raumsprache", cancel: "Abbrechen", save: "Speichern", send: "Geld senden", purchase: "Kaufen" },
+    'it': { menu: "Impostazioni", profile: "Il mio Profilo", wallet: "Portafoglio", email_store: "Negozio Email", theme: "Cambia Tema", logout: "Esci", action_chat: "Chat Privata", action_voice: "Stanza Vocale", action_video: "Videochiamata", action_email: "Invia Email", action_cellular: "Chiamata", select_room_lang: "Lingua Stanza", cancel: "Annulla", save: "Salva", send: "Invia Denaro", purchase: "Acquista" },
+    'tr': { menu: "Ayarlar", profile: "Profilim", wallet: "Cüzdan", email_store: "E-posta Mağazası", theme: "Temayı Değiştir", logout: "Çıkış Yap", action_chat: "Özel Sohbet", action_voice: "Sesli Oda", action_video: "Görüntülü", action_email: "E-posta Gönder", action_cellular: "Hücresel Arama", select_room_lang: "Oda Dili", cancel: "İptal", save: "Kaydet", send: "Gönder", purchase: "Satın Al" },
+    'es': { menu: "Ajustes", profile: "Mi Perfil", wallet: "Billetera", email_store: "Tienda Email", theme: "Cambiar Tema", logout: "Salir", action_chat: "Chat Privado", action_voice: "Sala de Voz", action_video: "Videollamada", action_email: "Enviar Email", action_cellular: "Llamada celular", select_room_lang: "Idioma de sala", cancel: "Cancelar", save: "Guardar", send: "Enviar", purchase: "Comprar" },
+    'fr': { menu: "Paramètres", profile: "Mon Profil", wallet: "Portefeuille", email_store: "Boutique Email", theme: "Changer de thème", logout: "Déconnexion", action_chat: "Chat Privé", action_voice: "Salon Vocal", action_video: "Appel Vidéo", action_email: "Envoyer Email", action_cellular: "Appel Mobile", select_room_lang: "Langue du salon", cancel: "Annuler", save: "Enregistrer", send: "Envoyer", purchase: "Acheter" },
+    'pt': { menu: "Configurações", profile: "Meu Perfil", wallet: "Carteira", email_store: "Loja Email", theme: "Mudar Tema", logout: "Sair", action_chat: "Chat Privado", action_voice: "Sala de Voz", action_video: "Videochamada", action_email: "Enviar Email", action_cellular: "Chamada", select_room_lang: "Idioma da Sala", cancel: "Cancelar", save: "Salvar", send: "Enviar", purchase: "Comprar" },
+    'ar': { menu: "إعدادات", profile: "ملفي الشخصي", wallet: "محفظة", email_store: "متجر البريد", theme: "تغيير المظهر", logout: "خروج", action_chat: "دردشة خاصة", action_voice: "غرفة صوتية", action_video: "فيديو", action_email: "إرسال بريد", action_cellular: "مكالمة خلوية", select_room_lang: "لغة الغرفة", cancel: "إلغاء", save: "حفظ", send: "إرسال", purchase: "شراء" },
+    'zh': { menu: "设置", profile: "我的主页", wallet: "钱包", email_store: "邮箱商店", theme: "更改主题", logout: "登出", action_chat: "私聊", action_voice: "语音室", action_video: "视频会议", action_email: "发送邮件", action_cellular: "拨打电话", select_room_lang: "房间语言", cancel: "取消", save: "保存", send: "发送金钱", purchase: "立即购买" },
+    'hi': { menu: "सेटिंग्स", profile: "मेरी प्रोफ़ाइल", wallet: "बटुआ", email_store: "ईमेल स्टोर", theme: "थीम बदलें", logout: "लॉग आउट", action_chat: "निजी चैट", action_voice: "वॉयस रूम", action_video: "वीडियो कॉल", action_email: "ईमेल भेजें", action_cellular: "फ़ोन कॉल", select_room_lang: "कमरे की भाषा", cancel: "रद्द करें", save: "सहेजें", send: "पैसे भेजें", purchase: "खरीदें" }
+};
+
+// --- 2. ОПРЕДЕЛИТЕЛЬ ЯЗЫКА (12 зон) ---
+window.getLangFromPrefix = function(phoneNumber) {
+    if (!phoneNumber) return 'en';
+    if (phoneNumber.startsWith('+994')) return 'az';
+    if (phoneNumber.startsWith('+7')) return 'ru';
+    if (phoneNumber.startsWith('+49')) return 'de';
+    if (phoneNumber.startsWith('+39')) return 'it';
+    if (phoneNumber.startsWith('+90')) return 'tr';
+    if (phoneNumber.startsWith('+34')) return 'es';
+    if (phoneNumber.startsWith('+33')) return 'fr';
+    if (phoneNumber.startsWith('+351') || phoneNumber.startsWith('+55')) return 'pt';
+    if (phoneNumber.startsWith('+971') || phoneNumber.startsWith('+966') || phoneNumber.startsWith('+20')) return 'ar';
+    if (phoneNumber.startsWith('+86')) return 'zh';
+    if (phoneNumber.startsWith('+91')) return 'hi';
+    return 'en';
+};
+
+// --- 3. ГЛОБАЛЬНЫЙ ПЕРЕВОДЧИК ЭКОСИСТЕМЫ ---
+window.applySystemLanguage = function() {
+    let targetLang = 'en';
+    if (window.currentAppLang === 'auto' && window.myProfileInfo && window.myProfileInfo.phone) {
+        targetLang = window.getLangFromPrefix(window.myProfileInfo.phone);
+    } else if (window.currentAppLang !== 'auto') {
+        targetLang = window.currentAppLang.split('-')[0];
+    }
+
+    let dict = window.appTranslations[targetLang] || window.appTranslations['en'];
+
+    // Ищем все элементы с атрибутом data-i18n и переводим их
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) {
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = dict[key];
+            else el.innerText = dict[key];
+        }
+    });
+
+    document.documentElement.lang = targetLang;
+    document.documentElement.dir = targetLang === 'ar' ? 'rtl' : 'ltr';
+    
+    // Синхронизируем выпадающий список языков в шапке
+    const select = document.getElementById('app-lang-select');
+    if (select) select.value = window.currentAppLang;
+};
+
+// Перехват смены языка пользователем вручную
+window.changeAppLanguage = function(langCode) {
+    window.currentAppLang = langCode;
+    localStorage.setItem('hf_ecosystem_lang', langCode);
+    window.applySystemLanguage();
+    window.closeDropdown();
+};
+
+// Авто-перевод при появлении новых элементов (например, модалок)
+const domObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.addedNodes.length > 0) window.applySystemLanguage();
+    });
+});
+domObserver.observe(document.body, { childList: true, subtree: true });
+
+
+// --- 4. ПРОФИЛЬ (Широкий WEB Дизайн со всеми полями) ---
+window.openMyProfile = function() {
+    if (!window.myProfileInfo) return alert("Пожалуйста, авторизуйтесь!");
+    window.closeDropdown(); 
+    
+    const user = window.myProfileInfo;
+    const cv = user.cv || {}; 
+    
+    let modal = document.getElementById('profile-modal-container');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'profile-modal-container';
+        modal.className = 'fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[10000] flex justify-center items-center p-4 transition-opacity';
+        document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-slate-800 w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative flex flex-col md:flex-row" onclick="event.stopPropagation()">
+            <button onclick="document.getElementById('profile-modal-container').remove()" class="absolute top-4 right-4 w-8 h-8 bg-gray-100 dark:bg-slate-700 hover:bg-red-500 hover:text-white text-gray-500 dark:text-gray-300 rounded-full flex items-center justify-center transition-colors z-50"><i class="fa-solid fa-xmark"></i></button>
+
+            <!-- Левая колонка -->
+            <div class="bg-gray-50 dark:bg-slate-900/50 p-8 flex flex-col items-center justify-center border-r border-gray-200 dark:border-slate-700 w-full md:w-1/3 relative">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white" data-i18n="profile">Profile</h2>
+                </div>
+                <div class="w-32 h-32 rounded-full p-1 border-2 border-indigo-500 mb-4">
+                    <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full rounded-full object-cover border border-gray-200 dark:border-slate-700">
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">${user.name.split(' ')[0]}</h3>
+            </div>
+
+            <!-- Правая колонка -->
+            <div class="p-8 w-full md:w-2/3 space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs font-bold text-indigo-500 uppercase mb-1">Full Name</label>
+                        <input type="text" id="prof-name" value="${user.name || ''}" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-indigo-500 uppercase mb-1">Country</label>
+                        <input type="text" id="prof-country" value="${user.country || ''}" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs font-bold text-indigo-500 uppercase mb-1">Phone</label>
+                        <input type="text" id="prof-phone" value="${user.phone || ''}" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-indigo-500 uppercase mb-1">Languages</label>
+                        <input type="text" id="prof-langs" value="${cv.languages || user.profileLangs || ''}" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-indigo-500 uppercase mb-1">Email</label>
+                    <input type="email" id="prof-email" value="${user.email || ''}" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-indigo-500 uppercase mb-1">About Me</label>
+                    <input type="text" id="prof-about" value="${cv.about || ''}" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none">
+                </div>
+                <button onclick="saveProfileData()" class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all uppercase" data-i18n="save">Save Profile</button>
+            </div>
+        </div>
+    `;
+    window.applySystemLanguage();
+};
+
+window.saveProfileData = function() {
+    const btn = event.target; btn.disabled = true; btn.innerText = "...";
+    const data = {
+        name: document.getElementById('prof-name').value.trim(),
+        country: document.getElementById('prof-country').value.trim(),
+        phone: document.getElementById('prof-phone').value.trim(),
+        profileLangs: document.getElementById('prof-langs').value.trim(),
+        email: document.getElementById('prof-email').value.trim()
+    };
+    if (window.firebase) {
+        firebase.database().ref('users/' + window.myProfileInfo.id).update(data).then(() => {
+            firebase.database().ref('users/' + window.myProfileInfo.id + '/cv').update({
+                languages: data.profileLangs, about: document.getElementById('prof-about').value.trim()
+            });
+            Object.assign(window.myProfileInfo, data);
+            document.getElementById('profile-modal-container').remove();
+        });
+    } else {
+        document.getElementById('profile-modal-container').remove();
+    }
+};
+
+// --- 5. КОШЕЛЕК / ПЕРЕВОДЫ (Перекрывает старый HTML) ---
+window.openBankTransferModal = function() {
+    window.closeDropdown();
+    
+    // Удаляем старую HTML-модалку, если она есть, чтобы показать нашу крутую WEB-версию
+    const oldModal = document.getElementById('transfer-modal');
+    if (oldModal) oldModal.remove();
+
+    let modal = document.getElementById('wallet-modal-container');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'wallet-modal-container';
+        modal.className = 'fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[10000] flex justify-center items-center p-4';
+        document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-3xl shadow-2xl p-8 relative" onclick="event.stopPropagation()">
+            <button onclick="document.getElementById('wallet-modal-container').remove()" class="absolute top-4 right-4 w-8 h-8 bg-gray-100 dark:bg-slate-700 rounded-full flex justify-center items-center text-gray-500 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white text-center mb-6"><i class="fa-solid fa-wallet text-green-500"></i> <span data-i18n="wallet">Wallet</span></h2>
+            
+            <div class="flex bg-gray-100 dark:bg-slate-900 rounded-xl p-1 mb-6">
+                <button onclick="switchWalletTab('card')" id="tab-card" class="flex-1 py-2 rounded-lg text-sm font-bold bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow">Card-to-Card</button>
+                <button onclick="switchWalletTab('intl')" id="tab-intl" class="flex-1 py-2 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white">International</button>
+            </div>
+            
+            <div id="wallet-content-area" class="space-y-4"></div>
+            
+            <div class="bg-gray-50 dark:bg-slate-900 p-4 rounded-xl border border-gray-200 dark:border-slate-700 mt-6 shadow-inner">
+                <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1"><span>Amount:</span> <span id="w-amt">$0.00</span></div>
+                <div class="flex justify-between text-xs text-red-500 mb-2"><span>Network Fee:</span> <span>$0.01</span></div>
+                <div class="flex justify-between text-sm font-bold text-gray-900 dark:text-white border-t border-gray-200 dark:border-slate-700 pt-2"><span>Total:</span> <span id="w-tot" class="text-green-500">$0.00</span></div>
+            </div>
+            <button onclick="document.getElementById('wallet-modal-container').remove(); alert('Transaction Successful!');" class="mt-6 w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 rounded-xl transition-colors shadow-lg flex justify-center items-center gap-2" data-i18n="send"><i class="fa-solid fa-paper-plane"></i> Send Money</button>
+        </div>
+    `;
+    window.switchWalletTab('card');
+    window.applySystemLanguage();
+};
+
+window.switchWalletTab = function(tab) {
+    const area = document.getElementById('wallet-content-area');
+    if(tab === 'card') {
+        document.getElementById('tab-card').className = "flex-1 py-2 rounded-lg text-sm font-bold bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow";
+        document.getElementById('tab-intl').className = "flex-1 py-2 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white";
+        area.innerHTML = `
+            <div class="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white font-medium shadow-sm"><i class="fa-brands fa-cc-visa text-blue-500"></i> My Visa •••• 4242</div>
+            <input type="text" placeholder="Select Recipient" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-3 outline-none text-gray-900 dark:text-white shadow-inner">
+            <input type="number" oninput="updateWalletTotal(this.value)" placeholder="Amount ($)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-3 outline-none text-gray-900 dark:text-white shadow-inner">
+        `;
+    } else {
+        document.getElementById('tab-intl').className = "flex-1 py-2 rounded-lg text-sm font-bold bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow";
+        document.getElementById('tab-card').className = "flex-1 py-2 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white";
+        area.innerHTML = `
+            <select class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-3 outline-none text-gray-900 dark:text-white font-medium shadow-sm">
+                <option>🟡 Western Union</option><option>👑 Zolotaya Korona (Корона)</option><option>🔴 MoneyGram</option><option>🏦 SWIFT Transfer</option>
+            </select>
+            <input type="text" placeholder="Recipient Country" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-3 outline-none text-gray-900 dark:text-white shadow-inner">
+            <input type="number" oninput="updateWalletTotal(this.value)" placeholder="Amount ($)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-3 outline-none text-gray-900 dark:text-white shadow-inner">
+        `;
+    }
+    updateWalletTotal(0);
+};
+window.updateWalletTotal = function(v) {
+    let a = parseFloat(v)||0; let t = a>0 ? a+0.01 : 0;
+    document.getElementById('w-amt').innerText = '$'+a.toFixed(2);
+    document.getElementById('w-tot').innerText = '$'+t.toFixed(2);
+};
+
+// --- 6. СТОР (Corporate Email) ---
+window.openEmailStore = function() {
+    window.closeDropdown();
+    let modal = document.getElementById('store-modal-container');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'store-modal-container';
+        modal.className = 'fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[10000] flex justify-center items-center p-4';
+        document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-3xl shadow-2xl p-8 relative" onclick="event.stopPropagation()">
+            <button onclick="document.getElementById('store-modal-container').remove()" class="absolute top-4 right-4 w-8 h-8 bg-gray-100 dark:bg-slate-700 rounded-full flex justify-center items-center text-gray-500 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button>
+            <div class="flex flex-col items-center mb-6 text-center">
+                <div class="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-4"><i class="fa-solid fa-store text-3xl text-indigo-500"></i></div>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Corporate Email</h2>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Stand out with a professional email address.</p>
+            </div>
+            <div class="flex items-center bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl overflow-hidden mb-4 shadow-inner">
+                <input type="text" placeholder="ceo, sales..." class="w-full bg-transparent px-4 py-3 outline-none text-gray-900 dark:text-white text-sm">
+                <span class="text-gray-500 dark:text-gray-400 text-sm pr-4 pl-4 py-3 bg-gray-100 dark:bg-slate-800">@hellofriends.app</span>
+            </div>
+            <div class="flex justify-between items-center py-3 border-b border-gray-200 dark:border-slate-700 mb-6">
+                <span class="text-sm text-gray-500 dark:text-gray-400 font-medium">Price:</span>
+                <span class="text-sm font-bold text-gray-900 dark:text-white">$0.01 <span class="text-xs font-normal text-gray-500">/ lifetime</span></span>
+            </div>
+            <button onclick="document.getElementById('store-modal-container').remove(); alert('Purchased!');" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition-colors shadow-lg flex justify-center items-center gap-2" data-i18n="purchase"><i class="fa-solid fa-cart-shopping"></i> Purchase Now</button>
+        </div>
+    `;
+    window.applySystemLanguage();
+};
+
+// Запуск первичного перевода при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(window.applySystemLanguage, 500);
+});
