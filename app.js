@@ -1353,14 +1353,34 @@ const domObserver = new MutationObserver((mutations) => {
 });
 domObserver.observe(document.body, { childList: true, subtree: true });
 
-// --- 4. ПРОФИЛЬ (Широкий WEB Дизайн со всеми полями) ---
+// --- 4. ПРОФИЛЬ (ДИЗАЙН С ФОТО + МОРЯ + НАСЕЛЕНИЕ + УМНЫЙ ФЛАГ) ---
 window.openMyProfile = function() {
     if (!window.myProfileInfo) return alert("Пожалуйста, авторизуйтесь!");
-    window.closeDropdown(); 
+    if (typeof window.closeDropdown === 'function') window.closeDropdown();
     
     const user = window.myProfileInfo;
-    const cv = user.cv || {}; 
     
+    // База стран (12 эко-языков + Global)
+    const countries = [
+        { code: 'az', flag: '🇦🇿', name: 'Azerbaijan', dial: '+994' },
+        { code: 'ru', flag: '🇷🇺', name: 'Russia', dial: '+7' },
+        { code: 'de', flag: '🇩🇪', name: 'Germany', dial: '+49' },
+        { code: 'it', flag: '🇮🇹', name: 'Italy', dial: '+39' },
+        { code: 'gb', flag: '🇬🇧', name: 'UK', dial: '+44' },
+        { code: 'tr', flag: '🇹🇷', name: 'Turkey', dial: '+90' },
+        { code: 'es', flag: '🇪🇸', name: 'Spain', dial: '+34' },
+        { code: 'fr', flag: '🇫🇷', name: 'France', dial: '+33' },
+        { code: 'ae', flag: '🇦🇪', name: 'UAE', dial: '+971' },
+        { code: 'cn', flag: '🇨🇳', name: 'China', dial: '+86' },
+        { code: 'jp', flag: '🇯🇵', name: 'Japan', dial: '+81' },
+        { code: 'us', flag: '🇺🇸', name: 'USA', dial: '+1' }
+    ];
+
+    let currentCode = user.flagCode || 'az';
+    let optionsHtml = countries.map(c => 
+        `<option value="${c.code}" data-dial="${c.dial}" data-flag="${c.flag}" ${currentCode === c.code ? 'selected' : ''}>${c.flag} ${c.name}</option>`
+    ).join('');
+
     let modal = document.getElementById('profile-modal-container');
     if (!modal) {
         modal = document.createElement('div');
@@ -1369,79 +1389,163 @@ window.openMyProfile = function() {
         document.body.appendChild(modal);
     }
 
+    // Дизайн четко по твоему скрину (центрированный аватар, поля, кнопка, футер)
     modal.innerHTML = `
-        <div class="bg-white dark:bg-slate-800 w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative flex flex-col md:flex-row" onclick="event.stopPropagation()">
-            <button onclick="document.getElementById('profile-modal-container').remove()" class="absolute top-4 right-4 w-8 h-8 bg-gray-100 dark:bg-slate-700 hover:bg-red-500 hover:text-white text-gray-500 dark:text-gray-300 rounded-full flex items-center justify-center transition-colors z-50"><i class="fa-solid fa-xmark"></i></button>
+        <div class="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden relative flex flex-col animate-fade-in" onclick="event.stopPropagation()">
+            <button onclick="document.getElementById('profile-modal-container').remove()" class="absolute top-4 right-4 w-8 h-8 bg-red-100 dark:bg-red-500/20 hover:bg-red-500 hover:text-white text-red-500 rounded-full flex items-center justify-center transition-colors z-50">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
 
-            <!-- Левая колонка -->
-            <div class="bg-gray-50 dark:bg-slate-900/50 p-8 flex flex-col items-center justify-center border-r border-gray-200 dark:border-slate-700 w-full md:w-1/3 relative">
-                <div class="text-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white" data-i18n="profile">Profile</h2>
-                </div>
-                <div class="w-32 h-32 rounded-full p-1 border-2 border-indigo-500 mb-4">
-                    <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full rounded-full object-cover border border-gray-200 dark:border-slate-700">
-                </div>
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white">${user.name.split(' ')[0]}</h3>
-            </div>
+            <div class="p-8 overflow-y-auto custom-scrollbar max-h-[90vh]">
+                
+                <!-- Центрированный заголовок и Аватар -->
+                <div class="flex flex-col items-center mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2" data-i18n="profile">Mein Profil</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-6">Complete registration / Update details</p>
 
-            <!-- Правая колонка -->
-            <div class="p-8 w-full md:w-2/3 space-y-5">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                        <label class="block text-xs font-bold text-indigo-500 uppercase mb-1">Full Name</label>
-                        <input type="text" id="prof-name" value="${user.name || ''}" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-indigo-500 uppercase mb-1">Country</label>
-                        <input type="text" id="prof-country" value="${user.country || ''}" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none">
+                    <div class="w-28 h-28 relative cursor-pointer group mb-2" onclick="document.getElementById('attachment-input')?.click()">
+                        <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full rounded-full object-cover border-4 border-indigo-500 dark:border-[#00C4CC] shadow-lg">
+                        <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i class="fa-solid fa-camera text-white text-2xl"></i>
+                        </div>
+                        <div class="absolute bottom-0 right-0 bg-indigo-500 dark:bg-[#00C4CC] w-8 h-8 rounded-full border-2 border-white dark:border-slate-800 flex items-center justify-center text-white">
+                            <i class="fa-solid fa-pen text-xs"></i>
+                        </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                <!-- Сетка полей (Веб = 2 колонки, Телефон = 1 колонка) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- Имя -->
                     <div>
-                        <label class="block text-xs font-bold text-indigo-500 uppercase mb-1">Phone</label>
-                        <input type="text" id="prof-phone" value="${user.phone || ''}" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none">
+                        <label class="block text-[10px] font-bold text-indigo-500 dark:text-[#00C4CC] uppercase mb-1">Full Name</label>
+                        <input type="text" id="prof-name" value="${user.name || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500 dark:focus:border-[#00C4CC] transition-colors">
                     </div>
+                    <!-- Страна (с флагами внутри) -->
                     <div>
-                        <label class="block text-xs font-bold text-indigo-500 uppercase mb-1">Languages</label>
-                        <input type="text" id="prof-langs" value="${cv.languages || user.profileLangs || ''}" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none">
+                        <label class="block text-[10px] font-bold text-indigo-500 dark:text-[#00C4CC] uppercase mb-1">Country</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xl" id="prof-flag-display">${user.flag || '🌍'}</span>
+                            <select id="prof-country" onchange="window.updatePhonePrefix(this)" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl pl-12 pr-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500 dark:focus:border-[#00C4CC] transition-colors cursor-pointer appearance-none">
+                                ${optionsHtml}
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                        </div>
+                    </div>
+
+                    <!-- Телефон -->
+                    <div>
+                        <label class="block text-[10px] font-bold text-indigo-500 dark:text-[#00C4CC] uppercase mb-1">Phone Number</label>
+                        <input type="text" id="prof-phone" value="${user.phone || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500 dark:focus:border-[#00C4CC] font-medium transition-colors">
+                    </div>
+                    <!-- Языки -->
+                    <div>
+                        <label class="block text-[10px] font-bold text-indigo-500 dark:text-[#00C4CC] uppercase mb-1">Languages</label>
+                        <input type="text" id="prof-langs" value="${user.profileLangs || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500 dark:focus:border-[#00C4CC] transition-colors">
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label class="block text-[10px] font-bold text-indigo-500 dark:text-[#00C4CC] uppercase mb-1">E-mail</label>
+                        <input type="email" id="prof-email" value="${user.email || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500 dark:focus:border-[#00C4CC] transition-colors">
+                    </div>
+                    <!-- О себе (берем из CV, если есть) -->
+                    <div>
+                        <label class="block text-[10px] font-bold text-indigo-500 dark:text-[#00C4CC] uppercase mb-1">About Me</label>
+                        <input type="text" id="prof-about" value="${user.cv?.about || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500 dark:focus:border-[#00C4CC] transition-colors">
+                    </div>
+
+                    <!-- Население -->
+                    <div>
+                        <label class="block text-[10px] font-bold text-indigo-500 dark:text-[#00C4CC] uppercase mb-1">Population</label>
+                        <input type="text" id="prof-pop" value="${user.population || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500 dark:focus:border-[#00C4CC] transition-colors">
+                    </div>
+                    <!-- Моря -->
+                    <div>
+                        <label class="block text-[10px] font-bold text-indigo-500 dark:text-[#00C4CC] uppercase mb-1">Seas</label>
+                        <input type="text" id="prof-seas" value="${user.seas || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500 dark:focus:border-[#00C4CC] transition-colors">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-indigo-500 uppercase mb-1">Email</label>
-                    <input type="email" id="prof-email" value="${user.email || ''}" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none">
+
+                <!-- Кнопка сохранения -->
+                <button onclick="saveProfileData(this)" class="w-full bg-indigo-600 dark:bg-[#00C4CC] hover:bg-indigo-700 dark:hover:bg-[#00b3ba] text-white dark:text-slate-900 font-bold py-4 rounded-xl shadow-[0_4px_14px_0_rgba(0,196,204,0.39)] active:scale-95 transition-all uppercase tracking-wide">
+                    Save Profile
+                </button>
+
+                <!-- Футер (Creator) -->
+                <div class="mt-6 flex flex-col items-center justify-center pt-4 border-t border-gray-200 dark:border-slate-700">
+                    <div class="flex items-center gap-2 bg-gray-100 dark:bg-slate-900 px-4 py-2 rounded-full border border-gray-200 dark:border-slate-700">
+                        <img src="https://images.unsplash.com/photo-1557862921-37829c790f19?w=100" class="w-6 h-6 rounded-full object-cover">
+                        <span class="text-[10px] text-gray-500 dark:text-gray-400 font-semibold uppercase">Creator of Hello Friends</span>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-indigo-500 uppercase mb-1">About Me</label>
-                    <input type="text" id="prof-about" value="${cv.about || ''}" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none">
-                </div>
-                <button onclick="saveProfileData()" class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all uppercase" data-i18n="save">Save Profile</button>
+                
             </div>
         </div>
     `;
-    window.applySystemLanguage();
+    if (typeof window.applySystemLanguage === 'function') window.applySystemLanguage();
 };
 
-window.saveProfileData = function() {
-    const btn = event.target; 
-    if(btn) btn.disabled = true;
+// --- МГНОВЕННАЯ СМЕНА ПРЕФИКСА ПРИ ВЫБОРЕ СТРАНЫ ---
+window.updatePhonePrefix = function(selectEl) {
+    const selectedOption = selectEl.options[selectEl.selectedIndex];
+    const dialCode = selectedOption.getAttribute('data-dial');
+    const flagIcon = selectedOption.getAttribute('data-flag');
     
+    const phoneInput = document.getElementById('prof-phone');
+    if (phoneInput) { 
+        // Автоматически подставляем код страны в поле ввода
+        phoneInput.value = dialCode + " "; 
+        phoneInput.focus(); 
+    }
+    
+    // Меняем флажок в селекте
+    const flagDisplay = document.getElementById('prof-flag-display');
+    if (flagDisplay) flagDisplay.innerText = flagIcon;
+};
+
+// --- БЕЗОПАСНОЕ СОХРАНЕНИЕ ---
+window.saveProfileData = function(btn) {
+    if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
+    
+    const selectEl = document.getElementById('prof-country');
+    const selectedOption = selectEl.options[selectEl.selectedIndex];
+
     const data = {
         name: document.getElementById('prof-name').value.trim(),
         email: document.getElementById('prof-email').value.trim(),
         phone: document.getElementById('prof-phone').value.trim(),
+        profileLangs: document.getElementById('prof-langs').value.trim(),
         population: document.getElementById('prof-pop').value.trim(),
-        seas: document.getElementById('prof-seas').value.trim()
+        seas: document.getElementById('prof-seas').value.trim(),
+        // Вырезаем флажок из названия страны, чтобы в базе хранилось чистым текстом
+        country: selectedOption.text.trim().replace(/^[\uD83C][\uDDE6-\uDDFF][\uD83C][\uDDE6-\uDDFF]\s*/, '').replace('🌍 ', ''), 
+        flagCode: selectEl.value,
+        flag: selectedOption.getAttribute('data-flag')
     };
+    
+    // Синхронизируем поле "About Me" с профессиональным CV
+    const aboutVal = document.getElementById('prof-about').value.trim();
+    if (window.myProfileInfo.cv) {
+        window.myProfileInfo.cv.about = aboutVal;
+        firebase.database().ref('users/' + window.myProfileInfo.id + '/cv/about').set(aboutVal);
+    }
     
     if (window.firebase) {
         firebase.database().ref('users/' + window.myProfileInfo.id).update(data).then(() => {
             Object.assign(window.myProfileInfo, data);
-            const modal = document.getElementById('profile-modal-container');
-            if (modal) modal.remove();
+            document.getElementById('profile-modal-container').remove();
             
-            if(typeof window.renderMainScreenAvatars === 'function') {
-                window.renderMainScreenAvatars(window.appUsers, window.myProfileInfo.id);
+            // Жестко перерисовываем аватары
+            if(window.appUsers && typeof window.renderMainScreenAvatars === 'function') {
+                window.renderMainScreenAvatars(window.appUsers);
             }
+            // Мгновенно обновляем глобальный язык экосистемы по новому префиксу!
+            if(typeof window.applySystemLanguage === 'function') window.applySystemLanguage();
+            
+        }).catch(e => {
+            alert("Error: " + e.message);
+            if (btn) { btn.disabled = false; btn.innerHTML = 'Save Profile'; }
         });
     }
 };
