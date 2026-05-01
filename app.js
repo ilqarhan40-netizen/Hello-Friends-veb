@@ -203,27 +203,7 @@ window.saveProfileData = function() {
     }
 };
 
-        // Сохраняем в память нашего Единого Мозга
-        window.myProfileInfo = userData;
-        
-        // Сразу обновляем интерфейс, если другие блоки уже загружены
-        if (window.appUsers && typeof window.renderMainScreenAvatars === 'function') {
-            window.renderMainScreenAvatars(window.appUsers, userData.id);
-        }
-        
-        // Убираем экран блокировки
-        const lockScreen = document.getElementById('security-lock');
-        const appWrapper = document.getElementById('app-wrapper');
-        if(lockScreen) lockScreen.classList.add('opacity-0');
-        setTimeout(() => {
-            if(lockScreen) lockScreen.classList.add('hidden');
-            if(appWrapper) appWrapper.classList.remove('opacity-0');
-            
-            // Запускаем чат по умолчанию (Global)
-            if (typeof window.switchWebChat === 'function') window.switchWebChat('global');
-        }, 500);
-    });
-};
+  
 
 // Отслеживание состояния входа в реальном времени
 firebase.auth().onAuthStateChanged((user) => {
