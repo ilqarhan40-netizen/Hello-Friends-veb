@@ -1482,26 +1482,50 @@ window.openMyProfile = function() {
 };
 
 window.saveProfileData = function() {
-    const btn = event.target; btn.disabled = true; btn.innerText = "...";
+    const btn = event.target; 
+    if(btn) btn.disabled = true;
+    
     const data = {
         name: document.getElementById('prof-name').value.trim(),
-        country: document.getElementById('prof-country').value.trim(),
+        email: document.getElementById('prof-email').value.trim(),
         phone: document.getElementById('prof-phone').value.trim(),
-        profileLangs: document.getElementById('prof-langs').value.trim(),
-        email: document.getElementById('prof-email').value.trim()
+        population: document.getElementById('prof-pop').value.trim(),
+        seas: document.getElementById('prof-seas').value.trim()
     };
+    
     if (window.firebase) {
         firebase.database().ref('users/' + window.myProfileInfo.id).update(data).then(() => {
-            firebase.database().ref('users/' + window.myProfileInfo.id + '/cv').update({
-                languages: data.profileLangs, about: document.getElementById('prof-about').value.trim()
-            });
             Object.assign(window.myProfileInfo, data);
-            document.getElementById('profile-modal-container').remove();
+            const modal = document.getElementById('profile-modal-container');
+            if (modal) modal.remove();
+            
+            if(typeof window.renderMainScreenAvatars === 'function') {
+                window.renderMainScreenAvatars(window.appUsers, window.myProfileInfo.id);
+            }
         });
-    } else {
-        document.getElementById('profile-modal-container').remove();
     }
 };
+
+// Отслеживание состояния входа в реальном времени
+firebase.auth().onAuthStateChanged((user) => {
+    const spinner = document.getElementById('auth-spinner');
+    const loginBox = document.getElementById('auth-login-box');
+    
+    if (user) {
+        if(typeof window.onUserAuthenticated === 'function') {
+            window.onUserAuthenticated(user);
+        }
+    } else {
+        // Если не авторизован — показываем окно входа
+        if(spinner && loginBox) {
+            spinner.classList.add('hidden'); 
+            spinner.classList.remove('flex');
+            loginBox.classList.remove('hidden'); 
+            loginBox.classList.add('flex');
+        }
+        window.myProfileInfo = null;
+    }
+});
 
 // --- 5. КОШЕЛЕК / ПЕРЕВОДЫ (Перекрывает старый HTML) ---
 window.openBankTransferModal = function() {
