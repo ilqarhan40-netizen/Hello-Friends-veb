@@ -203,7 +203,53 @@ window.saveProfileData = function() {
     }
 };
 
-  
+  // Главная функция: вызывается, когда Firebase подтвердил вход
+window.onUserAuthenticated = function(firebaseUser) {
+    const userRef = firebase.database().ref('users/' + firebaseUser.uid);
+    
+    userRef.once('value').then((snapshot) => {
+        let userData = snapshot.val();
+        
+        // Если пользователя еще нет в базе — создаем его
+        if (!userData) {
+            const isOwner = (firebaseUser.phoneNumber === "+994503398020");
+            
+            userData = {
+                id: firebaseUser.uid,
+                name: isOwner ? "Ilgar (Owner)" : (firebaseUser.displayName || "New User"),
+                email: firebaseUser.email || "",
+                photo: firebaseUser.photoURL || "https://ui-avatars.com/api/?name=" + (isOwner ? "I" : "U"),
+                phone: firebaseUser.phoneNumber || "",
+                country: isOwner ? "Azerbaijan" : "Unknown",
+                flag: isOwner ? "🇦🇿" : "🌍",
+                flagCode: isOwner ? "az" : "en",
+                langCode: isOwner ? "az" : "en",
+                profileLangs: isOwner ? "ru, az, en" : "en"
+            };
+            userRef.set(userData);
+        }
+
+        // Сохраняем в память нашего Единого Мозга
+        window.myProfileInfo = userData;
+        
+        // Сразу обновляем интерфейс, если другие блоки уже загружены
+        if (window.appUsers && typeof window.renderMainScreenAvatars === 'function') {
+            window.renderMainScreenAvatars(window.appUsers, userData.id);
+        }
+        
+        // Убираем экран блокировки
+        const lockScreen = document.getElementById('security-lock');
+        const appWrapper = document.getElementById('app-wrapper');
+        if(lockScreen) lockScreen.classList.add('opacity-0');
+        setTimeout(() => {
+            if(lockScreen) lockScreen.classList.add('hidden');
+            if(appWrapper) appWrapper.classList.remove('opacity-0');
+            
+            // Запускаем чат по умолчанию (Global)
+            if (typeof window.switchWebChat === 'function') window.switchWebChat('global');
+        }, 500);
+    });
+};
 
 // Отслеживание состояния входа в реальном времени
 firebase.auth().onAuthStateChanged((user) => {
