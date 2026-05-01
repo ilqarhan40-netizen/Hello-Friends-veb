@@ -138,7 +138,7 @@ window.openMyProfile = function() {
 
                 <!-- Создатель -->
                 <div class="mt-auto flex flex-col items-center gap-2 pt-8 border-t border-gray-200 dark:border-slate-700 w-full">
-                    <img src="https://images.unsplash.com/photo-1557862921-37829c790f19?w=100" class="w-12 h-12 rounded-full border-2 border-indigo-500 shadow-sm object-cover">
+                   <img src="ilgar.jpg" class="w-6 h-6 rounded-full object-cover border border-indigo-500">
                     <div class="text-center">
                         <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-tighter">Создатель Messenger</p>
                         <p class="text-xs font-bold text-gray-800 dark:text-white">HELLO FRIENDS</p>
