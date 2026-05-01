@@ -15,7 +15,7 @@ window.togglePanel = function(panelId) {
     const panel = document.getElementById(panelId);
     if (!panel) return;
     
-    // Закрываем другие панели, если открываем новую
+    // Закрываем другие панели, если открываем новуюА
     ['menu-panel', 'actions-panel'].forEach(id => {
         if (id !== panelId) {
             const p = document.getElementById(id);
@@ -773,14 +773,13 @@ firebase.database().ref('users').on('value', snapshot => {
 });
 // ==========================================
 // ЗОЛОТОЙ СТАНДАРТ: ЕДИНЫЙ ФАЙЛ
-// Блок 6: MIC-SMART (Автоопределение языка по префиксу/флагу)
+// Блок 6: MIC-SMART (Автоопределение языка микрофона)
 // ==========================================
 
-// 1. Умная функция определения языка по префиксу номера телефона
-window.getLangFromPrefix = function(phoneNumber) {
+// 1. Умная функция ТОЛЬКО ДЛЯ МИКРОФОНА (длинные коды BCP-47 для 12 языков)
+window.getMicLangFromPrefix = function(phoneNumber) {
     if (!phoneNumber) return 'en-US';
     
-    // Определяем язык по коду страны
     if (phoneNumber.startsWith('+994')) return 'az-AZ';
     if (phoneNumber.startsWith('+7')) return 'ru-RU';
     if (phoneNumber.startsWith('+49')) return 'de-DE';
@@ -789,23 +788,31 @@ window.getLangFromPrefix = function(phoneNumber) {
     if (phoneNumber.startsWith('+90')) return 'tr-TR';
     if (phoneNumber.startsWith('+34')) return 'es-ES';
     if (phoneNumber.startsWith('+33')) return 'fr-FR';
+    if (phoneNumber.startsWith('+351') || phoneNumber.startsWith('+55')) return 'pt-PT';
+    if (phoneNumber.startsWith('+971') || phoneNumber.startsWith('+966')) return 'ar-AE';
+    if (phoneNumber.startsWith('+86')) return 'zh-CN';
+    if (phoneNumber.startsWith('+81')) return 'ja-JP';
     
     return 'en-US'; // Язык по умолчанию
 };
 
 // 2. Определение языка текущей комнаты
 window.detectRoomLanguage = function() {
-    // Если мы в глобальном чате, микрофон должен слушать на нашем родном языке
-    if (window.currentRoomId === 'global' && window.myProfileInfo) {
-         return window.getLangFromPrefix(window.myProfileInfo.phone);
-    } 
-    // Если мы в приватном чате, подстраиваемся под собеседника (или говорим на своем)
-    else if (window.currentRoomId !== 'global' && window.currentRoomId !== 'ai' && window.currentRoomId !== 'me') {
-         // Для начала берем свой родной язык для диктовки
-         if (window.myProfileInfo) return window.getLangFromPrefix(window.myProfileInfo.phone);
+    // Если мы в глобальном чате или в привате - микрофон слушает на нашем родном языке
+    if (window.currentRoomId !== 'ai' && window.currentRoomId !== 'me') {
+         if (window.myProfileInfo && window.myProfileInfo.phone) {
+             return window.getMicLangFromPrefix(window.myProfileInfo.phone);
+         }
     }
-    // Для ИИ и сохраненных сообщений можно использовать авто-язык системы
-    return window.currentAppLang === 'auto' ? 'en-US' : window.currentAppLang;
+    
+    // Резерв: Перевод короткого кода системы в длинный для микрофона
+    const sysLang = window.currentAppLang === 'auto' ? 'en' : window.currentAppLang.split('-')[0];
+    const langMap = { 
+        'en': 'en-US', 'ru': 'ru-RU', 'az': 'az-AZ', 'de': 'de-DE', 
+        'it': 'it-IT', 'tr': 'tr-TR', 'es': 'es-ES', 'fr': 'fr-FR', 
+        'pt': 'pt-PT', 'ar': 'ar-AE', 'zh': 'zh-CN', 'ja': 'ja-JP' 
+    };
+    return langMap[sysLang] || 'en-US';
 };
 
 // 3. Инициализация Умного Микрофона
@@ -839,12 +846,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(chatInput) { 
                     chatInput.value = e.results[0][0].transcript; 
                     // Автоматическая отправка после диктовки
-                    window.sendFirebaseMsg(); 
+                    if (typeof window.sendFirebaseMsg === 'function') window.sendFirebaseMsg(); 
                 } 
             };
             
             chatMicBtn.addEventListener('click', () => { 
-                // Применяем автоопределение языка прямо перед запуском
+                // Применяем автоопределение языка микрофона
                 chatRec.lang = window.detectRoomLanguage(); 
                 console.log("Microphone set to language:", chatRec.lang);
                 try { chatRec.start(); } catch(e){} 
