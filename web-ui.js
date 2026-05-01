@@ -1,6 +1,6 @@
 // ==========================================
 // Файл: webjs/web-ui.js
-// Назначение: Меню, Вкладки, Базовые модальные окна, Тема
+// Назначение: Меню, Вкладки, Базовые модальные окна, Тема, Главный Профиль
 // ==========================================
 
 window.closeDropdown = function() {
@@ -75,8 +75,6 @@ window.openTrashModal = () => openModal('trash-modal');
 window.closeTrashModal = () => closeModal('trash-modal');
 window.openEmailModal = () => openModal('email-modal');
 window.closeEmailModal = () => closeModal('email-modal');
-window.openAvatarActionsModal = () => openModal('avatar-actions-modal');
-window.closeAvatarActionsModal = () => closeModal('avatar-actions-modal');
 window.openPersonalLangModal = () => openModal('personal-lang-modal');
 window.closePersonalLangModal = () => closeModal('personal-lang-modal');
 window.openBankTransferModal = () => openModal('transfer-modal');
@@ -113,3 +111,73 @@ if (themeToggleBtn) {
     });
 }
 window.triggerImportExport = () => { document.getElementById('import-export-input')?.click(); window.closeDropdown(); };
+
+
+// ==========================================
+// ГЛАВНЫЙ ПРОФИЛЬ (С Населением и Морями)
+// ==========================================
+window.openMyProfile = function() {
+    if (!window.myProfileInfo) return alert("Пожалуйста, авторизуйтесь!");
+    window.closeDropdown(); 
+    const user = window.myProfileInfo;
+    const cv = user.cv || {}; 
+    
+    let modal = document.getElementById('profile-modal-container');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'profile-modal-container';
+        modal.className = 'fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[10000] flex justify-center items-center p-4 transition-opacity';
+        document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-slate-800 w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative flex flex-col md:flex-row animate-fade-in" onclick="event.stopPropagation()">
+            <button onclick="document.getElementById('profile-modal-container').remove()" class="absolute top-4 right-4 w-8 h-8 bg-gray-100 dark:bg-slate-700 hover:bg-red-500 hover:text-white text-gray-500 dark:text-gray-300 rounded-full flex items-center justify-center transition-colors z-50"><i class="fa-solid fa-xmark"></i></button>
+
+            <!-- Левая колонка -->
+            <div class="bg-gray-50 dark:bg-slate-900/50 p-8 flex flex-col items-center justify-center border-r border-gray-200 dark:border-slate-700 w-full md:w-1/3 relative">
+                <div class="text-center mb-6"><h2 class="text-2xl font-bold text-gray-900 dark:text-white">Profile</h2></div>
+                <div class="relative w-32 h-32 rounded-full p-1 border-2 border-indigo-500 mb-4 group cursor-pointer" onclick="document.getElementById('attachment-input').click()">
+                    <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full rounded-full object-cover border border-gray-200 dark:border-slate-700 bg-white">
+                    <div class="absolute inset-1 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-camera text-white text-3xl"></i></div>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">${user.name.split(' ')[0]}</h3>
+            </div>
+
+            <!-- Правая колонка -->
+            <div class="p-8 w-full md:w-2/3 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="block text-[10px] font-bold text-indigo-500 uppercase mb-1">Name</label><input type="text" id="prof-name" value="${user.name || ''}" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500"></div>
+                    <div><label class="block text-[10px] font-bold text-indigo-500 uppercase mb-1">Country</label><input type="text" id="prof-country" value="${user.country || ''}" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-100 dark:bg-slate-900/50 p-4 rounded-xl border border-gray-200 dark:border-slate-700">
+                    <div><label class="block text-[10px] font-bold text-indigo-500 uppercase mb-1">Population</label><input type="text" id="prof-pop" value="${user.population || ''}" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none"></div>
+                    <div><label class="block text-[10px] font-bold text-indigo-500 uppercase mb-1">Seas</label><input type="text" id="prof-seas" value="${user.seas || ''}" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none"></div>
+                </div>
+                <button onclick="saveProfileData(this)" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all uppercase">Save Profile</button>
+            </div>
+        </div>
+    `;
+};
+
+window.saveProfileData = function(btn) {
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
+    const data = {
+        name: document.getElementById('prof-name').value.trim(),
+        country: document.getElementById('prof-country').value.trim(),
+        population: document.getElementById('prof-pop').value.trim(),
+        seas: document.getElementById('prof-seas').value.trim()
+    };
+    if (window.firebase) {
+        firebase.database().ref('users/' + window.myProfileInfo.id).update(data).then(() => {
+            Object.assign(window.myProfileInfo, data);
+            document.getElementById('profile-modal-container').remove();
+            
+            // Если аватарки на главной странице уже отрисованы - обновляем их, чтобы показать новые данные
+            if(typeof window.renderMainScreenAvatars === 'function') window.renderMainScreenAvatars(window.appUsers);
+        }).catch(err => {
+            alert("Error: " + err.message);
+            if (btn) { btn.disabled = false; btn.innerHTML = 'Save Profile'; }
+        });
+    }
+};
