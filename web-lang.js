@@ -1,6 +1,6 @@
 // ==========================================
 // Файл: web-lang.js
-// Назначение: Google Translate API, Глобальный язык, Автономные языки комнат
+// Назначение: Google Translate API, Глобальный язык, Автономные языки комнат и Авто-определение
 // ==========================================
 
 window.currentAppLang = 'en';
@@ -46,5 +46,32 @@ window.openPersonalLangModal = function(slotId) {
     window.currentLangSlot = slotId; 
     if(typeof window.closeDropdown === 'function') window.closeDropdown();
     const modal = document.getElementById('personal-lang-modal');
-    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(() => { modal.classList.remove('opacity-0'); modal.querySelector('div').classList.remove('scale-95'); }, 10); }
+    if (modal) { 
+        modal.classList.remove('hidden'); 
+        modal.classList.add('flex'); 
+        setTimeout(() => { 
+            modal.classList.remove('opacity-0'); 
+            modal.querySelector('div').classList.remove('scale-95'); 
+        }, 10); 
+    }
+};
+
+// --- НОВАЯ ФУНКЦИЯ ДЛЯ УМНОГО ЧАТА ---
+// Определяет язык для авто-перевода на основе префикса номера телефона
+window.getLangFromPrefix = function(phone) {
+    if (!phone) return 'en'; // По умолчанию английский
+    if (phone.startsWith('+994')) return 'az';
+    if (phone.startsWith('+7')) return 'ru';
+    if (phone.startsWith('+49')) return 'de';
+    if (phone.startsWith('+39')) return 'it';
+    if (phone.startsWith('+44')) return 'en';
+    if (phone.startsWith('+1')) return 'en';
+    if (phone.startsWith('+90')) return 'tr';
+    if (phone.startsWith('+34')) return 'es';
+    if (phone.startsWith('+33')) return 'fr';
+    if (phone.startsWith('+351')) return 'pt';
+    if (phone.startsWith('+971')) return 'ar';
+    if (phone.startsWith('+86')) return 'zh';
+    if (phone.startsWith('+81')) return 'ja';
+    return 'en'; // Если префикс неизвестен - ставим английский
 };
