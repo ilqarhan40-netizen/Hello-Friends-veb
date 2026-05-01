@@ -1,6 +1,6 @@
 // ==========================================
 // Файл: web-chat.js
-// Назначение: База данных, Текстовые сообщения, ИИ, Умная корзина
+// Назначение: База данных Firebase, Умный чат, Переводы (12 языков) и Корзина
 // ==========================================
 
 const firebaseConfig = {
@@ -18,6 +18,27 @@ const mySessionId = Math.random().toString(36).substring(2, 15);
 window.currentRoomId = 'global';
 let isMarqueeEnabled = true;
 let activeChatListener = null;
+
+// Заглушка профилей на случай, если они не загрузились из базы
+window.profilesData = window.profilesData || {
+    'me': { name: 'Ilgar (You)', flag: 'https://flagcdn.com/w20/az.png', flagEmoji: '🇦🇿', img: 'https://images.unsplash.com/photo-1557862921-37829c790f19?w=200', langCode: 'az' },
+    'klaus': { name: 'Klaus', flag: 'https://flagcdn.com/w20/de.png', flagEmoji: '🇩🇪', img: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200', langCode: 'de' },
+    'marinella': { name: 'Marinella', flag: 'https://flagcdn.com/w20/it.png', flagEmoji: '🇮🇹', img: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200', langCode: 'it' },
+    'john': { name: 'John', flag: 'https://flagcdn.com/w20/gb.png', flagEmoji: '🇬🇧', img: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200', langCode: 'en' },
+    'ai': { name: 'AI Assistant', flag: '🤖', flagEmoji: '🤖', img: 'https://ui-avatars.com/api/?name=AI', langCode: 'en' }
+};
+
+// --- ФУНКЦИЯ ПЕРЕВОДА (Google API) ---
+window.translateText = async function(text, targetLangCode) {
+    try {
+        const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLangCode}&dt=t&q=${encodeURIComponent(text)}`);
+        const data = await res.json();
+        return data[0][0][0];
+    } catch (e) {
+        console.error("Translation error:", e);
+        return text; // В случае ошибки возвращаем оригинал
+    }
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     const emojiBtn = document.getElementById('emoji-toggle-btn');
@@ -134,12 +155,22 @@ async function handleNewMessage(snapshot) {
     let targetLangs = [];
     if (window.currentRoomId === 'global') {
         if (isMe) targetLangs = [{code: 'de', flag: '🇩🇪'}, {code: 'it', flag: '🇮🇹'}, {code: 'en', flag: '🇬🇧'}];
-        else targetLangs = [{code: 'az', flag: '🇦🇿'}];
+        else {
+            // Если пишет иностранец, переводим на родной язык пользователя (по 12 зонам)
+            let userLang = 'en';
+            if (window.myProfileInfo && window.myProfileInfo.phone && typeof window.getLangFromPrefix === 'function') {
+                userLang = window.getLangFromPrefix(window.myProfileInfo.phone);
+            }
+            targetLangs = [{code: userLang, flag: '🌍'}];
+        }
     } else if (window.currentRoomId !== 'me' && window.currentRoomId !== 'ai') {
         if (isMe) {
             const roomUser = window.profilesData[window.currentRoomId];
             if(roomUser) targetLangs = [{code: roomUser.langCode, flag: roomUser.flagEmoji}];
-        } else targetLangs = [{code: 'az', flag: '🇦🇿'}];
+        } else {
+            let userLang = window.myProfileInfo ? (typeof window.getLangFromPrefix === 'function' ? window.getLangFromPrefix(window.myProfileInfo.phone) : 'en') : 'en';
+            targetLangs = [{code: userLang, flag: '🌍'}];
+        }
     }
 
     let displayedText = data.text;
@@ -198,7 +229,18 @@ document.addEventListener('DOMContentLoaded', () => {
         chatRec.onend = () => { chatMicBtn.classList.remove('text-red-500', 'animate-pulse'); if(chatInput) chatInput.placeholder = "Type message or click mic..."; };
         chatRec.onerror = () => { chatMicBtn.classList.remove('text-red-500', 'animate-pulse'); };
         chatRec.onresult = (e) => { if(chatInput) { chatInput.value = e.results[0][0].transcript; window.sendFirebaseMsg(); } };
-        chatMicBtn.addEventListener('click', () => { chatRec.lang = window.currentAppLang === 'auto' ? 'en-US' : window.currentAppLang; try { chatRec.start(); } catch(e){} });
+        
+        chatMicBtn.addEventListener('click', () => { 
+            // ИНТЕГРАЦИЯ 12 ЯЗЫКОВ: Микрофон слушает на языке, определенном по префиксу юзера
+            let micLang = 'en-US';
+            if (window.currentAppLang === 'auto' && window.myProfileInfo && window.myProfileInfo.phone && typeof window.getLangFromPrefix === 'function') {
+                micLang = window.getLangFromPrefix(window.myProfileInfo.phone);
+            } else if (window.currentAppLang !== 'auto') {
+                micLang = window.currentAppLang;
+            }
+            chatRec.lang = micLang; 
+            try { chatRec.start(); } catch(e){} 
+        });
     }
 });
 
