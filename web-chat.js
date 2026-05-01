@@ -3,14 +3,7 @@
 // Назначение: База данных Firebase, Умный чат, Переводы (12 языков) и Корзина
 // ==========================================
 
-const firebaseConfig = {
-    apiKey: "AIzaSyBtIJPFKNNUn1XW5b44tdomXTPHNI2Px40",
-    authDomain: "hello-friends-p8p3i7.firebaseapp.com",
-    databaseURL: "https://hello-friends-p8p3i7-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "hello-friends-p8p3i7",
-    storageBucket: "hello-friends-p8p3i7.firebasestorage.app"
-};
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
 const db = firebase.database();
 
 let myUsername = localStorage.getItem('hf_test_user') || "Ilgar";
