@@ -181,3 +181,116 @@ window.saveProfileData = function(btn) {
         });
     }
 };
+// ==========================================
+// ГЛАВНЫЙ ПРОФИЛЬ (Точь-в-точь как на фото + Население и Моря)
+// ==========================================
+window.openMyProfile = function() {
+    if (!window.myProfileInfo) return alert("Пожалуйста, авторизуйтесь!");
+    if(typeof window.closeDropdown === 'function') window.closeDropdown(); 
+    
+    const user = window.myProfileInfo;
+    const cv = user.cv || {}; 
+    
+    let modal = document.getElementById('profile-modal-container');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'profile-modal-container';
+        modal.className = 'fixed inset-0 bg-gray-900/90 backdrop-blur-sm z-[10000] flex justify-center items-center p-4 transition-opacity';
+        document.body.appendChild(modal);
+    }
+
+    // Дизайн адаптирован под твой скриншот (темный фон, неоново-зеленая кнопка)
+    modal.innerHTML = `
+        <div class="bg-[#1e293b] w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden relative flex flex-col border border-[#334155] animate-fade-in" onclick="event.stopPropagation()">
+            <button onclick="document.getElementById('profile-modal-container').remove()" class="absolute top-4 right-4 w-8 h-8 bg-black/20 hover:bg-red-500 hover:text-white text-gray-400 rounded-full flex items-center justify-center transition-colors z-50"><i class="fa-solid fa-xmark"></i></button>
+
+            <!-- Шапка профиля -->
+            <div class="pt-8 pb-2 flex flex-col items-center justify-center relative">
+                <h2 class="text-xl font-bold text-white mb-1">My Profile</h2>
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest mb-4">Complete Registration</p>
+                
+                <div class="relative w-24 h-24 rounded-full p-1 border-2 border-[#10b981] mb-2 cursor-pointer group" onclick="document.getElementById('attachment-input').click()">
+                    <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full rounded-full object-cover">
+                    <div class="absolute bottom-0 right-0 w-7 h-7 bg-[#10b981] rounded-full border-2 border-[#1e293b] flex items-center justify-center text-white text-xs"><i class="fa-solid fa-camera"></i></div>
+                </div>
+            </div>
+
+            <!-- Форма профиля -->
+            <div class="p-6 pt-2 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1">Full Name</label>
+                        <input type="text" id="prof-name" value="${user.name || ''}" class="w-full bg-[#0f172a] border border-[#334155] rounded-xl px-4 py-2.5 text-white outline-none focus:border-[#10b981]">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1">Country</label>
+                        <input type="text" id="prof-country" value="${user.country || ''}" class="w-full bg-[#0f172a] border border-[#334155] rounded-xl px-4 py-2.5 text-white outline-none focus:border-[#10b981]">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1">Phone Number</label>
+                        <input type="text" id="prof-phone" value="${user.phone || ''}" class="w-full bg-[#0f172a] border border-[#334155] rounded-xl px-4 py-2.5 text-white outline-none focus:border-[#10b981]">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1">Languages</label>
+                        <input type="text" id="prof-langs" value="${user.profileLangs || cv.languages || ''}" class="w-full bg-[#0f172a] border border-[#334155] rounded-xl px-4 py-2.5 text-white outline-none focus:border-[#10b981]">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1">Email</label>
+                    <input type="email" id="prof-email" value="${user.email || ''}" class="w-full bg-[#0f172a] border border-[#334155] rounded-xl px-4 py-2.5 text-white outline-none focus:border-[#10b981]">
+                </div>
+
+                <!-- Новые поля: Население и Моря -->
+                <div class="grid grid-cols-2 gap-4 bg-[#0f172a]/50 p-3 rounded-xl border border-[#334155]/50">
+                    <div>
+                        <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1">Population</label>
+                        <input type="text" id="prof-pop" value="${user.population || ''}" class="w-full bg-[#0f172a] border border-[#334155] rounded-xl px-3 py-2 text-white outline-none focus:border-[#10b981]">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1">Seas</label>
+                        <input type="text" id="prof-seas" value="${user.seas || ''}" class="w-full bg-[#0f172a] border border-[#334155] rounded-xl px-3 py-2 text-white outline-none focus:border-[#10b981]">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1">About Me</label>
+                    <textarea id="prof-about" rows="2" class="w-full bg-[#0f172a] border border-[#334155] rounded-xl px-4 py-2.5 text-white outline-none focus:border-[#10b981] resize-none">${cv.about || ''}</textarea>
+                </div>
+                
+                <button onclick="saveProfileData(this)" class="mt-2 w-full bg-[#10b981] hover:bg-[#059669] text-[#0f172a] font-bold py-3.5 rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.4)] transition-all">Speichern (Save)</button>
+            </div>
+        </div>
+    `;
+};
+
+window.saveProfileData = function(btn) {
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
+    const data = {
+        name: document.getElementById('prof-name').value.trim(),
+        country: document.getElementById('prof-country').value.trim(),
+        phone: document.getElementById('prof-phone').value.trim(),
+        profileLangs: document.getElementById('prof-langs').value.trim(),
+        email: document.getElementById('prof-email').value.trim(),
+        population: document.getElementById('prof-pop').value.trim(),
+        seas: document.getElementById('prof-seas').value.trim()
+    };
+    if (window.firebase) {
+        firebase.database().ref('users/' + window.myProfileInfo.id).update(data).then(() => {
+            // Синхронизируем с CV
+            firebase.database().ref('users/' + window.myProfileInfo.id + '/cv').update({
+                languages: data.profileLangs, about: document.getElementById('prof-about').value.trim()
+            });
+            Object.assign(window.myProfileInfo, data);
+            document.getElementById('profile-modal-container').remove();
+            if(typeof window.renderMainScreenAvatars === 'function') window.renderMainScreenAvatars(window.appUsers);
+        }).catch(err => {
+            alert("Error: " + err.message);
+            if (btn) { btn.disabled = false; btn.innerHTML = 'Save'; }
+        });
+    }
+};
