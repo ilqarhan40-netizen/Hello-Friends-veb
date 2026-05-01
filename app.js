@@ -1334,14 +1334,20 @@ window.changeAppLanguage = function(langCode) {
     window.closeDropdown();
 };
 
-// Авто-перевод при появлении новых элементов (например, модалок)
+// Авто-перевод при появлении новых элементов (БЕЗОПАСНАЯ ВЕРСИЯ)
 const domObserver = new MutationObserver((mutations) => {
+    let hasNewNodes = false;
     mutations.forEach((mutation) => {
-        if (mutation.addedNodes.length > 0) window.applySystemLanguage();
+        if (mutation.addedNodes.length > 0) hasNewNodes = true;
     });
+    
+    if (hasNewNodes) {
+        domObserver.disconnect(); // 1. Выключаем следилку
+        window.applySystemLanguage(); // 2. Переводим один раз
+        domObserver.observe(document.body, { childList: true, subtree: true }); // 3. Включаем обратно
+    }
 });
 domObserver.observe(document.body, { childList: true, subtree: true });
-
 
 // --- 4. ПРОФИЛЬ (Широкий WEB Дизайн со всеми полями) ---
 window.openMyProfile = function() {
