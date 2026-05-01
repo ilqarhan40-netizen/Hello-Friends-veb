@@ -862,6 +862,29 @@ window.renderProfessionSection = function(usersObj) {
         
         const cv = user.cv || {};
         const role = cv.role || 'Professional';
+        
+        // Карточка в стиле веб
+        html += `
+            <div class="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-3xl p-6 flex flex-col items-center relative overflow-hidden group hover:shadow-xl hover:border-indigo-500/50 transition-all duration-300">
+                
+                <div onclick="openDetailedCV('${uid}')" class="relative w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-gray-50 dark:border-slate-700 shadow-sm mb-4 cursor-pointer overflow-hidden transform group-hover:scale-105 transition-transform">
+                    <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full object-cover">
+                </div>
+                
+                <h3 class="font-bold text-gray-900 dark:text-white text-lg text-center w-full truncate">${user.name.split(' ')[0]}</h3>
+                <p class="text-xs text-indigo-500 dark:text-indigo-400 mb-5 font-medium uppercase tracking-wide text-center w-full truncate">${role}</p>
+                
+                <button onclick="openDetailedCV('${uid}')" class="w-full bg-gray-50 hover:bg-gray-100 dark:bg-slate-700/50 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 font-semibold text-sm py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 transition-colors">
+                    View CV
+                </button>
+            </div>
+        `;
+    });
+
+    html += `</div></div>`;
+    cvContainer.innerHTML = html;
+};
+
 // --- 3. ИЗОЛИРОВАННОЕ ПРОФЕССИОНАЛЬНОЕ CV И СМАРТ-КНОПКИ ---
 
 window.openDetailedCV = function(uid) {
