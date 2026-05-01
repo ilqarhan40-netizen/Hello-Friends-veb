@@ -1018,94 +1018,117 @@ window.actionEmailFromCV = function(uid) {
     }
 };
 
-// --- РЕДАКТИРОВАНИЕ CV (Убрали Моря и Население) ---
+// --- РЕДАКТИРОВАНИЕ CV (Умная форма с авто-префиксом телефона и email) ---
 window.openEditCVModal = function() {
     if (!window.myProfileInfo) return alert("Пожалуйста, авторизуйтесь!");
-    const cv = window.myProfileInfo.cv || {};
+    const user = window.myProfileInfo;
+    const cv = user.cv || {};
+    
+    // Умный префикс: определяем код страны по флагу, если номер еще не заполнен
+    let phoneVal = user.phone || "";
+    if (!phoneVal && user.flagCode) {
+        const prefixes = { 'az': '+994', 'ru': '+7', 'de': '+49', 'it': '+39', 'gb': '+44', 'en': '+44', 'tr': '+90', 'es': '+34', 'fr': '+33', 'pt': '+351', 'ar': '+971', 'zh': '+86', 'hi': '+91' };
+        phoneVal = prefixes[user.flagCode] || '+';
+    }
     
     let modal = document.getElementById('edit-cv-modal');
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'edit-cv-modal';
-        modal.className = 'fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[10000] flex justify-center items-center p-4';
+        modal.className = 'fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[10000] flex justify-center items-center p-4';
         document.body.appendChild(modal);
     }
 
     modal.innerHTML = `
-        <div class="bg-white dark:bg-slate-800 w-full max-w-lg rounded-3xl shadow-2xl p-6 relative" onclick="event.stopPropagation()">
-            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Edit Professional CV</h3>
-            <div class="space-y-4">
+        <div class="bg-[#1e293b] w-full max-w-lg rounded-[2rem] shadow-2xl p-6 md:p-8 relative border border-[#334155] animate-fade-in" onclick="event.stopPropagation()">
+            <button onclick="document.getElementById('edit-cv-modal').remove()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-black/20 hover:bg-red-500 rounded-full w-8 h-8 flex items-center justify-center transition-colors z-50"><i class="fa-solid fa-times"></i></button>
+            
+            <h3 class="text-2xl font-bold text-white mb-6">Professional CV</h3>
+            
+            <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Role / Title</label>
-                    <input type="text" id="cv-edit-role" value="${cv.role || ''}" placeholder="e.g. CEO & Founder" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2 text-gray-900 dark:text-white outline-none">
+                    <label class="block text-[10px] font-bold text-indigo-400 uppercase mb-1">Role / Title</label>
+                    <input type="text" id="cv-edit-role" value="${cv.role || ''}" placeholder="e.g. CEO & Founder" class="w-full bg-[#0f172a] border border-[#334155] rounded-xl px-4 py-3 text-white outline-none focus:border-indigo-500 transition-colors">
                 </div>
+                
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Profession</label>
-                    <input type="text" id="cv-edit-prof" value="${cv.profession || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2 text-gray-900 dark:text-white outline-none">
+                    <label class="block text-[10px] font-bold text-indigo-400 uppercase mb-1">Profession</label>
+                    <input type="text" id="cv-edit-prof" value="${cv.profession || ''}" class="w-full bg-[#0f172a] border border-[#334155] rounded-xl px-4 py-3 text-white outline-none focus:border-indigo-500 transition-colors">
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Languages (Work)</label>
-                    <input type="text" id="cv-edit-lang" value="${cv.languages || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2 text-gray-900 dark:text-white outline-none">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0f172a]/50 p-4 rounded-xl border border-[#334155]/50">
+                    <div>
+                        <label class="block text-[10px] font-bold text-indigo-400 uppercase mb-1">Work Phone (Auto Prefix)</label>
+                        <input type="text" id="cv-edit-phone" value="${phoneVal}" class="w-full bg-[#0f172a] border border-[#334155] rounded-xl px-4 py-2.5 text-white outline-none focus:border-indigo-500 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-indigo-400 uppercase mb-1">Work Email</label>
+                        <input type="email" id="cv-edit-email" value="${user.email || ''}" class="w-full bg-[#0f172a] border border-[#334155] rounded-xl px-4 py-2.5 text-white outline-none focus:border-indigo-500 transition-colors">
+                    </div>
                 </div>
+
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">About Profession</label>
-                    <textarea id="cv-edit-about" rows="3" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2 text-gray-900 dark:text-white outline-none resize-none">${cv.about || ''}</textarea>
+                    <label class="block text-[10px] font-bold text-indigo-400 uppercase mb-1">Languages (Work)</label>
+                    <input type="text" id="cv-edit-lang" value="${cv.languages || user.profileLangs || ''}" class="w-full bg-[#0f172a] border border-[#334155] rounded-xl px-4 py-3 text-white outline-none focus:border-indigo-500 transition-colors">
                 </div>
+                
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Work Skills</label>
-                    <input type="text" id="cv-edit-skills" value="${cv.skills || ''}" placeholder="e.g. Management, IT, Design" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2 text-gray-900 dark:text-white outline-none">
+                    <label class="block text-[10px] font-bold text-indigo-400 uppercase mb-1">Work Skills</label>
+                    <input type="text" id="cv-edit-skills" value="${cv.skills || ''}" placeholder="e.g. Management, IT, Design" class="w-full bg-[#0f172a] border border-[#334155] rounded-xl px-4 py-3 text-white outline-none focus:border-indigo-500 transition-colors">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-indigo-400 uppercase mb-1">About Profession</label>
+                    <textarea id="cv-edit-about" rows="3" class="w-full bg-[#0f172a] border border-[#334155] rounded-xl px-4 py-3 text-white outline-none resize-none focus:border-indigo-500 transition-colors">${cv.about || ''}</textarea>
                 </div>
             </div>
+            
             <div class="mt-6 flex justify-end gap-3">
-                <button onclick="document.getElementById('edit-cv-modal').remove()" class="px-5 py-2.5 rounded-xl font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">Cancel</button>
-                <button onclick="saveCVData()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition-colors"><i class="fa-solid fa-save"></i> Save CV</button>
+                <button onclick="document.getElementById('edit-cv-modal').remove()" class="px-5 py-3 rounded-xl font-bold text-gray-400 hover:bg-slate-700 transition-colors">Cancel</button>
+                <button onclick="saveCVData(this)" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition-colors flex items-center gap-2"><i class="fa-solid fa-save"></i> Save CV</button>
             </div>
         </div>
     `;
 };
 
-window.saveCVData = function() {
-    const cvData = {
-        role: document.getElementById('cv-edit-role').value.trim(),
-        profession: document.getElementById('cv-edit-prof').value.trim(),
-        languages: document.getElementById('cv-edit-lang').value.trim(),
-        about: document.getElementById('cv-edit-about').value.trim(),
-        skills: document.getElementById('cv-edit-skills').value.trim()
-    };
-    
-    if (window.firebase) {
-        firebase.database().ref('users/' + window.myProfileInfo.id + '/cv').set(cvData)
-        .then(() => {
-            window.myProfileInfo.cv = cvData;
-            document.getElementById('edit-cv-modal').remove();
-            if(typeof window.renderProfessionSection === 'function') window.renderProfessionSection(window.appUsers);
-        })
-        .catch(e => alert("Ошибка сохранения CV: " + e.message));
-    }
-};
-
-// Сохранение данных в базу
-window.saveCVData = function() {
+window.saveCVData = function(btn) {
     if (!window.myProfileInfo) return;
     
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
+    
     const cvData = {
         role: document.getElementById('cv-edit-role').value.trim(),
         profession: document.getElementById('cv-edit-prof').value.trim(),
         languages: document.getElementById('cv-edit-lang').value.trim(),
-        population: document.getElementById('cv-edit-pop').value.trim(),
-        seas: document.getElementById('cv-edit-seas').value.trim(),
         about: document.getElementById('cv-edit-about').value.trim(),
         skills: document.getElementById('cv-edit-skills').value.trim()
     };
     
-    db.ref('users/' + window.myProfileInfo.id + '/cv').set(cvData)
-      .then(() => {
-          window.myProfileInfo.cv = cvData;
-          closeCVModals();
-      })
-      .catch(e => alert("Ошибка сохранения: " + e.message));
-};
+    const phoneData = document.getElementById('cv-edit-phone').value.trim();
+    const emailData = document.getElementById('cv-edit-email').value.trim();
+    
+    if (window.firebase) {
+        const updates = {};
+        updates['users/' + window.myProfileInfo.id + '/cv'] = cvData;
+        updates['users/' + window.myProfileInfo.id + '/phone'] = phoneData;
+        updates['users/' + window.myProfileInfo.id + '/email'] = emailData;
 
+        firebase.database().ref().update(updates)
+        .then(() => {
+            window.myProfileInfo.cv = cvData;
+            window.myProfileInfo.phone = phoneData;
+            window.myProfileInfo.email = emailData;
+            
+            document.getElementById('edit-cv-modal').remove();
+            
+            if(typeof window.renderProfessionSection === 'function') window.renderProfessionSection(window.appUsers);
+        })
+        .catch(e => {
+            alert("Error saving CV: " + e.message);
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Save CV'; }
+        });
+    }
+};
 // Закрытие всех сгенерированных модалок
 window.closeCVModals = function(e) {
     if (e && e.target.id !== 'detailed-cv-modal' && e.target.id !== 'edit-cv-modal') return;
