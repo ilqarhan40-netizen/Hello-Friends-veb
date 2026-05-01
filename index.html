@@ -697,14 +697,13 @@
     </div>
 </div>
 
-<!-- Подключение скриптов -->
+<!-- 1. Инициализация базы данных -->
 <script src="js/core/firebase-init.js"></script>
-<script src="web-auth.js"></script>
-<script src="web-chat.js"></script>
+
+<!-- 2. Модуль для Резюме (который мы специально вынесли отдельно) -->
 <script src="web-cv.js"></script>
-<script src="web-lang.js"></script>
-<script src="web-ui.js"></script>
-<script src="web-calls.js"></script>
-<script src="web-users.js"></script> <!-- Вот твой новый файл! -->
+
+<!-- 3. Твой Единый Мозг, где лежит всё остальное (чат, профиль, языки, UI) -->
 <script src="app.js"></script>
+
 </body>
