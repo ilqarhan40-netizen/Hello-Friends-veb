@@ -1,42 +1,62 @@
-// Генерация аватаров для ГЛАВНОГО ЭКРАНА
-// Принимает тот же массив реальных юзеров из БД, что и CV-модуль
-window.renderMainScreenAvatars = function(realUsersArray, currentUserId) {
-    const container = document.getElementById('main-chat-avatars');
-    if (!container) return;
+// --- АНКЕТА CV (Phone Auto-prefix & Email Sync) ---
+window.openEditCVModal = function() {
+    if (!window.myProfileInfo) return;
+    const user = window.myProfileInfo;
+    const cv = user.cv || {};
+    
+    let phoneVal = user.phone || "";
+    if (!phoneVal && user.flagCode) {
+        const prefixes = { 'az': '+994', 'ru': '+7', 'de': '+49', 'it': '+39', 'gb': '+44', 'tr': '+90', 'es': '+34', 'fr': '+33' };
+        phoneVal = prefixes[user.flagCode] || '+';
+    }
+    
+    let modal = document.getElementById('edit-cv-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'edit-cv-modal';
+        modal.className = 'fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[10000] flex justify-center items-center p-4';
+        document.body.appendChild(modal);
+    }
 
-    // 1. Статичные системные комнаты (Global и AI)
-    let html = `
-        <!-- Global Group -->
-        <div onclick="switchWebChat('global')" class="flex flex-col items-center text-center w-16 md:w-20 shrink-0 cursor-pointer group">
-            <div class="w-14 h-14 md:w-16 md:h-16 rounded-full bg-indigo-500 mb-2 flex justify-center items-center text-white text-2xl font-bold group-active:scale-95 transition-transform shadow-md">🌍</div>
-            <p class="font-bold text-xs text-indigo-500 truncate w-full">Global</p>
-        </div>
-        
-        <!-- AI Assistant -->
-        <div onclick="switchWebChat('ai')" class="flex flex-col items-center text-center w-16 md:w-20 shrink-0 cursor-pointer group">
-            <div class="w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-r from-[#00d4ff] to-blue-500 mb-2 flex justify-center items-center text-white text-2xl font-bold group-active:scale-95 transition-transform shadow-md border-2 border-[#00d4ff]/30">🤖</div>
-            <p class="font-bold text-xs text-[#00d4ff] truncate w-full">AI</p>
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-slate-800 w-full max-w-lg rounded-[2rem] shadow-2xl p-6 relative" onclick="event.stopPropagation()">
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Professional CV</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-indigo-500 uppercase mb-1">Work Phone (SMS/Call)</label>
+                    <input type="text" id="cv-edit-phone" value="${phoneVal}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-indigo-500 uppercase mb-1">Work Email</label>
+                    <input type="email" id="cv-edit-email" value="${user.email || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-indigo-500 uppercase mb-1">Role</label>
+                    <input type="text" id="cv-edit-role" value="${cv.role || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500">
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button onclick="document.getElementById('edit-cv-modal').remove()" class="px-5 py-3 rounded-xl font-bold text-gray-400">Cancel</button>
+                <button onclick="saveCVData(this)" class="bg-indigo-600 text-white font-bold px-6 py-3 rounded-xl shadow-md flex items-center gap-2"><i class="fa-solid fa-save"></i> Save CV</button>
+            </div>
         </div>
     `;
+};
 
-    // 2. Реальные пользователи из базы (с функцией switchWebChat)
-    realUsersArray.forEach(user => {
-        const isMe = user.id === currentUserId;
-        // Твой аватар выделяем неоновой рамкой, остальные — стандартной
-        const borderClass = isMe ? 'border-2 border-[#00d4ff] shadow-[0_0_10px_rgba(0,212,255,0.4)]' : 'border border-gray-300 dark:border-slate-600';
-        const nameToDisplay = isMe ? 'You' : (user.displayName || 'User');
+window.saveCVData = function(btn) {
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
+    const cvData = { role: document.getElementById('cv-edit-role').value.trim() };
+    const phoneData = document.getElementById('cv-edit-phone').value.trim();
+    const emailData = document.getElementById('cv-edit-email').value.trim();
+    
+    const updates = {};
+    updates['users/' + window.myProfileInfo.id + '/cv'] = cvData;
+    updates['users/' + window.myProfileInfo.id + '/phone'] = phoneData;
+    updates['users/' + window.myProfileInfo.id + '/email'] = emailData;
 
-        html += `
-            <div onclick="switchWebChat('${user.id}')" class="flex flex-col items-center text-center w-16 md:w-20 shrink-0 cursor-pointer group relative">
-                <img src="${user.photoURL || 'default-avatar.png'}" class="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover mb-2 group-active:scale-95 transition-transform shadow-md ${borderClass}">
-                
-                <!-- Зеленая точка онлайна -->
-                <div class="absolute top-0 right-1 md:right-2 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-[#1e293b] rounded-full"></div>
-                
-                <p class="font-semibold text-xs text-gray-800 dark:text-gray-200 truncate w-full">${nameToDisplay}</p>
-            </div>
-        `;
+    firebase.database().ref().update(updates).then(() => {
+        window.myProfileInfo.phone = phoneData;
+        window.myProfileInfo.email = emailData;
+        document.getElementById('edit-cv-modal').remove();
     });
-
-    container.innerHTML = html;
 };
