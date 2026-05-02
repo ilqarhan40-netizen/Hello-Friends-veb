@@ -201,34 +201,7 @@
             <h2 class="text-2xl font-bold mb-2">General Chat</h2>
             <p class="text-gray-500 dark:text-gray-400 mb-6">Select a participant to switch chat:</p>
             
-            <div class="participants-container flex flex-wrap justify-center gap-4 md:gap-8 mb-8">
-                <div onclick="switchWebChat('global')" class="participant-avatar flex flex-col items-center text-center w-20 md:w-24 cursor-pointer group">
-                    <div class="rhombus-avatar bg-indigo-500 mb-2 flex justify-center items-center text-white text-3xl font-bold group-hover:scale-110 transition-transform shadow-md">🌍</div>
-                    <p class="font-semibold text-sm text-indigo-500">Group</p>
-                </div>
-                
-                <div onclick="switchWebChat('ai')" class="participant-avatar flex flex-col items-center text-center w-20 md:w-24 cursor-pointer group">
-                    <div class="rhombus-avatar bg-gradient-to-r from-purple-500 to-indigo-600 mb-2 flex justify-center items-center text-white text-3xl font-bold group-hover:scale-110 transition-transform shadow-lg border-2 border-purple-300">🤖</div>
-                    <p class="font-bold text-sm text-purple-600 dark:text-purple-400">AI Assistant</p>
-                </div>
-
-                <div onclick="switchWebChat('me')" class="participant-avatar flex flex-col items-center text-center w-20 md:w-24 cursor-pointer group">
-                    <img src="https://images.unsplash.com/photo-1557862921-37829c790f19?w=200" class="rhombus-avatar mb-2 group-hover:scale-110 transition-transform duration-300 shadow-md border-2 border-indigo-400">
-                    <p class="font-semibold text-sm">Ilgar (You)</p><div class="flex items-center gap-1.5 mt-1"><img src="https://flagcdn.com/w20/az.png" class="h-3 rounded-sm"><p class="text-xs text-gray-500">Saved</p></div>
-                </div>
-                <div onclick="switchWebChat('klaus')" class="participant-avatar flex flex-col items-center text-center w-20 md:w-24 cursor-pointer group">
-                    <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&q=80" class="rhombus-avatar mb-2 group-hover:scale-110 transition-transform duration-300 shadow-md">
-                    <p class="font-semibold text-sm">Klaus</p><div class="flex items-center gap-1.5 mt-1"><img src="https://flagcdn.com/w20/de.png" class="h-3 rounded-sm"><p class="text-xs text-gray-500">Germany</p></div>
-                </div>
-                <div onclick="switchWebChat('marinella')" class="participant-avatar flex flex-col items-center text-center w-20 md:w-24 cursor-pointer group">
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200" class="rhombus-avatar mb-2 group-hover:scale-110 transition-transform duration-300 shadow-md">
-                    <p class="font-semibold text-sm">Marinella</p><div class="flex items-center gap-1.5 mt-1"><img src="https://flagcdn.com/w20/it.png" class="h-3 rounded-sm"><p class="text-xs text-gray-500">Italy</p></div>
-                </div>
-                <div onclick="switchWebChat('john')" class="participant-avatar flex flex-col items-center text-center w-20 md:w-24 cursor-pointer group">
-                    <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200" class="rhombus-avatar mb-2 group-hover:scale-110 transition-transform duration-300 shadow-md">
-                    <p class="font-semibold text-sm">John</p><div class="flex items-center gap-1.5 mt-1"><img src="https://flagcdn.com/w20/gb.png" class="h-3 rounded-sm"><p class="text-xs text-gray-500">UK</p></div>
-                </div>
-            </div>
+          <div id="main-avatars-container" class="flex flex-wrap justify-center gap-4 md:gap-8 mb-8"></div>
 
             <h3 class="text-xl font-bold mb-4 border-t border-gray-200 dark:border-slate-700 pt-6 flex justify-between items-center" id="active-chat-header">
                 <div class="flex items-center gap-3">
