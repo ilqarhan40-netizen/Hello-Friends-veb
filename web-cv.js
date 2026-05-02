@@ -134,7 +134,7 @@ window.openDetailedCV = function(uid) {
     `;
 };
 
-// 3. ФОРМА РЕДАКТИРОВАНИЯ (УМНАЯ ЛОГИКА СТРАН + НОВЫЕ ПОЛЯ)
+// 3. ФОРМА РЕДАКТИРОВАНИЯ (УМНАЯ ЛОГИКА СТРАН + МУЛЬТИЯЗЫЧНОСТЬ)
 window.openEditCVModal = function() {
     if (!window.myProfileInfo) return alert("Пожалуйста, авторизуйтесь!");
     
@@ -172,10 +172,10 @@ window.openEditCVModal = function() {
     }
 
     modalContainer.innerHTML = `
-        <div class="bg-white dark:bg-[#1e293b] w-full max-w-2xl rounded-3xl shadow-2xl p-6 md:p-8 my-auto border border-gray-200 dark:border-slate-700 relative">
+        <div class="bg-white dark:bg-[#1e293b] w-full max-w-2xl rounded-3xl shadow-2xl p-6 md:p-8 my-auto border border-gray-200 dark:border-slate-700 relative animate-fade-in">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-user-pen text-indigo-500"></i> Edit CV & Contacts
+                    <i class="fa-solid fa-user-pen text-indigo-500"></i> <span data-i18n="cv_edit_title">Edit CV & Contacts</span>
                 </h3>
                 <button onclick="document.getElementById('edit-cv-modal').remove()" class="text-gray-400 hover:text-red-500 text-2xl transition">&times;</button>
             </div>
@@ -183,7 +183,7 @@ window.openEditCVModal = function() {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
                 <!-- Умная страна -->
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Country</label>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_country">Country</label>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xl" id="cv-flag-display">${user.flag || '🌍'}</span>
                         <select id="cv-input-country" onchange="window.updateCVPhonePrefix(this)" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl pl-12 pr-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500 appearance-none cursor-pointer">
@@ -195,43 +195,43 @@ window.openEditCVModal = function() {
 
                 <!-- Телефон -->
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Phone Number</label>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_phone">Phone Number</label>
                     <input type="text" id="cv-input-phone" value="${user.phone || ''}" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500 font-medium">
                 </div>
 
                 <!-- Email -->
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Email Address</label>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_email">Email Address</label>
                     <input type="email" id="cv-input-email" value="${user.email || ''}" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
                 </div>
 
                 <!-- Role -->
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Main Role (e.g. CEO, Author)</label>
-                    <input type="text" id="cv-input-role" value="${cv.role || ''}" placeholder="DE Autor" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_role">Main Role</label>
+                    <input type="text" id="cv-input-role" value="${cv.role || ''}" placeholder="e.g. CEO, Author" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
                 </div>
 
                 <!-- Profession -->
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Profession (Beruf)</label>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_prof">Profession</label>
                     <input type="text" id="cv-input-prof" value="${cv.profession || ''}" placeholder="Design, IT..." class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
                 </div>
 
                 <!-- Languages -->
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Languages (Sprachen)</label>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_langs">Languages</label>
                     <input type="text" id="cv-input-langs" value="${cv.languages || user.profileLangs || ''}" placeholder="AZ, RU, ENG" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
                 </div>
 
                 <!-- Experience -->
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Experience (Berufserfahrung)</label>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_exp">Experience</label>
                     <input type="text" id="cv-input-exp" value="${cv.experience || ''}" placeholder="2000 - 2026" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
                 </div>
 
                 <!-- Education -->
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Education (Bildung)</label>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_edu">Education</label>
                     <input type="text" id="cv-input-edu" value="${cv.education || ''}" placeholder="IT University" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
                 </div>
             </div>
@@ -239,22 +239,26 @@ window.openEditCVModal = function() {
             <div class="space-y-5 mb-6">
                 <!-- Skills -->
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Core Competencies (Kernkompetenzen)</label>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_skills">Core Competencies</label>
                     <input type="text" id="cv-input-skills" value="${cv.skills || ''}" placeholder="JavaScript, Design..." class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
                 </div>
                 
                 <!-- About Me -->
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">About Me (Über mich)</label>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_about">About Me</label>
                     <textarea id="cv-input-about" rows="3" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500 resize-none" placeholder="Professional summary...">${cv.about || ''}</textarea>
                 </div>
             </div>
 
-            <button onclick="saveWebCVData(this)" class="w-full bg-[#00C4CC] hover:bg-[#00aeb5] text-white font-bold py-4 rounded-xl shadow-lg transition-colors text-lg">Save CV (Lebenslauf speichern)</button>
+            <button onclick="saveWebCVData(this)" class="w-full bg-[#00C4CC] hover:bg-[#00aeb5] text-white font-bold py-4 rounded-xl shadow-lg transition-colors text-lg uppercase tracking-wider" data-i18n="cv_save_btn">Save CV</button>
         </div>
     `;
-};
 
+    // Запускаем твой глобальный переводчик сразу после генерации окна!
+    if (typeof window.applySystemLanguage === 'function') {
+        window.applySystemLanguage();
+    }
+};
 // Функция смены префикса телефона при смене страны в форме CV
 window.updateCVPhonePrefix = function(selectEl) {
     const selectedOption = selectEl.options[selectEl.selectedIndex];
