@@ -515,255 +515,7 @@ window.closeCalls = function() {
 
 window.startInAppCall = function() { window.closePhoneChoiceModal(); setTimeout(() => { window.openVoiceChat(); }, 300); };
 window.startExternalCall = function() { window.closePhoneChoiceModal(); window.location.href = "tel:+994501234567"; };
-// ==========================================
-// ЗОЛОТОЙ СТАНДАРТ: ЕДИНЫЙ ФАЙЛ
-// Блок 4: УМНЫЙ ЧАТ, БАЗА ДАННЫХ И ВЕЕРНЫЙ ПЕРЕВОД
-// ==========================================
 
-const db = firebase.database();
-window.currentRoomId = 'global';
-let isMarqueeEnabled = true;
-let activeChatListener = null;
-const mySessionId = Math.random().toString(36).substring(2, 15);
-
-// --- 1. Переключение комнат чата ---
-window.switchWebChat = function(userId) {
-    if (!window.myProfileInfo) {
-        console.warn("Пользователь не авторизован. Чат не загружен.");
-        return;
-    }
-
-    if (activeChatListener) { db.ref(window.currentRoomId).off("child_added", activeChatListener); }
-    window.currentRoomId = userId;
-    
-    const nameEl = document.getElementById('chat-header-name'); 
-    const statusEl = document.getElementById('chat-header-status');
-    const avatarEl = document.getElementById('chat-header-avatar'); 
-    const topMarquee = document.getElementById('top-chat-marquee');
-    
-    if(!nameEl || !avatarEl) return;
-    avatarEl.classList.remove('bg-gradient-to-r', 'from-purple-500', 'to-indigo-600');
-    
-    if(userId === 'global') {
-        nameEl.innerText = 'Global Chat'; 
-        statusEl.innerHTML = '🌍 Вся сеть'; 
-        avatarEl.innerHTML = '🌍'; 
-        avatarEl.style.backgroundImage = 'none';
-        if(topMarquee) topMarquee.innerHTML = 'Ожидание новых сообщений...';
-    } else if (userId === 'ai') {
-        nameEl.innerText = 'AI Assistant'; 
-        statusEl.innerHTML = `🤖 Online`; 
-        avatarEl.innerHTML = '🤖'; 
-        avatarEl.style.backgroundImage = 'none'; 
-        avatarEl.classList.add('bg-gradient-to-r', 'from-purple-500', 'to-indigo-600');
-        if(topMarquee) topMarquee.innerHTML = 'AI Co-Pilot готов помочь!';
-    } else if (userId === window.myProfileInfo.id || userId === 'me') {
-        nameEl.innerText = 'Saved Messages'; 
-        statusEl.innerHTML = `<img src="${window.myProfileInfo.flag || 'https://flagcdn.com/w20/az.png'}" class="w-4 h-3 rounded-sm inline"> Вы`; 
-        avatarEl.innerHTML = ''; 
-        avatarEl.style.backgroundImage = `url('${window.myProfileInfo.photo}')`;
-        if(topMarquee) topMarquee.innerHTML = 'Сохраненные сообщения. Перевод отключен.';
-    } else {
-        // Заглушка для приватных чатов (имя берем из базы или списка юзеров)
-        nameEl.innerText = 'Private Chat'; 
-        statusEl.innerHTML = `🔒 Encrypted`; 
-        avatarEl.innerHTML = '👤'; 
-        avatarEl.style.backgroundImage = 'none';
-        if(topMarquee) topMarquee.innerHTML = `Приватный чат. Ждем сообщений...`;
-    }
-    
-    window.clearChatScreen(true);
-    // Слушаем новые сообщения
-    activeChatListener = db.ref(window.currentRoomId).on("child_added", handleNewMessage);
-};
-
-// --- 2. Отправка сообщений ---
-window.sendFirebaseMsg = function() {
-    const chatInput = document.getElementById('chat-input');
-    if(!chatInput || !window.myProfileInfo) return;
-    
-    const text = chatInput.value.trim();
-    if(!text) return;
-    
-    const msgData = { 
-        name: window.myProfileInfo.name,
-        userId: window.myProfileInfo.id,
-        text: text, 
-        photo: window.myProfileInfo.photo,
-        flag: window.myProfileInfo.flag,
-        lang: window.myProfileInfo.langCode || 'az', // Передаем родной язык отправителя
-        sessionId: mySessionId, 
-        timestamp: firebase.database.ServerValue.TIMESTAMP 
-    };
-
-    db.ref(window.currentRoomId).push(msgData);
-    chatInput.value = '';
-
-    // Автоответ ИИ
-    if(window.currentRoomId === 'ai') {
-        setTimeout(() => {
-            db.ref(window.currentRoomId).push({ 
-                name: "AI Co-Pilot", 
-                userId: "ai",
-                text: "Привет! 🤖 Я готов проанализировать твои данные или помочь с переводом. Что нужно сделать?", 
-                photo: "https://ui-avatars.com/api/?name=AI&background=0D8ABC&color=fff",
-                flag: "🤖",
-                sessionId: "ai-bot-session", 
-                timestamp: firebase.database.ServerValue.TIMESTAMP 
-            });
-        }, 1500);
-    }
-};
-
-// Привязка кнопок отправки
-document.getElementById('chat-send-btn')?.addEventListener('click', window.sendFirebaseMsg);
-document.getElementById('chat-input')?.addEventListener('keypress', e => { if(e.key === 'Enter') window.sendFirebaseMsg(); });
-
-// --- 3. Получение сообщений и ВЕЕРНЫЙ ПЕРЕВОД ---
-async function handleNewMessage(snapshot) {
-    const data = snapshot.val();
-    if(!data) return;
-    
-    const isMe = data.sessionId === mySessionId || data.userId === window.myProfileInfo.id;
-    const isAI = data.userId === "ai" || data.sessionId === "ai-bot-session";
-    const msgId = 'msg-' + snapshot.key;
-
-    const msgWrapper = document.createElement('div');
-    msgWrapper.className = `flex items-end gap-2 mb-4 w-full ${isMe ? 'self-end flex-row-reverse' : 'self-start'}`;
-    
-    const avatarHtml = `<img src="${data.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-8 h-8 rounded-full object-cover border border-gray-300 dark:border-slate-700 shadow-sm">`;
-
-    let bubbleClasses = isMe 
-        ? 'bg-indigo-600 text-white rounded-br-none' 
-        : (isAI ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-none rounded-bl-none shadow-lg' 
-           : 'bg-white dark:bg-slate-700 text-gray-800 dark:text-white border border-gray-200 dark:border-slate-600 rounded-bl-none');
-           
-    if (data.text.includes('💳')) {
-        bubbleClasses = isMe ? 'bg-green-600 text-white rounded-br-none' : 'bg-green-100 dark:bg-green-900/30 text-green-900 dark:text-green-100 border border-green-500/50 rounded-bl-none';
-    }
-    
-    const senderNameClasses = isMe ? 'text-indigo-200 text-right' : (isAI ? 'text-purple-200 text-left' : 'text-indigo-500 text-left');
-
-    msgWrapper.innerHTML = avatarHtml + `
-        <div class="flex flex-col" style="max-width: 75%;" id="${msgId}">
-            <div class="p-3 rounded-xl shadow-sm ${bubbleClasses}">
-                <div class="flex justify-between items-center gap-4 mb-1">
-                    <p class="font-bold text-xs ${senderNameClasses}">${data.flag || '🌍'} ${data.name.replace(' (Owner)', '')}</p>
-                </div>
-                <p class="text-sm break-words">${data.text}</p>
-                <!-- Контейнер для веерных переводов -->
-                <div class="hidden mt-2 pt-1 border-t border-gray-300/30 text-[0.7rem]" id="trans-container-${msgId}"></div>
-            </div>
-        </div>
-    `;
-
-    const chatMessages = document.getElementById('chat-messages');
-    if(chatMessages) { chatMessages.appendChild(msgWrapper); chatMessages.scrollTop = chatMessages.scrollHeight; }
-
-    // ЛОГИКА ВЕЕРНОГО ПЕРЕВОДА (Только для Глобал чата)
-    if (window.currentRoomId === 'global' && !isAI && !data.text.includes('💳')) {
-        // Хардкод тестовых слушателей (в будущем берем из базы онлайн-юзеров)
-        let targetUsers = [
-            { code: 'en', flag: '🇬🇧', photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100' }, // John
-            { code: 'de', flag: '🇩🇪', photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100' }, // Klaus
-            { code: 'it', flag: '🇮🇹', photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100' }  // Marinella
-        ];
-        
-        let neededLangs = new Set(targetUsers.map(u => u.code));
-        let senderLang = data.lang || 'auto';
-
-        if (neededLangs.size > 0 && senderLang !== 'auto') {
-            try {
-                let transCache = {};
-                // Запрашиваем переводы разом
-                const fetchPromises = Array.from(neededLangs).map(langCode => 
-                    fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${langCode}&dt=t&q=${encodeURIComponent(data.text)}`)
-                    .then(res => res.json())
-                    .then(resData => { transCache[langCode] = resData[0][0][0]; })
-                );
-                
-                await Promise.all(fetchPromises);
-
-                const transBox = document.getElementById(`trans-container-${msgId}`);
-                if (transBox) {
-                    transBox.classList.remove('hidden');
-                    let marqueeStr = '';
-                    
-                    targetUsers.forEach(u => {
-                        const translation = transCache[u.code] || data.text;
-                        // Добавляем аватарку и перевод под сообщение
-                        transBox.innerHTML += `
-                            <div class="flex items-center gap-1 mt-1.5 opacity-90">
-                                <img src="${u.photo}" class="w-4 h-4 rounded-full border border-white/30 object-cover">
-                                <span>${u.flag} ${translation}</span>
-                            </div>`;
-                        marqueeStr += `${u.flag} ${translation}    `;
-                    });
-
-                    // Обновляем бегущую строку (Top Marquee)
-                    const topMarquee = document.getElementById('top-chat-marquee');
-                    if (isMarqueeEnabled && topMarquee) {
-                        topMarquee.innerHTML = `<span class="text-green-500 font-bold">[Global]</span> <b>${data.name}:</b> ${marqueeStr}`;
-                    }
-                }
-            } catch (e) { console.error("Ошибка веерного перевода:", e); }
-        }
-    }
-}
-
-// --- 4. Утилиты чата (Очистка, Умная корзина, ИИ) ---
-window.toggleMarquee = function() {
-    isMarqueeEnabled = !isMarqueeEnabled;
-    const btn = document.getElementById('marquee-toggle-btn'); 
-    const marqueeBox = document.getElementById('web-marquee-box');
-    if(isMarqueeEnabled) { 
-        btn.classList.replace('text-gray-400', 'text-indigo-500'); 
-        if(marqueeBox) marqueeBox.style.display = 'flex'; 
-    } else { 
-        btn.classList.replace('text-indigo-500', 'text-gray-400'); 
-        if(marqueeBox) marqueeBox.style.display = 'none'; 
-    }
-};
-
-window.clearChatScreen = function(skipMarquee = false) {
-    const chatMessages = document.getElementById('chat-messages'); 
-    const topMarquee = document.getElementById('top-chat-marquee');
-    if(chatMessages) chatMessages.innerHTML = '';
-    if(!skipMarquee && topMarquee) topMarquee.innerHTML = 'Чат очищен. Ожидание сообщений...';
-};
-
-window.smartAction = function(action) {
-    if (action === 'archive') {
-        alert('Перенесено в архив!');
-        // Здесь в будущем логика сохранения в локальную базу
-    }
-    if (action === 'clear' || action === 'delete') {
-        if(window.currentRoomId) {
-            db.ref(window.currentRoomId).remove().then(() => window.clearChatScreen());
-        }
-    }
-    window.closeTrashModal();
-};
-
-window.applyAiMagic = function() {
-    const wandBtn = document.getElementById('magic-wand-btn'); 
-    const chatInput = document.getElementById('chat-input');
-    if(!chatInput) return;
-    const text = chatInput.value.trim();
-    if(!text) return alert("Сначала напишите текст для улучшения!");
-    
-    if(wandBtn) wandBtn.classList.add('animate-spin');
-    chatInput.disabled = true; 
-    chatInput.value = "✨ AI переписывает...";
-    
-    // Имитация работы ИИ
-    setTimeout(() => {
-        if(wandBtn) wandBtn.classList.remove('animate-spin');
-        chatInput.disabled = false; 
-        chatInput.value = "Добрый день! Не могли бы вы предоставить статус по нашему проекту? Спасибо!"; 
-        chatInput.focus();
-    }, 1500);
-};
 // ==========================================
 // ЗОЛОТОЙ СТАНДАРТ: ЕДИНЫЙ ФАЙЛ
 // Блок 5: ГЛАВНЫЙ ЭКРАН И АВАТАРЫ ИЗ БАЗЫ
@@ -824,101 +576,29 @@ window.renderMainScreenAvatars = function(usersObj) {
     container.innerHTML = html;
 };
 
-// Прослушиваем базу данных и обновляем аватарки в реальном времени
+// ==========================================
+// ИДЕАЛЬНЫЙ МОСТ: ОДИН МОЗГ, ДВА ТЕЛА
+// ==========================================
 firebase.database().ref('users').on('value', snapshot => {
     if(snapshot.exists()) {
         window.appUsers = snapshot.val();
-        window.renderMainScreenAvatars(window.appUsers);
-    }
-});
-// ==========================================
-// ЗОЛОТОЙ СТАНДАРТ: ЕДИНЫЙ ФАЙЛ
-// Блок 6: MIC-SMART (Автоопределение языка микрофона)
-// ==========================================
-
-// 1. Умная функция ТОЛЬКО ДЛЯ МИКРОФОНА (длинные коды BCP-47 для 12 языков)
-window.getMicLangFromPrefix = function(phoneNumber) {
-    if (!phoneNumber) return 'en-US';
-    
-    if (phoneNumber.startsWith('+994')) return 'az-AZ';
-    if (phoneNumber.startsWith('+7')) return 'ru-RU';
-    if (phoneNumber.startsWith('+49')) return 'de-DE';
-    if (phoneNumber.startsWith('+39')) return 'it-IT';
-    if (phoneNumber.startsWith('+44')) return 'en-GB';
-    if (phoneNumber.startsWith('+90')) return 'tr-TR';
-    if (phoneNumber.startsWith('+34')) return 'es-ES';
-    if (phoneNumber.startsWith('+33')) return 'fr-FR';
-    if (phoneNumber.startsWith('+351') || phoneNumber.startsWith('+55')) return 'pt-PT';
-    if (phoneNumber.startsWith('+971') || phoneNumber.startsWith('+966')) return 'ar-AE';
-    if (phoneNumber.startsWith('+86')) return 'zh-CN';
-    if (phoneNumber.startsWith('+81')) return 'ja-JP';
-    
-    return 'en-US'; // Язык по умолчанию
-};
-
-// 2. Определение языка текущей комнаты
-window.detectRoomLanguage = function() {
-    // Если мы в глобальном чате или в привате - микрофон слушает на нашем родном языке
-    if (window.currentRoomId !== 'ai' && window.currentRoomId !== 'me') {
-         if (window.myProfileInfo && window.myProfileInfo.phone) {
-             return window.getMicLangFromPrefix(window.myProfileInfo.phone);
-         }
-    }
-    
-    // Резерв: Перевод короткого кода системы в длинный для микрофона
-    const sysLang = window.currentAppLang === 'auto' ? 'en' : window.currentAppLang.split('-')[0];
-    const langMap = { 
-        'en': 'en-US', 'ru': 'ru-RU', 'az': 'az-AZ', 'de': 'de-DE', 
-        'it': 'it-IT', 'tr': 'tr-TR', 'es': 'es-ES', 'fr': 'fr-FR', 
-        'pt': 'pt-PT', 'ar': 'ar-AE', 'zh': 'zh-CN', 'ja': 'ja-JP' 
-    };
-    return langMap[sysLang] || 'en-US';
-};
-
-// 3. Инициализация Умного Микрофона
-document.addEventListener('DOMContentLoaded', () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
-    if (SpeechRecognition) {
-        const chatMicBtn = document.getElementById('main-chat-mic-btn');
-        const chatInput = document.getElementById('chat-input');
-
-        if (chatMicBtn) {
-            let chatRec = new SpeechRecognition();
-            chatRec.continuous = false; 
-            chatRec.interimResults = false;
-
-            chatRec.onstart = () => { 
-                chatMicBtn.classList.add('text-red-500', 'animate-pulse'); 
-                if(chatInput) chatInput.placeholder = "Слушаю..."; 
-            };
-            
-            chatRec.onend = () => { 
-                chatMicBtn.classList.remove('text-red-500', 'animate-pulse'); 
-                if(chatInput) chatInput.placeholder = "Type message or click mic..."; 
-            };
-            
-            chatRec.onerror = () => { 
-                chatMicBtn.classList.remove('text-red-500', 'animate-pulse'); 
-            };
-            
-            chatRec.onresult = (e) => { 
-                if(chatInput) { 
-                    chatInput.value = e.results[0][0].transcript; 
-                    // Автоматическая отправка после диктовки
-                    if (typeof window.sendFirebaseMsg === 'function') window.sendFirebaseMsg(); 
-                } 
-            };
-            
-            chatMicBtn.addEventListener('click', () => { 
-                // Применяем автоопределение языка микрофона
-                chatRec.lang = window.detectRoomLanguage(); 
-                console.log("Microphone set to language:", chatRec.lang);
-                try { chatRec.start(); } catch(e){} 
-            });
+        
+        // 1. Мгновенно обновляем твой профиль в памяти сайта, если ты изменил его с мобилки
+        if (window.myProfileInfo && window.myProfileInfo.id && window.appUsers[window.myProfileInfo.id]) {
+            window.myProfileInfo = window.appUsers[window.myProfileInfo.id];
         }
+
+        // 2. Перерисовываем Аватары и Сообщество (CV)
+        if(typeof window.renderMainScreenAvatars === 'function') window.renderMainScreenAvatars(window.appUsers);
+        if(typeof window.renderProfessionSection === 'function') window.renderProfessionSection(window.appUsers);
+        
+        // 3. Заставляем систему перевести новые карточки на лету!
+        setTimeout(() => {
+            if(typeof window.applySystemLanguage === 'function') window.applySystemLanguage();
+        }, 100);
     }
 });
+
 // ==========================================
 // ЗОЛОТОЙ СТАНДАРТ: ЕДИНЫЙ ФАЙЛ
 // Блок 7: PROFESSIONAL COMMUNITY (Строгий WEB-дизайн)
@@ -1753,3 +1433,105 @@ window.openEmailStore = function() {
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(window.applySystemLanguage, 500);
 });
+// ==========================================
+// ВОССТАНОВЛЕННЫЕ МОДАЛКИ: АВАТАР И CV
+// ==========================================
+
+// 1. СДВОЕННАЯ МОДАЛКА
+window.openAvatarModal = function(uid) {
+    if(typeof window.closeDropdown === 'function') window.closeDropdown();
+    const user = window.appUsers ? window.appUsers[uid] : null;
+    let uData = user;
+    
+    // Прямая ссылка на твое фото бота!
+    if (uid === 'ai') uData = { id: 'ai', name: 'AI Assistant', photo: './ai-avatar.jpg', flagCode: 'gb', country: 'Digital World', profileLangs: 'All', population: 'Infinite', seas: 'Data Lake', cv: { role: 'AI Bot', about: 'I am your intelligent assistant.' } };
+    if (uid === 'me' && window.myProfileInfo) uData = window.myProfileInfo;
+    
+    if (!uData) return;
+    const cv = uData.cv || {};
+    
+    let modalContainer = document.getElementById('combined-avatar-modal');
+    if (!modalContainer) {
+        modalContainer = document.createElement('div');
+        modalContainer.id = 'combined-avatar-modal';
+        modalContainer.className = 'fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[10000] flex justify-center items-center p-4 transition-opacity animate-fade-in';
+        document.body.appendChild(modalContainer);
+        modalContainer.addEventListener('click', (e) => { if(e.target === modalContainer) modalContainer.remove(); });
+    }
+
+    modalContainer.innerHTML = `
+        <div class="bg-white dark:bg-[#1e293b] w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative flex flex-col md:flex-row" onclick="event.stopPropagation()">
+            <button onclick="document.getElementById('combined-avatar-modal').remove()" class="absolute top-4 right-4 text-gray-500 hover:text-red-500 z-50 text-2xl">&times;</button>
+            <div class="w-full md:w-1/2 p-8 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700">
+                <div class="flex flex-col items-center mb-6">
+                    <img src="${uData.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-24 h-24 rounded-full object-cover border-4 border-indigo-500 shadow-md mb-4">
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">${uData.name.replace(' (You)', '')}</h3>
+                </div>
+                <div class="space-y-4 text-sm mt-4 text-gray-800 dark:text-gray-200">
+                    <p><b class="text-gray-500" data-i18n="cv_country">Country:</b> ${uData.flag || '🌍'} ${uData.country || '-'}</p>
+                    <p><b class="text-gray-500" data-i18n="cv_langs">Languages:</b> ${uData.profileLangs || cv.languages || '-'}</p>
+                    <p><b class="text-gray-500" data-i18n="prof_pop">Population:</b> ${uData.population || '-'}</p>
+                    <p><b class="text-gray-500" data-i18n="prof_seas">Seas:</b> ${uData.seas || '-'}</p>
+                </div>
+            </div>
+            <div class="w-full md:w-1/2 p-8 flex flex-col justify-center bg-[#1e293b] text-white">
+                <button onclick="actionPrivateChatFromCV('${uid}')" class="p-4 bg-slate-800 rounded-xl mb-3 hover:bg-slate-700 transition flex items-center gap-3"><i class="fa-solid fa-lock text-green-500"></i> <span data-i18n="action_chat">Private Chat</span></button>
+                <button onclick="actionExternalCall('${uid}')" class="p-4 bg-indigo-600 rounded-xl hover:bg-indigo-700 transition flex items-center gap-3 shadow-[0_4px_14px_0_rgba(99,102,241,0.39)]"><i class="fa-solid fa-mobile-screen text-white"></i> <span data-i18n="action_cellular">Phone Call</span></button>
+            </div>
+        </div>
+    `;
+    if(typeof window.applySystemLanguage === 'function') window.applySystemLanguage(); 
+};
+
+window.actionExternalCall = function(uid) {
+    let phoneToCall = null;
+    if (uid === 'me' && window.myProfileInfo) phoneToCall = window.myProfileInfo.phone;
+    else if (window.appUsers && window.appUsers[uid]) phoneToCall = window.appUsers[uid].phone;
+    if (phoneToCall) { window.location.href = `tel:${phoneToCall}`; document.getElementById('combined-avatar-modal')?.remove(); } 
+    else { alert("Пользователь не указал номер телефона."); }
+};
+
+// 2. ФОРМА РЕДАКТИРОВАНИЯ CV
+window.openEditCVModal = function() {
+    if (!window.myProfileInfo) return alert("Авторизуйтесь!");
+    const cv = window.myProfileInfo.cv || {};
+    let modal = document.getElementById('edit-cv-modal');
+    if (!modal) {
+        modal = document.createElement('div'); modal.id = 'edit-cv-modal';
+        modal.className = 'fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[10000] flex justify-center items-center p-4 overflow-y-auto';
+        document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-[#1e293b] w-full max-w-2xl rounded-3xl shadow-2xl p-6 md:p-8 relative animate-fade-in my-auto">
+            <button onclick="document.getElementById('edit-cv-modal').remove()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl">&times;</button>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6" data-i18n="cv_edit_title">Edit CV & Contacts</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                <div><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_role">Main Role</label><input type="text" id="cv-input-role" value="${cv.role || ''}" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 dark:text-white"></div>
+                <div><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_prof">Profession</label><input type="text" id="cv-input-prof" value="${cv.profession || ''}" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 dark:text-white"></div>
+                <div><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_exp">Experience</label><input type="text" id="cv-input-exp" value="${cv.experience || ''}" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 dark:text-white"></div>
+                <div><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_edu">Education</label><input type="text" id="cv-input-edu" value="${cv.education || ''}" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 dark:text-white"></div>
+            </div>
+            <div class="mb-6"><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_skills">Skills</label><input type="text" id="cv-input-skills" value="${cv.skills || ''}" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 dark:text-white"></div>
+            <div class="mb-6"><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_about">About</label><textarea id="cv-input-about" rows="3" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 dark:text-white resize-none">${cv.about || ''}</textarea></div>
+            <button onclick="saveWebCVData(this)" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg" data-i18n="cv_save_btn">Save CV</button>
+        </div>
+    `;
+    if(typeof window.applySystemLanguage === 'function') window.applySystemLanguage(); 
+};
+
+window.saveWebCVData = function(btn) {
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    const cvData = {
+        role: document.getElementById('cv-input-role').value.trim(),
+        profession: document.getElementById('cv-input-prof').value.trim(),
+        experience: document.getElementById('cv-input-exp').value.trim(),
+        education: document.getElementById('cv-input-edu').value.trim(),
+        skills: document.getElementById('cv-input-skills').value.trim(),
+        about: document.getElementById('cv-input-about').value.trim()
+    };
+    firebase.database().ref('users/' + window.myProfileInfo.id + '/cv').update(cvData).then(() => {
+        if (!window.myProfileInfo.cv) window.myProfileInfo.cv = {};
+        Object.assign(window.myProfileInfo.cv, cvData);
+        document.getElementById('edit-cv-modal').remove();
+    });
+};
