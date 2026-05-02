@@ -1,6 +1,6 @@
 // ==========================================
 // Файл: web-chat.js
-// Назначение: База данных Firebase, Умный чат, Переводы (12 языков) и Корзина
+// Назначение: База данных Firebase, Умный чат, Авто-перевод исходящих и Корзина
 // ==========================================
 
 const db = firebase.database();
@@ -8,6 +8,9 @@ const mySessionId = Math.random().toString(36).substring(2, 15);
 window.currentRoomId = 'global';
 let isMarqueeEnabled = true;
 let activeChatListener = null;
+
+// Глобальная переменная для выбранного языка авто-отправки
+window.chatAutoLang = null; 
 
 // --- ФУНКЦИЯ ПЕРЕВОДА (Google API) ---
 window.translateText = async function(text, targetLangCode) {
@@ -37,10 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
 window.insertEmoji = function(emoji) { const chatInput = document.getElementById('chat-input'); if(chatInput) { chatInput.value += emoji; chatInput.focus(); } document.getElementById('emoji-picker')?.classList.add('hidden'); };
 window.insertVrEmoji = function(emoji) { const vrInput = document.getElementById('vr-text-input'); if(vrInput) { vrInput.value += emoji; vrInput.focus(); } document.getElementById('vr-emoji-picker')?.classList.add('hidden'); };
 
-// --- ПЕРЕКЛЮЧЕНИЕ КОМНАТ (Используем реальные данные из appUsers) ---
+// --- ПЕРЕКЛЮЧЕНИЕ КОМНАТ ---
 window.switchWebChat = function(userId) {
     if (activeChatListener) { db.ref(window.currentRoomId).off("child_added", activeChatListener); }
     window.currentRoomId = userId;
+    
+    // Сбрасываем выбранный язык при смене чата
+    window.setChatAutoLang(null, null);
     
     const nameEl = document.getElementById('chat-header-name'); const statusEl = document.getElementById('chat-header-status');
     const avatarEl = document.getElementById('chat-header-avatar'); const topMarquee = document.getElementById('top-chat-marquee');
@@ -98,12 +104,74 @@ window.toggleMarquee = function() {
     else { btn.classList.replace('text-indigo-500', 'text-gray-400'); if(marqueeBox) marqueeBox.style.display = 'none'; }
 };
 
-// --- ОТПРАВКА СООБЩЕНИЯ (Сохраняем реальные данные профиля) ---
-window.sendFirebaseMsg = function() {
+// --- ОТКРЫТИЕ МЕНЮ ЯЗЫКОВ ВНУТРИ ЧАТА ---
+window.openChatLangMenu = function(uid) {
+    document.getElementById('chat-lang-modal')?.remove();
+    
+    const modal = document.createElement('div');
+    modal.id = 'chat-lang-modal';
+    modal.className = 'fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 opacity-0 transition-opacity duration-300 animate-fade-in';
+    modal.onclick = function(e) { if(e.target === this) this.remove(); };
+
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-6 w-full max-w-xs transform transition-transform duration-300 border border-gray-100 dark:border-slate-700 relative">
+            <h3 class="text-lg font-bold mb-1 text-center text-gray-900 dark:text-white">Auto-Translate to:</h3>
+            <p class="text-xs text-center text-gray-500 mb-4">Select language for your outgoing messages</p>
+            
+            <div class="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
+                <button onclick="setChatAutoLang('en', '🇬🇧')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇬🇧 English</button>
+                <button onclick="setChatAutoLang('ru', '🇷🇺')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇷🇺 Русский</button>
+                <button onclick="setChatAutoLang('az', '🇦🇿')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇦🇿 Azərbaycanca</button>
+                <button onclick="setChatAutoLang('de', '🇩🇪')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇩🇪 Deutsch</button>
+                <button onclick="setChatAutoLang('it', '🇮🇹')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇮🇹 Italiano</button>
+                <button onclick="setChatAutoLang('es', '🇪🇸')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇪🇸 Español</button>
+                <button onclick="setChatAutoLang('fr', '🇫🇷')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇫🇷 Français</button>
+                <button onclick="setChatAutoLang('pt', '🇵🇹')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇵🇹 Português</button>
+                <button onclick="setChatAutoLang('tr', '🇹🇷')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇹🇷 Türkçe</button>
+                <button onclick="setChatAutoLang('ar', '🇦🇪')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇦🇪 العربية</button>
+                <button onclick="setChatAutoLang('zh', '🇨🇳')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇨🇳 中文</button>
+                <button onclick="setChatAutoLang('ja', '🇯🇵')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇯🇵 日本語</button>
+            </div>
+            
+            <button onclick="setChatAutoLang(null, null)" class="w-full mt-3 py-2.5 bg-red-50 dark:bg-red-900/30 text-red-500 rounded-xl font-bold hover:bg-red-100 transition-colors text-sm border border-red-100 dark:border-red-900/50">Turn Off Auto-Translate</button>
+            <button onclick="document.getElementById('chat-lang-modal').remove()" class="w-full mt-2 py-3 bg-gray-100 dark:bg-slate-700 rounded-xl font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors" data-i18n="cancel">Cancel</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    if (typeof window.applySystemLanguage === 'function') window.applySystemLanguage();
+};
+
+window.setChatAutoLang = function(code, flag) {
+    window.chatAutoLang = code ? { code, flag } : null;
+    document.getElementById('chat-lang-modal')?.remove();
+    
     const chatInput = document.getElementById('chat-input');
+    if(chatInput) {
+        if (code) {
+            chatInput.placeholder = `Auto-translating to ${flag} ${code.toUpperCase()}...`;
+        } else {
+            chatInput.placeholder = "Type message or click mic...";
+        }
+    }
+};
+
+// --- ОТПРАВКА СООБЩЕНИЯ (С АВТО-ПЕРЕВОДОМ ПЕРЕД ОТПРАВКОЙ В БАЗУ) ---
+window.sendFirebaseMsg = async function() {
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('chat-send-btn');
     if(!chatInput || !window.myProfileInfo) return;
-    const text = chatInput.value.trim();
+    
+    let text = chatInput.value.trim();
     if(!text) return;
+    
+    // Блокируем инпут и показываем спиннер, пока переводим
+    chatInput.disabled = true;
+    if(sendBtn) sendBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    
+    // МАГИЯ АВТОПЕРЕВОДА ПЕРЕД ОТПРАВКОЙ
+    if (window.chatAutoLang && window.chatAutoLang.code) {
+        text = await window.translateText(text, window.chatAutoLang.code);
+    }
     
     const p = window.myProfileInfo;
     
@@ -111,17 +179,24 @@ window.sendFirebaseMsg = function() {
         userId: p.id,
         name: p.name, 
         photo: p.photo || 'https://ui-avatars.com/api/?name=U',
-        flag: p.flag || '🌍',
-        langCode: p.flagCode || 'en',
+        // Если переводили — ставим флаг того языка, на который перевели. Иначе — свой родной.
+        flag: window.chatAutoLang ? window.chatAutoLang.flag : (p.flag || '🌍'),
+        langCode: window.chatAutoLang ? window.chatAutoLang.code : (p.flagCode || 'en'),
         text: text, 
         sessionId: mySessionId, 
         timestamp: firebase.database.ServerValue.TIMESTAMP 
     });
+    
+    // Разблокируем интерфейс
     chatInput.value = '';
+    chatInput.disabled = false;
+    if(sendBtn) sendBtn.innerHTML = 'Send';
+    chatInput.focus();
 
+    // Автоответ ИИ
     if(window.currentRoomId === 'ai') {
         setTimeout(() => {
-            const aiReply = "Hello! 🤖 **Hello Friends** is a revolutionary Super-App. It eliminates language barriers with real-time translation, combines professional networking, and features a built-in 1-cent bank transfer system. It's the ultimate ecosystem for global business!";
+            const aiReply = "Hello! 🤖 **Hello Friends** is a revolutionary Super-App. I received your message perfectly!";
             db.ref(window.currentRoomId).push({ userId: 'ai', name: "AI Co-Pilot", photo: 'https://ui-avatars.com/api/?name=AI', flag: '🤖', text: aiReply, sessionId: "ai-bot-session", timestamp: firebase.database.ServerValue.TIMESTAMP });
         }, 1500);
     }
@@ -141,7 +216,8 @@ async function handleNewMessage(snapshot) {
     const msgWrapper = document.createElement('div');
     msgWrapper.className = `flex items-end gap-2 mb-4 w-full ${isMe ? 'self-end flex-row-reverse' : 'self-start'}`;
     
-    const avatarHtml = `<img src="${data.photo}" class="w-8 h-8 rounded-full object-cover border border-gray-300 dark:border-slate-700 cursor-pointer hover:scale-110 transition-transform shadow-sm" onclick="if(typeof openAvatarModal === 'function') openAvatarModal('${data.userId}', 'chat')" title="Profile: ${data.name}">`;
+    // ВАЖНО: КЛИК ПО АВАТАРУ ВНУТРИ ЧАТА ВЫЗЫВАЕТ ЯЗЫКОВОЕ МЕНЮ (openChatLangMenu)
+    const avatarHtml = `<img src="${data.photo}" class="w-8 h-8 rounded-full object-cover border border-gray-300 dark:border-slate-700 cursor-pointer hover:scale-110 transition-transform shadow-sm" onclick="openChatLangMenu('${data.userId}')" title="Translate my outgoing messages">`;
     const msgId = 'msg-' + snapshot.key;
 
     let targetLangs = [];
