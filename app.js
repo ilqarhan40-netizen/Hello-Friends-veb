@@ -1,9 +1,9 @@
 // ==========================================
 // ЗОЛОТОЙ СТАНДАРТ: ЕДИНЫЙ ФАЙЛ
-// Блок 1: ТРИ ТОЧКИ (Меню, Тема, Язык Экосистемы, Профиль)
+// Блок 1: ТРИ ТОЧКИ (Меню, Тема) + ГЛОБАЛЬНЫЙ ПЕРЕВОДЧИК ЭКОСИСТЕМЫ
 // ==========================================
 
-// 1. Управление выпадающими меню
+// --- 1. УПРАВЛЕНИЕ ВЫПАДАЮЩИМИ МЕНЮ ---
 window.closeDropdown = function() {
     const menu = document.getElementById('menu-panel');
     const actions = document.getElementById('actions-panel');
@@ -15,7 +15,7 @@ window.togglePanel = function(panelId) {
     const panel = document.getElementById(panelId);
     if (!panel) return;
     
-    // Закрываем другие панели, если открываем новуюА
+    // Закрываем другие панели, если открываем новую
     ['menu-panel', 'actions-panel'].forEach(id => {
         if (id !== panelId) {
             const p = document.getElementById(id);
@@ -40,53 +40,113 @@ document.getElementById('header-menu-btn')?.addEventListener('click', (e) => {
 document.addEventListener('click', () => { window.closeDropdown(); });
 
 
-// 2. Смена темы (Темная / Светлая) с сохранением в память
+// --- 2. СМЕНА ТЕМЫ (Темная / Светлая) ---
 const themeToggleBtn = document.getElementById('menu-theme-toggle');
 if (themeToggleBtn) {
-    // Проверка при загрузке страницы: какую тему мы ставили в прошлый раз?
     if (localStorage.getItem('hf_theme') === 'dark') {
         document.documentElement.classList.add('dark');
         themeToggleBtn.innerHTML = '<i class="fa-solid fa-sun w-6 text-yellow-400"></i> <span data-i18n="theme">Light Theme</span>';
     }
 
-    // Сам переключатель
     themeToggleBtn.addEventListener('click', (e) => {
         e.preventDefault();
         const htmlTag = document.documentElement;
         htmlTag.classList.toggle('dark');
         
         const isDark = htmlTag.classList.contains('dark');
-        localStorage.setItem('hf_theme', isDark ? 'dark' : 'light'); // Сохраняем навсегда
+        localStorage.setItem('hf_theme', isDark ? 'dark' : 'light');
         
-        // Не ломаем дизайн, меняем только иконку и текст
         themeToggleBtn.innerHTML = isDark 
             ? '<i class="fa-solid fa-sun w-6 text-yellow-400"></i> <span data-i18n="theme">Light Theme</span>' 
             : '<i class="fa-solid fa-moon w-6 text-indigo-500"></i> <span data-i18n="theme">Dark Theme</span>';
+        
+        // После смены темы (если язык уже был переведен), текст может сброситься на английский.
+        // Запускаем переводчик, чтобы вернуть нужный язык на кнопку:
+        if (typeof window.applySystemLanguage === 'function') window.applySystemLanguage();
         
         window.closeDropdown();
     });
 }
 
 
-// 3. Смена языка экосистемы (Глобальный язык)
+// --- 3. ГЛОБАЛЬНЫЙ СЛОВАРЬ (12 ЯЗЫКОВ) ---
+window.appTranslations = {
+    'en': { menu: "Settings", profile: "Profile", wallet: "Wallet", email_store: "Email Store", theme: "Change Theme", logout: "Logout", action_chat: "Private Chat", action_voice: "Voice Room", action_video: "App Video", action_email: "Send Email", action_cellular: "Phone Call", select_room_lang: "Room Language", cancel: "Cancel", save: "Save Profile", send: "Send Money", purchase: "Purchase Now", cv_edit_title: "Edit CV & Contacts", cv_country: "Country", cv_phone: "Phone Number", cv_email: "Email Address", cv_role: "Main Role", cv_prof: "Profession", cv_langs: "Languages", cv_exp: "Experience", cv_edu: "Education", cv_skills: "Core Competencies", cv_about: "About Me", cv_save_btn: "Save CV", prof_pop: "Population", prof_seas: "Seas", action_voice_msg: "Voice Msg", action_audio: "App Audio" },
+    'ru': { menu: "Настройки", profile: "Мой Профиль", wallet: "Кошелек", email_store: "Email Стор", theme: "Сменить тему", logout: "Выйти", action_chat: "Личный чат", action_voice: "Голосовая", action_video: "App Видео", action_email: "Письмо", action_cellular: "Сотовый звонок", select_room_lang: "Язык комнаты", cancel: "Отмена", save: "Сохранить", send: "Отправить", purchase: "Купить", cv_edit_title: "Редактировать CV", cv_country: "Страна", cv_phone: "Номер телефона", cv_email: "Email адрес", cv_role: "Должность", cv_prof: "Профессия", cv_langs: "Языки", cv_exp: "Опыт работы", cv_edu: "Образование", cv_skills: "Ключевые навыки", cv_about: "О себе", cv_save_btn: "Сохранить CV", prof_pop: "Население", prof_seas: "Моря", action_voice_msg: "Голосовое", action_audio: "App Аудио" },
+    'az': { menu: "Tənzimləmələr", profile: "Profilim", wallet: "Pul kisəsi", email_store: "Email Mağaza", theme: "Mövzunu dəyiş", logout: "Çıxış", action_chat: "Şəxsi Çat", action_voice: "Səsli Otaq", action_video: "App Video", action_email: "Email Göndər", action_cellular: "Mobil Zəng", select_room_lang: "Otaq Dili", cancel: "Ləğv et", save: "Yadda saxla", send: "Göndər", purchase: "Al", cv_edit_title: "CV-ni Yenilə", cv_country: "Ölkə", cv_phone: "Telefon", cv_email: "Email", cv_role: "Vəzifə", cv_prof: "Peşə", cv_langs: "Dillər", cv_exp: "İş təcrübəsi", cv_edu: "Təhsil", cv_skills: "Əsas bacarıqlar", cv_about: "Haqqımda", cv_save_btn: "CV-ni Saxla", prof_pop: "Əhali", prof_seas: "Dənizlər", action_voice_msg: "Səsli Mesaj", action_audio: "App Audio" },
+    'de': { menu: "Einstellungen", profile: "Mein Profil", wallet: "Brieftasche", email_store: "E-Mail Shop", theme: "Design ändern", logout: "Abmelden", action_chat: "Privater Chat", action_voice: "Sprachraum", action_video: "App Video", action_email: "E-Mail senden", action_cellular: "Handyanruf", select_room_lang: "Raumsprache", cancel: "Abbrechen", save: "Speichern", send: "Geld senden", purchase: "Kaufen", cv_edit_title: "Lebenslauf bearbeiten", cv_country: "Land", cv_phone: "Telefonnummer", cv_email: "E-Mail", cv_role: "Rolle", cv_prof: "Beruf", cv_langs: "Sprachen", cv_exp: "Berufserfahrung", cv_edu: "Bildung", cv_skills: "Kernkompetenzen", cv_about: "Über mich", cv_save_btn: "Lebenslauf speichern", prof_pop: "Bevölkerung", prof_seas: "Meere", action_voice_msg: "Sprachnachricht", action_audio: "App Audio" },
+    'it': { menu: "Impostazioni", profile: "Il mio Profilo", wallet: "Portafoglio", email_store: "Negozio Email", theme: "Cambia Tema", logout: "Esci", action_chat: "Chat Privata", action_voice: "Stanza Vocale", action_video: "App Video", action_email: "Invia Email", action_cellular: "Chiamata", select_room_lang: "Lingua Stanza", cancel: "Annulla", save: "Salva", send: "Invia Denaro", purchase: "Acquista", cv_edit_title: "Modifica CV", cv_country: "Paese", cv_phone: "Telefono", cv_email: "Email", cv_role: "Ruolo", cv_prof: "Professione", cv_langs: "Lingue", cv_exp: "Esperienza", cv_edu: "Istruzione", cv_skills: "Competenze", cv_about: "Su di me", cv_save_btn: "Salva CV", prof_pop: "Popolazione", prof_seas: "Mari", action_voice_msg: "Messaggio Vocale", action_audio: "App Audio" },
+    'tr': { menu: "Ayarlar", profile: "Profilim", wallet: "Cüzdan", email_store: "E-posta Mağazası", theme: "Temayı Değiştir", logout: "Çıkış Yap", action_chat: "Özel Sohbet", action_voice: "Sesli Oda", action_video: "App Video", action_email: "E-posta Gönder", action_cellular: "Hücresel Arama", select_room_lang: "Oda Dili", cancel: "İptal", save: "Kaydet", send: "Gönder", purchase: "Satın Al", cv_edit_title: "CV Düzenle", cv_country: "Ülke", cv_phone: "Telefon", cv_email: "E-posta", cv_role: "Rol", cv_prof: "Meslek", cv_langs: "Diller", cv_exp: "Deneyim", cv_edu: "Eğitim", cv_skills: "Yetenekler", cv_about: "Hakkımda", cv_save_btn: "CV'yi Kaydet", prof_pop: "Nüfus", prof_seas: "Denizler", action_voice_msg: "Sesli Mesaj", action_audio: "App Ses" },
+    'es': { menu: "Ajustes", profile: "Mi Perfil", wallet: "Billetera", email_store: "Tienda Email", theme: "Cambiar Tema", logout: "Salir", action_chat: "Chat Privado", action_voice: "Sala de Voz", action_video: "App Video", action_email: "Enviar Email", action_cellular: "Llamada celular", select_room_lang: "Idioma de sala", cancel: "Cancelar", save: "Guardar", send: "Enviar", purchase: "Comprar", cv_edit_title: "Editar CV", cv_country: "País", cv_phone: "Teléfono", cv_email: "Correo", cv_role: "Rol", cv_prof: "Profesión", cv_langs: "Idiomas", cv_exp: "Experiencia", cv_edu: "Educación", cv_skills: "Habilidades", cv_about: "Sobre mí", cv_save_btn: "Guardar CV", prof_pop: "Población", prof_seas: "Mares", action_voice_msg: "Mensaje de Voz", action_audio: "App Audio" },
+    'fr': { menu: "Paramètres", profile: "Mon Profil", wallet: "Portefeuille", email_store: "Boutique Email", theme: "Changer de thème", logout: "Déconnexion", action_chat: "Chat Privé", action_voice: "Salon Vocal", action_video: "App Vidéo", action_email: "Envoyer Email", action_cellular: "Appel Mobile", select_room_lang: "Langue du salon", cancel: "Annuler", save: "Enregistrer", send: "Envoyer", purchase: "Acheter", cv_edit_title: "Modifier le CV", cv_country: "Pays", cv_phone: "Téléphone", cv_email: "E-mail", cv_role: "Rôle", cv_prof: "Profession", cv_langs: "Langues", cv_exp: "Expérience", cv_edu: "Éducation", cv_skills: "Compétences", cv_about: "À propos de moi", cv_save_btn: "Enregistrer le CV", prof_pop: "Population", prof_seas: "Mers", action_voice_msg: "Message Vocal", action_audio: "App Audio" },
+    'pt': { menu: "Configurações", profile: "Meu Perfil", wallet: "Carteira", email_store: "Loja Email", theme: "Mudar Tema", logout: "Sair", action_chat: "Chat Privado", action_voice: "Sala de Voz", action_video: "App Vídeo", action_email: "Enviar Email", action_cellular: "Chamada", select_room_lang: "Idioma da Sala", cancel: "Cancelar", save: "Salvar", send: "Enviar", purchase: "Comprar", cv_edit_title: "Editar CV", cv_country: "País", cv_phone: "Telefone", cv_email: "Email", cv_role: "Cargo", cv_prof: "Profissão", cv_langs: "Idiomas", cv_exp: "Experiência", cv_edu: "Educação", cv_skills: "Habilidades", cv_about: "Sobre mim", cv_save_btn: "Salvar CV", prof_pop: "População", prof_seas: "Mares", action_voice_msg: "Mensagem de Voz", action_audio: "App Áudio" },
+    'ar': { menu: "إعدادات", profile: "ملفي الشخصي", wallet: "محفظة", email_store: "متجر البريد", theme: "تغيير المظهر", logout: "خروج", action_chat: "دردشة خاصة", action_voice: "غرفة صوتية", action_video: "تطبيق فيديو", action_email: "إرسال بريد", action_cellular: "مكالمة خلوية", select_room_lang: "لغة الغرفة", cancel: "إلغاء", save: "حفظ", send: "إرسال", purchase: "شراء", cv_edit_title: "تعديل السيرة الذاتية", cv_country: "دولة", cv_phone: "رقم الهاتف", cv_email: "البريد الإلكتروني", cv_role: "دور", cv_prof: "مهنة", cv_langs: "اللغات", cv_exp: "خبرة", cv_edu: "تعليم", cv_skills: "مهارات", cv_about: "عني", cv_save_btn: "حفظ السيرة الذاتية", prof_pop: "تعداد السكان", prof_seas: "بحار", action_voice_msg: "رسالة صوتية", action_audio: "تطبيق صوتي" },
+    'zh': { menu: "设置", profile: "我的主页", wallet: "钱包", email_store: "邮箱商店", theme: "更改主题", logout: "登出", action_chat: "私聊", action_voice: "语音室", action_video: "应用视频", action_email: "发送邮件", action_cellular: "拨打电话", select_room_lang: "房间语言", cancel: "取消", save: "保存", send: "发送金钱", purchase: "立即购买", cv_edit_title: "编辑简历", cv_country: "国家", cv_phone: "电话", cv_email: "电子邮件", cv_role: "角色", cv_prof: "职业", cv_langs: "语言", cv_exp: "经验", cv_edu: "教育", cv_skills: "技能", cv_about: "关于我", cv_save_btn: "保存简历", prof_pop: "人口", prof_seas: "海洋", action_voice_msg: "语音留言", action_audio: "应用音频" },
+    'ja': { menu: "設定", profile: "マイプロフィール", wallet: "ウォレット", email_store: "メールストア", theme: "テーマ変更", logout: "ログアウト", action_chat: "プライベートチャット", action_voice: "ボイスルーム", action_video: "アプリビデオ", action_email: "メール送信", action_cellular: "電話をかける", select_room_lang: "ルームの言語", cancel: "キャンセル", save: "保存", send: "送金", purchase: "購入する", cv_edit_title: "履歴書と連絡先の編集", cv_country: "国", cv_phone: "電話番号", cv_email: "メールアドレス", cv_role: "役割", cv_prof: "職業", cv_langs: "言語", cv_exp: "経験", cv_edu: "教育", cv_skills: "スキル", cv_about: "自己紹介", cv_save_btn: "履歴書を保存", prof_pop: "人口", prof_seas: "海", action_voice_msg: "ボイスメッセージ", action_audio: "アプリオーディオ" }
+};
+
+// --- 4. ДВИЖОК ПЕРЕВОДА И АВТООПРЕДЕЛЕНИЯ ---
 window.currentAppLang = localStorage.getItem('hf_ecosystem_lang') || 'auto';
 
+window.getLangFromPrefix = function(phoneOrFlag) {
+    if (!phoneOrFlag) return 'en';
+    const codeMap = { 'az': 'az', 'ru': 'ru', 'de': 'de', 'it': 'it', 'gb': 'en', 'us': 'en', 'tr': 'tr', 'es': 'es', 'fr': 'fr', 'ae': 'ar', 'cn': 'zh', 'ja': 'ja', 'pt': 'pt' };
+    if (codeMap[phoneOrFlag.toLowerCase()]) return codeMap[phoneOrFlag.toLowerCase()];
+
+    if (phoneOrFlag.startsWith('+994')) return 'az';
+    if (phoneOrFlag.startsWith('+7')) return 'ru';
+    if (phoneOrFlag.startsWith('+49')) return 'de';
+    if (phoneOrFlag.startsWith('+39')) return 'it';
+    if (phoneOrFlag.startsWith('+44') || phoneOrFlag.startsWith('+1')) return 'en';
+    if (phoneOrFlag.startsWith('+90')) return 'tr';
+    if (phoneOrFlag.startsWith('+34')) return 'es';
+    if (phoneOrFlag.startsWith('+33')) return 'fr';
+    if (phoneOrFlag.startsWith('+351')) return 'pt';
+    if (phoneOrFlag.startsWith('+971')) return 'ar';
+    if (phoneOrFlag.startsWith('+86')) return 'zh';
+    if (phoneOrFlag.startsWith('+81')) return 'ja';
+    return 'en';
+};
+
+window.applySystemLanguage = function() {
+    let langToApply = window.currentAppLang;
+    if (langToApply === 'auto') {
+        if (window.myProfileInfo && window.myProfileInfo.phone) {
+            langToApply = window.getLangFromPrefix(window.myProfileInfo.phone);
+        } else if (window.myProfileInfo && window.myProfileInfo.flagCode) {
+            langToApply = window.getLangFromPrefix(window.myProfileInfo.flagCode);
+        } else {
+            let navLang = (navigator.language || navigator.userLanguage).split('-')[0];
+            langToApply = window.appTranslations[navLang] ? navLang : 'en';
+        }
+    }
+    if (!window.appTranslations[langToApply]) langToApply = 'en';
+    const dict = window.appTranslations[langToApply];
+
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) el.innerHTML = dict[key];
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (dict[key]) el.placeholder = dict[key];
+    });
+};
+
+// --- 5. СМЕНА ЯЗЫКА ИЗ МЕНЮ "ТРИ ТОЧКИ" ---
 window.changeAppLanguage = function(langCode) {
-    if (langCode === 'auto') langCode = navigator.language.split('-')[0];
     window.currentAppLang = langCode;
-    localStorage.setItem('hf_ecosystem_lang', langCode); // Сохраняем язык
-    console.log("Global ecosystem language changed to:", langCode);
+    localStorage.setItem('hf_ecosystem_lang', langCode);
+    window.applySystemLanguage();
     window.closeDropdown();
 };
 
-// При загрузке страницы ставим select на тот язык, который был выбран ранее
+// --- 6. ПРИ ЗАГРУЗКЕ СТРАНИЦЫ ---
 document.addEventListener('DOMContentLoaded', () => {
     const langSelect = document.getElementById('app-lang-select');
-    if (langSelect && localStorage.getItem('hf_ecosystem_lang')) {
-        langSelect.value = localStorage.getItem('hf_ecosystem_lang');
-    }
+    if (langSelect) langSelect.value = window.currentAppLang;
+    setTimeout(() => { window.applySystemLanguage(); }, 500);
 });
-
 
 // --- 1. ФИКС ТЕМНОЙ ТЕМЫ ДЛЯ МЕНЮ И СТИЛИ ПРОФИЛЯ ---
 const profileStyles = document.createElement('style');
