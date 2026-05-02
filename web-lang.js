@@ -1,11 +1,13 @@
 // ==========================================
 // Файл: web-lang.js
-// Назначение: Google Translate API, Глобальный язык, Автономные языки комнат и Авто-определение
+// Назначение: Google Translate API и Персональные языки (Конференции/Звонки)
 // ==========================================
 
-window.currentAppLang = 'en';
 window.roomLanguages = {};
 
+// --- ФУНКЦИЯ ПЕРЕВОДА (Google API) ---
+// Внимание: бесплатный шлюз gtx отлично подходит для старта. 
+// При очень больших нагрузках Google может временно ограничить запросы (429 ошибка).
 window.translateText = async function(text, targetLang) {
     if (!text || !targetLang || targetLang === 'auto') return text;
     try {
@@ -14,17 +16,11 @@ window.translateText = async function(text, targetLang) {
         return data[0][0][0];
     } catch (e) {
         console.error("Translation error:", e);
-        return `[${targetLang}] ${text}`;
+        return `[${targetLang}] ${text}`; // Безопасный фоллбэк при ошибке интернета
     }
 };
 
-window.changeAppLanguage = function(langCode) {
-    if (langCode === 'auto') langCode = navigator.language.split('-')[0];
-    window.currentAppLang = langCode;
-    console.log("Global ecosystem language changed to:", langCode);
-    if(typeof window.closeDropdown === 'function') window.closeDropdown();
-};
-
+// --- ПЕРСОНАЛЬНЫЕ ЯЗЫКИ ДЛЯ КОНФЕРЕНЦИЙ ---
 window.setPersonalLang = function(langCode) {
     const targetSlot = window.currentLangSlot || 'default';
     window.roomLanguages[targetSlot] = langCode;
@@ -54,24 +50,4 @@ window.openPersonalLangModal = function(slotId) {
             modal.querySelector('div').classList.remove('scale-95'); 
         }, 10); 
     }
-};
-
-// --- НОВАЯ ФУНКЦИЯ ДЛЯ УМНОГО ЧАТА ---
-// Определяет язык для авто-перевода на основе префикса номера телефона
-window.getLangFromPrefix = function(phone) {
-    if (!phone) return 'en'; // По умолчанию английский
-    if (phone.startsWith('+994')) return 'az';
-    if (phone.startsWith('+7')) return 'ru';
-    if (phone.startsWith('+49')) return 'de';
-    if (phone.startsWith('+39')) return 'it';
-    if (phone.startsWith('+44')) return 'en';
-    if (phone.startsWith('+1')) return 'en';
-    if (phone.startsWith('+90')) return 'tr';
-    if (phone.startsWith('+34')) return 'es';
-    if (phone.startsWith('+33')) return 'fr';
-    if (phone.startsWith('+351')) return 'pt';
-    if (phone.startsWith('+971')) return 'ar';
-    if (phone.startsWith('+86')) return 'zh';
-    if (phone.startsWith('+81')) return 'ja';
-    return 'en'; // Если префикс неизвестен - ставим английский
 };
