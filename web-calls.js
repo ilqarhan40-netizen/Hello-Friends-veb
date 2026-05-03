@@ -1,8 +1,9 @@
 // ==========================================
-// Файл: web-calls.js
-// Назначение: Управление видео и аудио звонками, перевод в звонках
+// ФАЙЛ: web-calls.js
+// Назначение: Управление видео и аудио звонками, перевод в звонках + ДИНАМИКА
 // ==========================================
 
+// --- 1. БАЗОВОЕ УПРАВЛЕНИЕ ОКНАМИ ---
 window.openConference = function() { 
     if(typeof window.closeDropdown === 'function') window.closeDropdown(); 
     const overlay = document.getElementById('conference-overlay');
@@ -16,7 +17,8 @@ window.openVoiceChat = function() {
 };
 
 window.closeCalls = function() { 
-    const confOverlay = document.getElementById('conference-overlay'); const voiceOverlay = document.getElementById('voice-overlay');
+    const confOverlay = document.getElementById('conference-overlay'); 
+    const voiceOverlay = document.getElementById('voice-overlay');
     if(confOverlay) confOverlay.style.display = 'none'; 
     if(voiceOverlay) voiceOverlay.style.display = 'none'; 
 };
@@ -35,15 +37,64 @@ window.closePhoneChoiceModal = function() {
 window.startInAppCall = function() { window.closePhoneChoiceModal(); setTimeout(() => { window.openVoiceChat(); }, 300); };
 window.startExternalCall = function() { window.closePhoneChoiceModal(); window.location.href = "tel:+994501234567"; };
 
+// --- 2. НОВАЯ ДИНАМИКА ЗВОНКОВ (Удаление Маринеллы) ---
+window.startDynamicVoiceCall = function(uid) {
+    if(typeof window.closeDropdown === 'function') window.closeDropdown();
+    const user = window.appUsers ? window.appUsers[uid] : null;
+    if (!user) return;
+    
+    const overlay = document.getElementById('voice-overlay');
+    if (overlay) {
+        const avatarEl = overlay.querySelector('.dynamic-avatar');
+        const nameEl = overlay.querySelector('.dynamic-name');
+        
+        if(avatarEl) avatarEl.src = user.photo || 'https://ui-avatars.com/api/?name=U';
+        if(nameEl) nameEl.innerHTML = `${user.name} <img src="https://flagcdn.com/w20/${user.flagCode || 'az'}.png" class="inline h-3 rounded-sm ml-1" onerror="this.style.display='none'">`;
+        
+        overlay.style.display = 'flex';
+    }
+};
+
+window.actionVideoConf = function(uid) {
+    if(typeof window.closeDropdown === 'function') window.closeDropdown();
+    document.getElementById('combined-avatar-modal')?.remove(); 
+    document.getElementById('unified-user-modal')?.remove(); 
+    
+    const user = window.appUsers ? window.appUsers[uid] : null;
+    if (!user) return;
+
+    const confOverlay = document.getElementById('conference-overlay');
+    if (confOverlay) {
+        // Подставляем данные собеседника
+        const calleeAvatar = confOverlay.querySelector('.dynamic-callee-avatar');
+        const calleeName = confOverlay.querySelector('.dynamic-callee-name');
+        
+        if(calleeAvatar) calleeAvatar.src = user.photo || 'https://ui-avatars.com/api/?name=U';
+        if(calleeName) calleeName.innerHTML = `${user.name} <img src="https://flagcdn.com/w20/${user.flagCode || 'az'}.png" class="inline h-3 rounded-sm ml-1" onerror="this.style.display='none'">`;
+
+        // Подставляем свои данные
+        const myAvatar = confOverlay.querySelector('.dynamic-my-avatar');
+        const myName = confOverlay.querySelector('.dynamic-my-name');
+        if(myAvatar && window.myProfileInfo) myAvatar.src = window.myProfileInfo.photo;
+        if(myName && window.myProfileInfo) myName.innerHTML = `${window.myProfileInfo.name} (You) <img src="https://flagcdn.com/w20/${window.myProfileInfo.flagCode || 'az'}.png" class="inline h-3 rounded-sm ml-1" onerror="this.style.display='none'">`;
+
+        confOverlay.style.display = 'flex';
+    }
+};
+
+// --- 3. СУБТИТРЫ И ПЕРЕВОД (Marquee & CC) ---
 window.isVrMarqueeEnabled = true;
 window.toggleVrCC = function() {
     window.isVrMarqueeEnabled = !window.isVrMarqueeEnabled;
-    const btn = document.getElementById('vr-cc-btn'); const marqueeBox = document.getElementById('vr-marquee-container');
+    const btn = document.getElementById('vr-cc-btn'); 
+    const marqueeBox = document.getElementById('vr-marquee-container');
     if(window.isVrMarqueeEnabled) {
-        btn?.classList.remove('bg-gray-600', 'text-gray-300'); btn?.classList.add('bg-indigo-600', 'dark:bg-[#00C4CC]', 'text-white', 'dark:text-black');
+        btn?.classList.remove('bg-gray-600', 'text-gray-300'); 
+        btn?.classList.add('bg-indigo-600', 'dark:bg-[#00C4CC]', 'text-white', 'dark:text-black');
         if(marqueeBox && marqueeBox.innerText !== '') marqueeBox.style.display = 'block';
     } else {
-        btn?.classList.remove('bg-indigo-600', 'dark:bg-[#00C4CC]', 'text-white', 'dark:text-black'); btn?.classList.add('bg-gray-600', 'text-gray-300');
+        btn?.classList.remove('bg-indigo-600', 'dark:bg-[#00C4CC]', 'text-white', 'dark:text-black'); 
+        btn?.classList.add('bg-gray-600', 'text-gray-300');
         if(marqueeBox) marqueeBox.style.display = 'none';
     }
 };
@@ -53,14 +104,17 @@ window.toggleConfCC = function() {
     window.isConfCCEnabled = !window.isConfCCEnabled;
     const btn = document.getElementById('conf-cc-btn');
     if (window.isConfCCEnabled) {
-        btn?.classList.remove('bg-gray-600', 'text-gray-300'); btn?.classList.add('bg-indigo-600', 'dark:bg-[#00C4CC]', 'text-white', 'dark:text-black');
+        btn?.classList.remove('bg-gray-600', 'text-gray-300'); 
+        btn?.classList.add('bg-indigo-600', 'dark:bg-[#00C4CC]', 'text-white', 'dark:text-black');
         document.querySelectorAll('#conference-overlay .translation-bar').forEach(bar => bar.style.display = 'flex');
     } else {
-        btn?.classList.remove('bg-indigo-600', 'dark:bg-[#00C4CC]', 'text-white', 'dark:text-black'); btn?.classList.add('bg-gray-600', 'text-gray-300');
+        btn?.classList.remove('bg-indigo-600', 'dark:bg-[#00C4CC]', 'text-white', 'dark:text-black'); 
+        btn?.classList.add('bg-gray-600', 'text-gray-300');
         document.querySelectorAll('#conference-overlay .translation-bar').forEach(bar => bar.style.display = 'none');
     }
 };
 
+// --- 4. МИКРОФОН И ОТПРАВКА СООБЩЕНИЙ ---
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('conf-cam-btn')?.addEventListener('click', function() {
         this.classList.toggle('bg-indigo-600'); this.classList.toggle('dark:bg-[#00C4CC]');
@@ -76,8 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if(confInput) confInput.value = '';
 
         const speakerMarquee = document.getElementById('conf-speaker-marquee');
-        const me = window.profilesData ? window.profilesData['me'] : null;
-        let myFlag = me ? me.flagEmoji : '🌐';
+        const me = window.myProfileInfo || (window.profilesData ? window.profilesData['me'] : null);
+        let myFlag = me ? (me.flag || '🌐') : '🌐';
         
         if(speakerMarquee) speakerMarquee.innerHTML = `${myFlag} You: ${text}`;
 
@@ -104,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
             confRec.onerror = () => { confMicBtn.classList.remove('text-red-500', 'animate-pulse'); };
             confRec.onresult = (e) => { window.sendConfMessage(e.results[0][0].transcript); };
             confMicBtn.addEventListener('click', () => { 
-                const me = window.profilesData ? window.profilesData['me'] : null;
+                const me = window.myProfileInfo || null;
                 confRec.lang = document.getElementById('global-mic-lang')?.value || (me ? me.langCode : 'en-US'); 
                 try { confRec.start(); } catch(e){} 
             });
