@@ -729,5 +729,71 @@
 <script src="web-chat.js"></script>
 <script src="web-cv.js"></script>
 <script src="web-archive.js"></script>
+  <!-- ========================================== -->
+<!-- 4. ГЛАВНЫЙ КОНТРОЛЛЕР (Убийца спиннера) -->
+<!-- ========================================== -->
+<script>
+    // Генерируем уникальную сессию для сообщений
+    window.mySessionId = Math.random().toString(36).substring(2, 15);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.firebase) {
+            firebase.auth().onAuthStateChanged((user) => {
+                const spinner = document.getElementById('auth-spinner');
+                const loginBox = document.getElementById('auth-login-box');
+                const lockScreen = document.getElementById('security-lock');
+                const appWrapper = document.getElementById('app-wrapper');
+
+                if (user) {
+                    // ЮЗЕР АВТОРИЗОВАН - Берем его из базы
+                    const userRef = firebase.database().ref('users/' + user.uid);
+                    userRef.once('value').then((snapshot) => {
+                        let userData = snapshot.val();
+                        
+                        // Если юзер новый — создаем
+                        if (!userData) {
+                            const isOwner = (user.phoneNumber === "+994503398020");
+                            userData = {
+                                id: user.uid,
+                                name: isOwner ? "Ilgar (Owner)" : (user.displayName || "New User"),
+                                email: user.email || "",
+                                photo: user.photoURL || "https://ui-avatars.com/api/?name=" + (isOwner ? "I" : "U"),
+                                phone: user.phoneNumber || "",
+                                country: isOwner ? "Azerbaijan" : "Unknown",
+                                flag: isOwner ? "🇦🇿" : "🌍",
+                                flagCode: isOwner ? "az" : "en",
+                                langCode: isOwner ? "az" : "en",
+                                profileLangs: isOwner ? "ru, az, en" : "en"
+                            };
+                            userRef.set(userData);
+                        }
+
+                        // Сохраняем в память
+                        window.myProfileInfo = userData;
+                        window.myUsername = userData.name;
+
+                        // СНИМАЕМ ЭКРАН БЛОКИРОВКИ И СПИННЕР
+                        if(lockScreen) lockScreen.classList.add('opacity-0');
+                        setTimeout(() => {
+                            if(lockScreen) lockScreen.classList.add('hidden');
+                            if(appWrapper) appWrapper.classList.remove('opacity-0');
+                            
+                            // Запускаем интерфейс
+                            if (typeof window.applySystemLanguage === 'function') window.applySystemLanguage();
+                            if (typeof window.switchWebChat === 'function') window.switchWebChat('global');
+                        }, 500);
+                    });
+                } else {
+                    // ЮЗЕР НЕ АВТОРИЗОВАН - Прячем спиннер, показываем Вход
+                    if(spinner) { spinner.classList.add('hidden'); spinner.classList.remove('flex'); }
+                    if(loginBox) { loginBox.classList.remove('hidden'); loginBox.classList.add('flex'); }
+                    window.myProfileInfo = null;
+                }
+            });
+        } else {
+            console.error("ВНИМАНИЕ: Firebase не инициализирован. Проверь firebase-init.js!");
+        }
+    });
+</script>  
 </body>
 </html>
