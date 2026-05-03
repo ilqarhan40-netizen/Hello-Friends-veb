@@ -1,8 +1,4 @@
 // ==========================================
-// ГЕНЕРАТОР КОНТАКТОВ (WEB ВЕРСИЯ)
-// ==========================================
-
-// ==========================================
 // ГЕНЕРАТОР КОНТАКТОВ (WEB ВЕРСИЯ - ГОРИЗОНТАЛЬ И ФУТЕР)
 // ==========================================
 
@@ -27,7 +23,10 @@ window.renderContactsList = function() {
             let avatarItem = document.createElement('div');
             // shrink-0 обязателен для горизонтального скролла (flex-row overflow-x-auto)
             avatarItem.className = "flex flex-col items-center shrink-0 cursor-pointer hover:opacity-80 hover:scale-105 transition w-16 mx-2"; 
-            avatarItem.onclick = () => window.switchChatRoom(user.id);
+            
+            // 🔥 ИСПРАВЛЕНО ЗДЕСЬ: switchWebChat вместо switchChatRoom 🔥
+            avatarItem.onclick = () => window.switchWebChat(user.id); 
+            
             avatarItem.innerHTML = `
                 <div class="relative mb-1">
                     <img src="${userPhoto}" class="w-12 h-12 rounded-full object-cover border-2 border-indigo-500 dark:border-[#00faad] shadow-md">
@@ -48,7 +47,10 @@ window.renderContactsList = function() {
 
             let footerItem = document.createElement('div');
             footerItem.className = "flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 p-2 rounded-lg transition";
-            footerItem.onclick = () => window.switchChatRoom(user.id);
+            
+            // 🔥 ИСПРАВЛЕНО ЗДЕСЬ: switchWebChat вместо switchChatRoom 🔥
+            footerItem.onclick = () => window.switchWebChat(user.id); 
+            
             footerItem.innerHTML = `
                 <img src="${userPhoto}" class="w-8 h-8 rounded-full object-cover border border-gray-300 dark:border-slate-600">
                 <span class="text-xs font-bold text-gray-700 dark:text-gray-300">${userName}</span>
