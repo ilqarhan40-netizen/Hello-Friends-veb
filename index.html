@@ -723,8 +723,15 @@
 <!-- 2. Лингвистический центр (Мозг). Грузим рано, чтобы словари были готовы -->
 <script src="web-lang.js"></script> 
 
+<!-- 1. Инициализация базы данных (Сердце) -->
+<script src="js/core/firebase-init.js"></script>
+
+<!-- 2. Лингвистический центр (Мозг). Грузим рано, чтобы словари были готовы -->
+<script src="web-lang.js"></script> 
+
 <!-- 3. Автономные модули экосистемы (Органы) -->
-<script src="web-users.js"></script> <!-- Сюда перенесли слушатель базы из Блока 1 -->
+<script src="web-ui.js"></script> <!-- 🔥 ВОТ ОНА, ПОТЕРЯШКА! 🔥 -->
+<script src="web-users.js"></script>
 <script src="web-calls.js"></script>
 <script src="web-chat.js"></script>
 <script src="web-cv.js"></script>
