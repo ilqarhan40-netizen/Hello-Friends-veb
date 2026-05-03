@@ -717,29 +717,37 @@
     </div>
 </div>
 
-<!-- 1. Инициализация базы данных (Сердце) -->
-<script src="js/core/firebase-init.js"></script>
-
-<!-- 2. Лингвистический центр (Мозг). Грузим рано, чтобы словари были готовы -->
-<script src="web-lang.js"></script> 
 
 <!-- 1. Инициализация базы данных (Сердце) -->
 <script src="js/core/firebase-init.js"></script>
 
-<!-- 2. Лингвистический центр (Мозг). Грузим рано, чтобы словари были готовы -->
+<!-- 2. Лингвистический центр (Мозг) -->
 <script src="web-lang.js"></script> 
 
-<!-- 3. Автономные модули экосистемы (Органы) -->
-<script src="web-ui.js"></script> <!-- 🔥 ВОТ ОНА, ПОТЕРЯШКА! 🔥 -->
+<!-- 3. Автономные модули (Органы) -->
+<script src="web-ui.js"></script>
 <script src="web-users.js"></script>
 <script src="web-calls.js"></script>
 <script src="web-chat.js"></script>
 <script src="web-cv.js"></script>
 <script src="web-archive.js"></script>
-  <!-- ========================================== -->
-<!-- 4. ГЛАВНЫЙ КОНТРОЛЛЕР (Убийца спиннера) -->
-<!-- ========================================== -->
+
+<!-- 4. ГЛАВНЫЙ КОНТРОЛЛЕР (Убийца спиннера и Вход) -->
 <script>
+    // --- ФУНКЦИИ ВХОДА И ВЫХОДА (Для кнопки Google) ---
+    window.signInWithGoogle = function() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider).catch(err => {
+            alert('Google Sign-In Error: ' + err.message);
+        });
+    };
+
+    window.signOutGoogle = function() {
+        firebase.auth().signOut().then(() => {
+            location.reload();
+        });
+    };
+
     // Генерируем уникальную сессию для сообщений
     window.mySessionId = Math.random().toString(36).substring(2, 15);
 
@@ -752,12 +760,11 @@
                 const appWrapper = document.getElementById('app-wrapper');
 
                 if (user) {
-                    // ЮЗЕР АВТОРИЗОВАН - Берем его из базы
+                    // ЮЗЕР АВТОРИЗОВАН
                     const userRef = firebase.database().ref('users/' + user.uid);
                     userRef.once('value').then((snapshot) => {
                         let userData = snapshot.val();
                         
-                        // Если юзер новый — создаем
                         if (!userData) {
                             const isOwner = (user.phoneNumber === "+994503398020");
                             userData = {
@@ -775,30 +782,26 @@
                             userRef.set(userData);
                         }
 
-                        // Сохраняем в память
                         window.myProfileInfo = userData;
                         window.myUsername = userData.name;
 
-                        // СНИМАЕМ ЭКРАН БЛОКИРОВКИ И СПИННЕР
+                        // СНИМАЕМ ЭКРАН БЛОКИРОВКИ
                         if(lockScreen) lockScreen.classList.add('opacity-0');
                         setTimeout(() => {
                             if(lockScreen) lockScreen.classList.add('hidden');
                             if(appWrapper) appWrapper.classList.remove('opacity-0');
                             
-                            // Запускаем интерфейс
                             if (typeof window.applySystemLanguage === 'function') window.applySystemLanguage();
                             if (typeof window.switchWebChat === 'function') window.switchWebChat('global');
                         }, 500);
                     });
                 } else {
-                    // ЮЗЕР НЕ АВТОРИЗОВАН - Прячем спиннер, показываем Вход
+                    // ЮЗЕР НЕ АВТОРИЗОВАН - Показываем логин
                     if(spinner) { spinner.classList.add('hidden'); spinner.classList.remove('flex'); }
                     if(loginBox) { loginBox.classList.remove('hidden'); loginBox.classList.add('flex'); }
                     window.myProfileInfo = null;
                 }
             });
-        } else {
-            console.error("ВНИМАНИЕ: Firebase не инициализирован. Проверь firebase-init.js!");
         }
     });
 </script>  
