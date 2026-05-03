@@ -234,7 +234,7 @@
             <h2 class="text-2xl font-bold mb-2">General Chat</h2>
             <p class="text-gray-500 dark:text-gray-400 mb-6">Select a participant to switch chat:</p>
             
-          <div id="main-avatars-container" class="flex flex-wrap justify-center gap-4 md:gap-8 mb-8"></div>
+         <div id="top-users-horizontal-bar" class="flex flex-row overflow-x-auto justify-start md:justify-center gap-4 mb-8 pb-2 scrollbar-hide w-full"></div>
 
             <h3 class="text-xl font-bold mb-4 border-t border-gray-200 dark:border-slate-700 pt-6 flex justify-between items-center" id="active-chat-header">
                 <div class="flex items-center gap-3">
@@ -321,7 +321,7 @@
                     <i class="fa-solid fa-address-book text-indigo-500"></i> <span data-i18n="nav_contacts">Contacts</span>
                 </h2>
             </div>
-            <div id="web-contacts-list" class="flex flex-col gap-3">
+            <div id="footer-contacts-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <!-- Сюда JS загрузит контакты с кнопками -->
             </div>
         </section>
@@ -343,7 +343,9 @@
         </div>
     </div>
     
-    <div class="grid-conf overflow-y-auto flex-grow p-4 md:p-8">
+    <div id="conference-grid" class="grid-conf overflow-y-auto flex-grow p-4 md:p-8">
+    <!-- JS сам нарисует здесь 6 окон -->
+</div>
         <div class="user-card" onclick="openPersonalLangModal('remote1')"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Sarah (UK)</div><img src="https://flagcdn.com/w40/gb.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="en" data-flag="🇬🇧">🇬🇧 Waiting for speaker...</div></div></div>
         <div class="user-card" onclick="openPersonalLangModal('remote2')"><img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Klaus (DE)</div><img src="https://flagcdn.com/w40/de.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="de" data-flag="🇩🇪">🇩🇪 Waiting for speaker...</div></div></div>
         <div class="user-card speaker-card" onclick="openPersonalLangModal('user')">
@@ -715,16 +717,17 @@
     </div>
 </div>
 
-<!-- 1. Инициализация базы данных -->
+<!-- 1. Инициализация базы данных (Сердце) -->
 <script src="js/core/firebase-init.js"></script>
 
-<!-- 2. Автономные модули экосистемы -->
-<script src="web-users.js"></script>
+<!-- 2. Лингвистический центр (Мозг). Грузим рано, чтобы словари были готовы -->
+<script src="web-lang.js"></script> 
+
+<!-- 3. Автономные модули экосистемы (Органы) -->
+<script src="web-users.js"></script> <!-- Сюда перенесли слушатель базы из Блока 1 -->
 <script src="web-calls.js"></script>
 <script src="web-chat.js"></script>
 <script src="web-cv.js"></script>
-
-<!-- 3. Твой Единый Мозг (Глобальный переводчик, Профиль, Меню). ДОЛЖЕН БЫТЬ ПОСЛЕДНИМ! -->
-<script src="app.js"></script>
+<script src="web-archive.js"></script>
 </body>
 </html>
