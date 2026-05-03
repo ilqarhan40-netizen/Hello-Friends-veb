@@ -73,6 +73,38 @@
 </head>
 <body class="bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-gray-100 relative transition-colors duration-300">
 
+<!-- ========================================== -->
+<!-- SPLASH SCREEN / СТАРТОВАЯ ЗАСТАВКА (WEB & MOBILE) -->
+<!-- ========================================== -->
+<div id="welcome-splash" class="fixed inset-0 bg-[#121c25] z-[99999] flex flex-col items-center justify-center cursor-pointer transition-opacity duration-700" onclick="this.style.opacity='0'; setTimeout(() => this.style.display='none', 700);">
+    
+    <!-- Логотип HF со свечением -->
+    <div class="w-24 h-24 rounded-full bg-[#00faad] shadow-[0_0_80px_6px_rgba(0,250,173,0.6)] mb-10 animate-pulse flex items-center justify-center">
+        <span class="text-4xl font-extrabold text-white tracking-tighter">HF</span>
+    </div>
+    
+    <!-- Заголовок -->
+    <h1 class="text-2xl md:text-4xl font-extrabold text-white mb-3 text-center tracking-wide" data-i18n="welcome_title">
+        Добро пожаловать в Hello Friends!
+    </h1>
+    
+    <!-- Подзаголовок -->
+    <p class="text-sm md:text-base text-gray-300 font-medium tracking-widest mb-16" data-i18n="global_network">
+        Глобальная Смарт-Сеть
+    </p>
+
+    <!-- Блок Создателя (Полупрозрачная капсула) -->
+    <div class="flex items-center gap-4 px-6 py-3 rounded-[2rem] border border-[#00faad]/50 bg-white/5 backdrop-blur-sm shadow-[0_0_15px_rgba(0,250,173,0.1)] transition-transform hover:scale-105">
+        <!-- Ваше фото -->
+        <img src="ilgar.jpg" alt="Creator" class="w-10 h-10 rounded-full object-cover border border-[#00faad]" onerror="this.src='https://ui-avatars.com/api/?name=Ilgar&background=00faad&color=fff'">
+        <!-- Текст Создателя -->
+        <span class="text-[#00faad] font-bold text-sm md:text-base" data-i18n="creator_badge">
+            Создатель Hello Friends
+        </span>
+    </div>
+
+</div>
+
 <div id="security-lock" class="fixed inset-0 z-[999999] flex flex-col justify-center items-center bg-gray-100 dark:bg-slate-900 px-6 transition-opacity duration-500">
     <div id="auth-spinner" class="flex flex-col items-center">
         <i class="fa-solid fa-circle-notch fa-spin text-indigo-600 text-5xl mb-6"></i>
@@ -184,6 +216,7 @@
         <a href="#" onclick="openVoiceChat(); return false;" class="px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">Voice Chat</a>
         <a href="#" onclick="openConference(); return false;" class="px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">Conference</a>
         <a href="#" data-target="profession" class="nav-link px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">Profession</a>
+        <a href="#" data-target="contacts" class="nav-link px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_contacts">Contacts</a>
         <a href="#" data-target="archive" class="nav-link px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">Archive</a>
     </nav>
 
@@ -281,6 +314,18 @@
             <div id="web-profession-list" class="flex flex-col gap-8"></div>
         </section>
 
+        <!-- СЕКЦИЯ КОНТАКТОВ -->
+        <section id="contacts" class="page-section hidden p-4 md:p-6 w-full max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-address-book text-indigo-500"></i> <span data-i18n="nav_contacts">Contacts</span>
+                </h2>
+            </div>
+            <div id="web-contacts-list" class="flex flex-col gap-3">
+                <!-- Сюда JS загрузит контакты с кнопками -->
+            </div>
+        </section>
+
         <section id="archive" class="page-section bg-white dark:bg-slate-800 md:rounded-xl shadow-md p-4 md:p-8 transition-colors duration-300">
             <h2 class="text-2xl font-bold mb-4 border-b dark:border-slate-700 pb-2">History & Archive</h2>
             <p id="empty-archive-msg" class="text-gray-500 dark:text-gray-400 italic">Archive is empty. Receipts and emails will appear here.</p>
@@ -302,12 +347,12 @@
         <div class="user-card" onclick="openPersonalLangModal('remote1')"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Sarah (UK)</div><img src="https://flagcdn.com/w40/gb.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="en" data-flag="🇬🇧">🇬🇧 Waiting for speaker...</div></div></div>
         <div class="user-card" onclick="openPersonalLangModal('remote2')"><img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Klaus (DE)</div><img src="https://flagcdn.com/w40/de.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="de" data-flag="🇩🇪">🇩🇪 Waiting for speaker...</div></div></div>
         <div class="user-card speaker-card" onclick="openPersonalLangModal('user')">
-            <img src="https://images.unsplash.com/photo-1557862921-37829c790f19?w=800&h=450&fit=crop&crop=faces" class="user-photo">
-            <div class="name-tag text-indigo-600 dark:text-[#00C4CC] font-bold">Ilgar (You)</div>
+            <img src="https://images.unsplash.com/photo-1557862921-37829c790f19?w=800&h=450&fit=crop&crop=faces" class="user-photo dynamic-my-avatar">
+            <div class="name-tag text-indigo-600 dark:text-[#00C4CC] font-bold dynamic-my-name">Ilgar (You)</div>
             <img src="https://flagcdn.com/w40/az.png" class="flag-icon">
             <div class="translation-bar"><div class="marquee-text text-white font-bold" id="conf-speaker-marquee">🇦🇿 Ready to speak...</div></div>
         </div>
-        <div class="user-card" onclick="openPersonalLangModal('remote3')"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Marinella (IT)</div><img src="https://flagcdn.com/w40/it.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="it" data-flag="🇮🇹">🇮🇹 Waiting for speaker...</div></div></div>
+        <div class="user-card" onclick="openPersonalLangModal('remote3')"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&h=450&fit=crop&crop=faces" class="user-photo dynamic-callee-avatar"><div class="name-tag dynamic-callee-name">Marinella (IT)</div><img src="https://flagcdn.com/w40/it.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="it" data-flag="🇮🇹">🇮🇹 Waiting for speaker...</div></div></div>
         <div class="user-card" onclick="openPersonalLangModal('remote4')"><img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">John (UK)</div><img src="https://flagcdn.com/w40/gb.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="en" data-flag="🇬🇧">🇬🇧 Waiting for speaker...</div></div></div>
         <div class="user-card" onclick="openPersonalLangModal('remote5')"><img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Elena (ES)</div><img src="https://flagcdn.com/w40/es.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="es" data-flag="🇪🇸">🇪🇸 Waiting for speaker...</div></div></div>
     </div>
@@ -344,9 +389,9 @@
         <div class="flex gap-16 items-center">
             <div class="flex flex-col items-center">
                 <div class="w-40 h-40 rounded-full border-4 border-gray-300 dark:border-slate-600 overflow-hidden relative mb-4 shadow-lg">
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&fit=crop&crop=faces" class="w-full h-full object-cover">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&fit=crop&crop=faces" class="w-full h-full object-cover dynamic-avatar">
                 </div>
-                <h2 class="text-3xl font-bold flex items-center justify-center gap-3 text-gray-900 dark:text-white">
+                <h2 class="text-3xl font-bold flex items-center justify-center gap-3 text-gray-900 dark:text-white dynamic-name">
                     Marinella <img src="https://flagcdn.com/w40/it.png" class="w-10 rounded shadow border border-gray-200 dark:border-slate-800">
                 </h2>
             </div>
@@ -360,9 +405,9 @@
             <div class="flex flex-col items-center relative">
                 <div id="vr-pulse" class="absolute top-20 left-20 w-40 h-40 rounded-full transform -translate-x-1/2 -translate-y-1/2 hidden animate-ping pulse-ring"></div>
                 <div class="w-40 h-40 rounded-full border-4 border-indigo-600 dark:border-[#00C4CC] overflow-hidden relative mb-4 shadow-xl z-10">
-                    <img src="https://images.unsplash.com/photo-1557862921-37829c790f19?w=400&h=400&fit=crop&crop=faces" class="w-full h-full object-cover">
+                    <img src="https://images.unsplash.com/photo-1557862921-37829c790f19?w=400&h=400&fit=crop&crop=faces" class="w-full h-full object-cover dynamic-my-avatar">
                 </div>
-                <h2 class="text-3xl font-bold flex items-center justify-center gap-3 text-gray-900 dark:text-white">
+                <h2 class="text-3xl font-bold flex items-center justify-center gap-3 text-gray-900 dark:text-white dynamic-my-name">
                     Ilgar (You) <img src="https://flagcdn.com/w40/az.png" class="w-10 rounded shadow border border-gray-200 dark:border-slate-800">
                 </h2>
             </div>
@@ -673,12 +718,13 @@
 <!-- 1. Инициализация базы данных -->
 <script src="js/core/firebase-init.js"></script>
 
-<!-- 2. Логика Умного Чата и Переводов (ДОБАВЛЕНО) -->
+<!-- 2. Автономные модули экосистемы -->
+<script src="web-users.js"></script>
+<script src="web-calls.js"></script>
 <script src="web-chat.js"></script>
-
-<!-- 3. Модуль для Резюме (если ты вынес CV сюда) -->
 <script src="web-cv.js"></script>
 
-<!-- 4. Твой Единый Мозг (Глобальный переводчик, Профиль, Меню). ДОЛЖЕН БЫТЬ ПОСЛЕДНИМ! -->
+<!-- 3. Твой Единый Мозг (Глобальный переводчик, Профиль, Меню). ДОЛЖЕН БЫТЬ ПОСЛЕДНИМ! -->
 <script src="app.js"></script>
 </body>
+</html>
