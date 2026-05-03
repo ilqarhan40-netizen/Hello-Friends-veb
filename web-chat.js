@@ -98,3 +98,23 @@ document.addEventListener('keydown', (e) => {
         }
     }
 });
+// --- ФУНКЦИЯ ВОЛШЕБНОЙ ПАЛОЧКИ ИИ ---
+window.applyAiMagic = function() {
+    const wandBtn = document.getElementById('magic-wand-btn');
+    const chatInput = document.getElementById('chat-input') || document.getElementById('web-chat-input');
+    if(!chatInput) return;
+    
+    const text = chatInput.value.trim();
+    if(!text) return alert("Please type some text first for the AI to improve!");
+    
+    if(wandBtn) wandBtn.classList.add('animate-spin');
+    chatInput.disabled = true;
+    chatInput.value = "✨ AI is rewriting your message...";
+    
+    setTimeout(() => {
+        if(wandBtn) wandBtn.classList.remove('animate-spin');
+        chatInput.disabled = false;
+        chatInput.value = "Good afternoon! Could you please provide an update on the project? Thank you!";
+        chatInput.focus();
+    }, 1500);
+};
