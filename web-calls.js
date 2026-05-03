@@ -1,202 +1,54 @@
 // ==========================================
-// ФАЙЛ: web-calls.js
-// Назначение: Управление видео и аудио звонками, перевод в звонках + ДИНАМИКА
+// ГЕНЕРАТОР КОНТАКТОВ (WEB ВЕРСИЯ)
 // ==========================================
 
-// --- 1. БАЗОВОЕ УПРАВЛЕНИЕ ОКНАМИ ---
-window.openConference = function() { 
-    if(typeof window.closeDropdown === 'function') window.closeDropdown(); 
-    const overlay = document.getElementById('conference-overlay');
-    if(overlay) overlay.style.display = 'flex'; 
-};
-
-window.openVoiceChat = function() { 
-    if(typeof window.closeDropdown === 'function') window.closeDropdown(); 
-    const overlay = document.getElementById('voice-overlay');
-    if(overlay) overlay.style.display = 'flex'; 
-};
-
-window.closeCalls = function() { 
-    const confOverlay = document.getElementById('conference-overlay'); 
-    const voiceOverlay = document.getElementById('voice-overlay');
-    if(confOverlay) confOverlay.style.display = 'none'; 
-    if(voiceOverlay) voiceOverlay.style.display = 'none'; 
-};
-
-window.openPhoneChoiceModal = function() { 
-    if(typeof window.closeDropdown === 'function') window.closeDropdown(); 
-    const modal = document.getElementById('phone-choice-modal');
-    if(modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
-};
-
-window.closePhoneChoiceModal = function() { 
-    const modal = document.getElementById('phone-choice-modal');
-    if(modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
-};
-
-window.startInAppCall = function() { window.closePhoneChoiceModal(); setTimeout(() => { window.openVoiceChat(); }, 300); };
-window.startExternalCall = function() { window.closePhoneChoiceModal(); window.location.href = "tel:+994501234567"; };
-
-// --- 2. НОВАЯ ДИНАМИКА ЗВОНКОВ (Удаление Маринеллы) ---
-window.startDynamicVoiceCall = function(uid) {
-    if(typeof window.closeDropdown === 'function') window.closeDropdown();
-    const user = window.appUsers ? window.appUsers[uid] : null;
-    if (!user) return;
+window.renderContactsList = function(data) {
+    const contactsContainer = document.getElementById('contacts-list');
+    if (!contactsContainer) return;
     
-    const overlay = document.getElementById('voice-overlay');
-    if (overlay) {
-        const avatarEl = overlay.querySelector('.dynamic-avatar');
-        const nameEl = overlay.querySelector('.dynamic-name');
-        
-        if(avatarEl) avatarEl.src = user.photo || 'https://ui-avatars.com/api/?name=U';
-        if(nameEl) nameEl.innerHTML = `${user.name} <img src="https://flagcdn.com/w20/${user.flagCode || 'az'}.png" class="inline h-3 rounded-sm ml-1" onerror="this.style.display='none'">`;
-        
-        overlay.style.display = 'flex';
-    }
-};
-
-window.actionVideoConf = function(uid) {
-    if(typeof window.closeDropdown === 'function') window.closeDropdown();
-    document.getElementById('combined-avatar-modal')?.remove(); 
-    document.getElementById('unified-user-modal')?.remove(); 
+    // Очищаем контейнер
+    contactsContainer.innerHTML = '';
     
-    const user = window.appUsers ? window.appUsers[uid] : null;
-    if (!user) return;
-
-    const confOverlay = document.getElementById('conference-overlay');
-    if (confOverlay) {
-        // Подставляем данные собеседника
-        const calleeAvatar = confOverlay.querySelector('.dynamic-callee-avatar');
-        const calleeName = confOverlay.querySelector('.dynamic-callee-name');
-        
-        if(calleeAvatar) calleeAvatar.src = user.photo || 'https://ui-avatars.com/api/?name=U';
-        if(calleeName) calleeName.innerHTML = `${user.name} <img src="https://flagcdn.com/w20/${user.flagCode || 'az'}.png" class="inline h-3 rounded-sm ml-1" onerror="this.style.display='none'">`;
-
-        // Подставляем свои данные
-        const myAvatar = confOverlay.querySelector('.dynamic-my-avatar');
-        const myName = confOverlay.querySelector('.dynamic-my-name');
-        if(myAvatar && window.myProfileInfo) myAvatar.src = window.myProfileInfo.photo;
-        if(myName && window.myProfileInfo) myName.innerHTML = `${window.myProfileInfo.name} (You) <img src="https://flagcdn.com/w20/${window.myProfileInfo.flagCode || 'az'}.png" class="inline h-3 rounded-sm ml-1" onerror="this.style.display='none'">`;
-
-        confOverlay.style.display = 'flex';
+    // Берем участников из единого мозга (созданного в app.js)
+    if (!window.participants || window.participants.length === 0) {
+        contactsContainer.innerHTML = '<p class="text-gray-500 w-full text-center">Контаков пока нет...</p>';
+        return;
     }
-};
 
-// --- 3. СУБТИТРЫ И ПЕРЕВОД (Marquee & CC) ---
-window.isVrMarqueeEnabled = true;
-window.toggleVrCC = function() {
-    window.isVrMarqueeEnabled = !window.isVrMarqueeEnabled;
-    const btn = document.getElementById('vr-cc-btn'); 
-    const marqueeBox = document.getElementById('vr-marquee-container');
-    if(window.isVrMarqueeEnabled) {
-        btn?.classList.remove('bg-gray-600', 'text-gray-300'); 
-        btn?.classList.add('bg-indigo-600', 'dark:bg-[#00C4CC]', 'text-white', 'dark:text-black');
-        if(marqueeBox && marqueeBox.innerText !== '') marqueeBox.style.display = 'block';
-    } else {
-        btn?.classList.remove('bg-indigo-600', 'dark:bg-[#00C4CC]', 'text-white', 'dark:text-black'); 
-        btn?.classList.add('bg-gray-600', 'text-gray-300');
-        if(marqueeBox) marqueeBox.style.display = 'none';
-    }
-};
+    // Исключаем бота и себя из общего списка
+    const usersList = window.participants.filter(p => p.id !== 'ai' && p.id !== (window.myProfileInfo ? window.myProfileInfo.id : 'guest'));
 
-window.isConfCCEnabled = true;
-window.toggleConfCC = function() {
-    window.isConfCCEnabled = !window.isConfCCEnabled;
-    const btn = document.getElementById('conf-cc-btn');
-    if (window.isConfCCEnabled) {
-        btn?.classList.remove('bg-gray-600', 'text-gray-300'); 
-        btn?.classList.add('bg-indigo-600', 'dark:bg-[#00C4CC]', 'text-white', 'dark:text-black');
-        document.querySelectorAll('#conference-overlay .translation-bar').forEach(bar => bar.style.display = 'flex');
-    } else {
-        btn?.classList.remove('bg-indigo-600', 'dark:bg-[#00C4CC]', 'text-white', 'dark:text-black'); 
-        btn?.classList.add('bg-gray-600', 'text-gray-300');
-        document.querySelectorAll('#conference-overlay .translation-bar').forEach(bar => bar.style.display = 'none');
-    }
-};
+    usersList.forEach(user => {
+        let phoneStr = user.phone || 'Hidden'; 
+        let userPhoto = user.photo || 'https://ui-avatars.com/api/?name=U';
+        let userName = (user.name || 'User').split(' ')[0];
+        let flag = user.flag || '🌐';
 
-// --- 4. МИКРОФОН И ОТПРАВКА СООБЩЕНИЙ ---
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('conf-cam-btn')?.addEventListener('click', function() {
-        this.classList.toggle('bg-indigo-600'); this.classList.toggle('dark:bg-[#00C4CC]');
-        this.classList.toggle('bg-gray-600'); this.classList.toggle('text-black'); this.classList.toggle('text-white');
+        // Веб-обертка: карточки, как ты любишь
+        let card = document.createElement('div');
+        card.className = "bg-white dark:bg-slate-800 rounded-xl p-4 flex items-center justify-between border border-gray-200 dark:border-slate-700 hover:shadow-lg transition-shadow";
+        card.innerHTML = `
+            <div class="flex items-center gap-4 cursor-pointer w-full" onclick="window.switchChatRoom('${user.id}')">
+                <div class="relative">
+                    <img src="${userPhoto}" class="w-14 h-14 rounded-full object-cover border-2 border-indigo-500">
+                    <span class="absolute -bottom-1 -right-1 text-sm bg-white dark:bg-slate-800 rounded-full px-1 shadow">${flag}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-gray-900 dark:text-white font-bold text-lg">${userName}</span>
+                    <span class="text-gray-500 dark:text-gray-400 text-sm"><i class="fa-solid fa-phone text-indigo-500 text-xs mr-1"></i> ${phoneStr}</span>
+                </div>
+            </div>
+            <div class="flex gap-2 shrink-0">
+                <button onclick="window.startWebCall('${user.id}', 'voice')" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-slate-700 text-indigo-600 dark:text-[#00C4CC] flex items-center justify-center hover:bg-indigo-100 transition shadow"><i class="fa-solid fa-phone"></i></button>
+                <button onclick="window.startWebCall('${user.id}', 'video')" class="w-10 h-10 rounded-full bg-indigo-600 dark:bg-[#00C4CC] text-white dark:text-black flex items-center justify-center hover:scale-105 transition shadow-md"><i class="fa-solid fa-video"></i></button>
+            </div>
+        `;
+        contactsContainer.appendChild(card);
     });
-
-    window.sendConfMessage = async function(voiceText = null) {
-        const confInput = document.getElementById('conf-text-input');
-        if(!confInput && !voiceText) return;
-        
-        const text = typeof voiceText === 'string' ? voiceText : confInput.value.trim();
-        if(!text) return;
-        if(confInput) confInput.value = '';
-
-        const speakerMarquee = document.getElementById('conf-speaker-marquee');
-        const me = window.myProfileInfo || (window.profilesData ? window.profilesData['me'] : null);
-        let myFlag = me ? (me.flag || '🌐') : '🌐';
-        
-        if(speakerMarquee) speakerMarquee.innerHTML = `${myFlag} You: ${text}`;
-
-        document.querySelectorAll('.conf-listener-marquee').forEach(async (m) => {
-            const lang = m.getAttribute('data-lang'); const flag = m.getAttribute('data-flag');
-            try {
-                let translated = (typeof window.translateText === 'function') ? await window.translateText(text, lang) : text;
-                m.innerHTML = `➔ ${flag} <span class="text-green-400 font-bold">${translated}</span>`;
-            } catch(e) { m.innerHTML = `${flag} Error...`; }
-        });
-    };
-
-    document.getElementById('conf-send-btn')?.addEventListener('click', () => window.sendConfMessage());
-    document.getElementById('conf-text-input')?.addEventListener('keypress', e => { if(e.key === 'Enter') window.sendConfMessage(); });
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-        const confMicBtn = document.getElementById('main-conf-mic-btn');
-        if (confMicBtn) {
-            let confRec = new SpeechRecognition();
-            confRec.continuous = false; confRec.interimResults = false;
-            confRec.onstart = () => { confMicBtn.classList.add('text-red-500', 'animate-pulse'); };
-            confRec.onend = () => { confMicBtn.classList.remove('text-red-500', 'animate-pulse'); };
-            confRec.onerror = () => { confMicBtn.classList.remove('text-red-500', 'animate-pulse'); };
-            confRec.onresult = (e) => { window.sendConfMessage(e.results[0][0].transcript); };
-            confMicBtn.addEventListener('click', () => { 
-                const me = window.myProfileInfo || null;
-                confRec.lang = document.getElementById('global-mic-lang')?.value || (me ? me.langCode : 'en-US'); 
-                try { confRec.start(); } catch(e){} 
-            });
-        }
-
-        const vrMicBtn = document.getElementById('vr-mic-btn');
-        const vrPulse = document.getElementById('vr-pulse');
-        const vrInput = document.getElementById('vr-text-input');
-        if (vrMicBtn) {
-            let vrRec = new SpeechRecognition();
-            vrRec.continuous = false; vrRec.interimResults = false;
-            vrRec.onstart = () => { vrMicBtn.classList.replace('bg-gray-200', 'bg-red-500'); vrMicBtn.classList.replace('dark:bg-slate-700', 'dark:bg-red-500'); if(vrPulse) vrPulse.classList.remove('hidden'); if(vrInput) vrInput.placeholder = "Listening..."; };
-            vrRec.onend = () => { vrMicBtn.classList.replace('bg-red-500', 'bg-gray-200'); vrMicBtn.classList.replace('dark:bg-red-500', 'dark:bg-slate-700'); if(vrPulse) vrPulse.classList.add('hidden'); if(vrInput) vrInput.placeholder = "Type message or click mic..."; };
-            vrRec.onerror = () => { vrMicBtn.classList.replace('bg-red-500', 'bg-gray-200'); vrMicBtn.classList.replace('dark:bg-red-500', 'dark:bg-slate-700'); if(vrPulse) vrPulse.classList.add('hidden'); };
-            vrRec.onresult = (e) => { if(vrInput) vrInput.value = e.results[0][0].transcript; window.sendVRMessage(); };
-            vrMicBtn.addEventListener('click', () => { vrRec.lang = 'az-AZ'; try { vrRec.start(); } catch(e){} });
-        }
-    }
-});
-
-window.sendVRMessage = async function() {
-    const vrInput = document.getElementById('vr-text-input');
-    if(!vrInput) return;
-    const text = vrInput.value.trim();
-    if (!text) return;
-    vrInput.value = '';
-
-    if (!window.isVrMarqueeEnabled) return; 
-    const vrMarqueeContainer = document.getElementById('vr-marquee-container');
-    const vrMarqueeText = document.getElementById('vr-marquee-text');
-    if(vrMarqueeContainer) vrMarqueeContainer.style.display = 'block';
-    if(vrMarqueeText) vrMarqueeText.innerHTML = `🌍 Translating...`;
-
-    try {
-        let translated = typeof window.translateText === 'function' ? await window.translateText(text, 'it') : text; 
-        if(vrMarqueeText) vrMarqueeText.innerHTML = `<span class="text-indigo-600 dark:text-white font-normal">You:</span> 🇮🇹 ${translated} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="text-indigo-600 dark:text-white font-normal">You:</span> 🇮🇹 ${translated}`;
-    } catch(e) { if(vrMarqueeText) vrMarqueeText.innerHTML = "Translation error"; }
 };
 
-document.getElementById('vr-send-btn')?.addEventListener('click', window.sendVRMessage);
-document.getElementById('vr-text-input')?.addEventListener('keypress', e => { if(e.key === 'Enter') window.sendVRMessage(); });
+// Заглушка для веб-звонков (подключим логику позже)
+window.startWebCall = function(targetId, type) {
+    // Эта функция свяжет кнопку звонка с веб-модалками
+    console.log(`Начинаем звонок ${type} пользователю ${targetId} (Web UI)`);
+};
