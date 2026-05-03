@@ -1437,13 +1437,11 @@ document.addEventListener('DOMContentLoaded', () => {
 // ВОССТАНОВЛЕННЫЕ МОДАЛКИ: АВАТАР И CV
 // ==========================================
 
-// 1. СДВОЕННАЯ МОДАЛКА
 window.openAvatarModal = function(uid) {
     if(typeof window.closeDropdown === 'function') window.closeDropdown();
     const user = window.appUsers ? window.appUsers[uid] : null;
     let uData = user;
     
-    // Прямая ссылка на твое фото бота!
     if (uid === 'ai') uData = { id: 'ai', name: 'AI Assistant', photo: './ai-avatar.jpg', flagCode: 'gb', country: 'Digital World', profileLangs: 'All', population: 'Infinite', seas: 'Data Lake', cv: { role: 'AI Bot', about: 'I am your intelligent assistant.' } };
     if (uid === 'me' && window.myProfileInfo) uData = window.myProfileInfo;
     
@@ -1462,6 +1460,8 @@ window.openAvatarModal = function(uid) {
     modalContainer.innerHTML = `
         <div class="bg-white dark:bg-[#1e293b] w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative flex flex-col md:flex-row" onclick="event.stopPropagation()">
             <button onclick="document.getElementById('combined-avatar-modal').remove()" class="absolute top-4 right-4 text-gray-500 hover:text-red-500 z-50 text-2xl">&times;</button>
+            
+            <!-- АНКЕТА -->
             <div class="w-full md:w-1/2 p-8 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700">
                 <div class="flex flex-col items-center mb-6">
                     <img src="${uData.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-24 h-24 rounded-full object-cover border-4 border-indigo-500 shadow-md mb-4">
@@ -1474,64 +1474,54 @@ window.openAvatarModal = function(uid) {
                     <p><b class="text-gray-500" data-i18n="prof_seas">Seas:</b> ${uData.seas || '-'}</p>
                 </div>
             </div>
+            
+            <!-- 5 ФУНКЦИЙ (Сетка) -->
             <div class="w-full md:w-1/2 p-8 flex flex-col justify-center bg-[#1e293b] text-white">
-                <button onclick="actionPrivateChatFromCV('${uid}')" class="p-4 bg-slate-800 rounded-xl mb-3 hover:bg-slate-700 transition flex items-center gap-3"><i class="fa-solid fa-lock text-green-500"></i> <span data-i18n="action_chat">Private Chat</span></button>
-                <button onclick="actionExternalCall('${uid}')" class="p-4 bg-indigo-600 rounded-xl hover:bg-indigo-700 transition flex items-center gap-3 shadow-[0_4px_14px_0_rgba(99,102,241,0.39)]"><i class="fa-solid fa-mobile-screen text-white"></i> <span data-i18n="action_cellular">Phone Call</span></button>
+                <div class="grid grid-cols-2 gap-3 w-full">
+                    <button onclick="actionPrivateChatFromCV('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700">
+                        <i class="fa-solid fa-message text-xl mb-2 text-indigo-500"></i>
+                        <span class="text-xs font-bold" data-i18n="action_chat">Private Chat</span>
+                    </button>
+                    <button onclick="actionVoiceRoom('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700">
+                        <i class="fa-solid fa-phone text-xl mb-2 text-green-500"></i>
+                        <span class="text-xs font-bold" data-i18n="action_voice">Voice Room</span>
+                    </button>
+                    <button onclick="actionVideoConf('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700">
+                        <i class="fa-solid fa-video text-xl mb-2 text-blue-500"></i>
+                        <span class="text-xs font-bold" data-i18n="action_video">Video Conf</span>
+                    </button>
+                    <button onclick="actionSendEmail('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700">
+                        <i class="fa-solid fa-envelope text-xl mb-2 text-red-500"></i>
+                        <span class="text-xs font-bold" data-i18n="action_email">Send Email</span>
+                    </button>
+                    <button onclick="actionExternalCall('${uid}')" class="col-span-2 flex items-center justify-center gap-3 p-4 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-colors shadow-md mt-1">
+                        <i class="fa-solid fa-mobile-screen-button text-lg"></i>
+                        <span class="text-sm font-bold tracking-wide" data-i18n="action_cellular">Cellular Call</span>
+                    </button>
+                </div>
             </div>
         </div>
     `;
     if(typeof window.applySystemLanguage === 'function') window.applySystemLanguage(); 
 };
 
+// Обработчики кнопок модалки
 window.actionExternalCall = function(uid) {
     let phoneToCall = null;
     if (uid === 'me' && window.myProfileInfo) phoneToCall = window.myProfileInfo.phone;
     else if (window.appUsers && window.appUsers[uid]) phoneToCall = window.appUsers[uid].phone;
     if (phoneToCall) { window.location.href = `tel:${phoneToCall}`; document.getElementById('combined-avatar-modal')?.remove(); } 
-    else { alert("Пользователь не указал номер телефона."); }
+    else { alert("Номер телефона не указан."); }
 };
-
-// 2. ФОРМА РЕДАКТИРОВАНИЯ CV
-window.openEditCVModal = function() {
-    if (!window.myProfileInfo) return alert("Авторизуйтесь!");
-    const cv = window.myProfileInfo.cv || {};
-    let modal = document.getElementById('edit-cv-modal');
-    if (!modal) {
-        modal = document.createElement('div'); modal.id = 'edit-cv-modal';
-        modal.className = 'fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[10000] flex justify-center items-center p-4 overflow-y-auto';
-        document.body.appendChild(modal);
+window.actionVoiceRoom = function(uid) { document.getElementById('combined-avatar-modal')?.remove(); if(typeof window.openVoiceChat === 'function') window.openVoiceChat(); };
+window.actionVideoConf = function(uid) { document.getElementById('combined-avatar-modal')?.remove(); if(typeof window.openConference === 'function') window.openConference(); };
+window.actionSendEmail = function(uid) { 
+    document.getElementById('combined-avatar-modal')?.remove(); 
+    const u = window.appUsers ? window.appUsers[uid] : null;
+    if(u && u.email) {
+        if(typeof window.openEmailModal === 'function') window.openEmailModal();
+        setTimeout(() => { const el = document.getElementById('email-to-input'); if(el) el.value = u.email; }, 100);
+    } else {
+        alert("Email не указан.");
     }
-    modal.innerHTML = `
-        <div class="bg-white dark:bg-[#1e293b] w-full max-w-2xl rounded-3xl shadow-2xl p-6 md:p-8 relative animate-fade-in my-auto">
-            <button onclick="document.getElementById('edit-cv-modal').remove()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl">&times;</button>
-            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6" data-i18n="cv_edit_title">Edit CV & Contacts</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-                <div><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_role">Main Role</label><input type="text" id="cv-input-role" value="${cv.role || ''}" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 dark:text-white"></div>
-                <div><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_prof">Profession</label><input type="text" id="cv-input-prof" value="${cv.profession || ''}" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 dark:text-white"></div>
-                <div><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_exp">Experience</label><input type="text" id="cv-input-exp" value="${cv.experience || ''}" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 dark:text-white"></div>
-                <div><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_edu">Education</label><input type="text" id="cv-input-edu" value="${cv.education || ''}" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 dark:text-white"></div>
-            </div>
-            <div class="mb-6"><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_skills">Skills</label><input type="text" id="cv-input-skills" value="${cv.skills || ''}" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 dark:text-white"></div>
-            <div class="mb-6"><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_about">About</label><textarea id="cv-input-about" rows="3" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 dark:text-white resize-none">${cv.about || ''}</textarea></div>
-            <button onclick="saveWebCVData(this)" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg" data-i18n="cv_save_btn">Save CV</button>
-        </div>
-    `;
-    if(typeof window.applySystemLanguage === 'function') window.applySystemLanguage(); 
-};
-
-window.saveWebCVData = function(btn) {
-    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-    const cvData = {
-        role: document.getElementById('cv-input-role').value.trim(),
-        profession: document.getElementById('cv-input-prof').value.trim(),
-        experience: document.getElementById('cv-input-exp').value.trim(),
-        education: document.getElementById('cv-input-edu').value.trim(),
-        skills: document.getElementById('cv-input-skills').value.trim(),
-        about: document.getElementById('cv-input-about').value.trim()
-    };
-    firebase.database().ref('users/' + window.myProfileInfo.id + '/cv').update(cvData).then(() => {
-        if (!window.myProfileInfo.cv) window.myProfileInfo.cv = {};
-        Object.assign(window.myProfileInfo.cv, cvData);
-        document.getElementById('edit-cv-modal').remove();
-    });
 };
