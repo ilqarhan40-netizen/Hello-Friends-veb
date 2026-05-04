@@ -335,6 +335,7 @@
     </main>
 </div>
 
+<!-- ОВЕРЛЕЙ КОНФЕРЕНЦИИ -->
 <div id="conference-overlay" class="call-overlay bg-gray-100 dark:bg-[#0f172a]">
     <div class="p-4 flex justify-between items-center bg-white/80 dark:bg-black/50 border-b border-gray-300 dark:border-white/5 backdrop-blur-md shrink-0 shadow-sm z-20">
         <div class="font-bold text-indigo-600 dark:text-[#00C4CC] tracking-widest text-lg">LIVE VIDEO TRANSLATION</div>
@@ -343,43 +344,32 @@
         </div>
     </div>
     
-    <div id="conference-grid" class="grid-conf overflow-y-auto flex-grow p-4 md:p-8">
-    <!-- JS сам нарисует здесь 6 окон -->
-</div>
-        <div class="user-card" onclick="openPersonalLangModal('remote1')"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Sarah (UK)</div><img src="https://flagcdn.com/w40/gb.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="en" data-flag="🇬🇧">🇬🇧 Waiting for speaker...</div></div></div>
-        <div class="user-card" onclick="openPersonalLangModal('remote2')"><img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Klaus (DE)</div><img src="https://flagcdn.com/w40/de.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="de" data-flag="🇩🇪">🇩🇪 Waiting for speaker...</div></div></div>
-        <div class="user-card speaker-card" onclick="openPersonalLangModal('user')">
-            <img src="https://images.unsplash.com/photo-1557862921-37829c790f19?w=800&h=450&fit=crop&crop=faces" class="user-photo dynamic-my-avatar">
-            <div class="name-tag text-indigo-600 dark:text-[#00C4CC] font-bold dynamic-my-name">Ilgar (You)</div>
-            <img src="https://flagcdn.com/w40/az.png" class="flag-icon">
-            <div class="translation-bar"><div class="marquee-text text-white font-bold" id="conf-speaker-marquee">🇦🇿 Ready to speak...</div></div>
-        </div>
-        <div class="user-card" onclick="openPersonalLangModal('remote3')"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&h=450&fit=crop&crop=faces" class="user-photo dynamic-callee-avatar"><div class="name-tag dynamic-callee-name">Marinella (IT)</div><img src="https://flagcdn.com/w40/it.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="it" data-flag="🇮🇹">🇮🇹 Waiting for speaker...</div></div></div>
-        <div class="user-card" onclick="openPersonalLangModal('remote4')"><img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">John (UK)</div><img src="https://flagcdn.com/w40/gb.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="en" data-flag="🇬🇧">🇬🇧 Waiting for speaker...</div></div></div>
-        <div class="user-card" onclick="openPersonalLangModal('remote5')"><img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&h=450&fit=crop&crop=faces" class="user-photo"><div class="name-tag">Elena (ES)</div><img src="https://flagcdn.com/w40/es.png" class="flag-icon"><div class="translation-bar"><div class="marquee-text conf-listener-marquee" data-lang="es" data-flag="🇪🇸">🇪🇸 Waiting for speaker...</div></div></div>
-    </div>
-
+    <!-- СЕТКА ОКОН (JS рисует их здесь) -->
+    <div id="conference-grid" class="grid-conf overflow-y-auto flex-grow p-4 md:p-8"></div>
+    
+    <!-- ФУТЕР ЗВОНКА (Теперь он надежно спрятан внутри оверлея!) -->
     <div class="w-full shrink-0 mt-auto pb-8 pt-4 flex justify-center z-50 bg-gradient-to-t from-gray-100 dark:from-[#0f172a] to-transparent">
         <div class="flex items-center gap-4 bg-white/95 dark:bg-[#1a1e23]/95 backdrop-blur-md px-6 py-3 rounded-full border border-gray-300 dark:border-gray-700 shadow-2xl">
             <input type="text" id="conf-text-input" placeholder="Message or mic..." class="bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white px-4 py-3 rounded-full outline-none w-48 transition-colors">
             <button id="conf-send-btn" class="text-indigo-600 dark:text-[#00C4CC] hover:scale-110 transition-transform"><i class="fa-solid fa-paper-plane text-xl"></i></button>
             <div class="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-2"></div>
             
-            <button id="main-conf-mic-btn" class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-red-500 hover:text-white text-gray-700 dark:text-white transition-all shadow-md" title="Voice Translation">
+            <button id="main-conf-mic-btn" class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-red-500 hover:text-white text-gray-700 dark:text-white transition-all shadow-md">
                 <i class="fa-solid fa-microphone text-lg"></i>
             </button>
-            <button id="conf-cam-btn" class="w-12 h-12 rounded-full bg-indigo-600 dark:bg-[#00C4CC] flex items-center justify-center text-white dark:text-black transition-all shadow-md" title="Toggle Camera">
+            <button id="conf-cam-btn" class="w-12 h-12 rounded-full bg-indigo-600 dark:bg-[#00C4CC] flex items-center justify-center text-white dark:text-black transition-all shadow-md">
                 <i class="fa-solid fa-video text-lg"></i>
             </button>
-            <button onclick="toggleConfCC()" id="conf-cc-btn" class="w-12 h-12 rounded-full bg-indigo-600 dark:bg-[#00C4CC] flex items-center justify-center text-white dark:text-black transition-all shadow-md" title="Toggle CC">
+            <button onclick="toggleConfCC()" id="conf-cc-btn" class="w-12 h-12 rounded-full bg-indigo-600 dark:bg-[#00C4CC] flex items-center justify-center text-white dark:text-black transition-all shadow-md">
                 <i class="fa-solid fa-closed-captioning text-lg"></i>
             </button>
-            <button onclick="closeCalls()" class="w-14 h-14 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center text-white transition-all shadow-[0_0_15px_rgba(239,68,68,0.5)] hover:scale-105 ml-2" title="End Call">
+            <button onclick="closeCalls()" class="w-14 h-14 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center text-white transition-all shadow-[0_0_15px_rgba(239,68,68,0.5)] hover:scale-105 ml-2">
                 <i class="fa-solid fa-phone-slash text-xl"></i>
             </button>
         </div>
     </div>
 </div>
+<!-- КОНЕЦ ОВЕРЛЕЯ КОНФЕРЕНЦИИ -->
 
 <div id="voice-overlay" class="call-overlay bg-gray-100 dark:bg-[#0f172a]">
     <div class="p-6 flex justify-between items-center w-full max-w-5xl mx-auto border-b border-gray-300 dark:border-white/5 bg-white/80 dark:bg-black/50 backdrop-blur-md shrink-0 shadow-sm z-20 relative">
