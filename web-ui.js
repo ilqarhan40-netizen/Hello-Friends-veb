@@ -294,3 +294,24 @@ window.saveProfileData = function(btn) {
         });
     }
 };
+// ==========================================
+// ОТКРЫТИЕ ПАНЕЛЕЙ ЗВОНКОВ (Voice и Conference)
+// ==========================================
+window.openConference = function() {
+    if(typeof window.closeDropdown === 'function') window.closeDropdown();
+    const overlay = document.getElementById('conference-overlay');
+    if(overlay) overlay.style.display = 'flex';
+};
+
+window.openVoiceChat = function() {
+    if(typeof window.closeDropdown === 'function') window.closeDropdown();
+    const overlay = document.getElementById('voice-overlay');
+    if(overlay) overlay.style.display = 'flex';
+};
+
+window.closeCalls = function() {
+    const confOverlay = document.getElementById('conference-overlay');
+    const voiceOverlay = document.getElementById('voice-overlay');
+    if(confOverlay) confOverlay.style.display = 'none';
+    if(voiceOverlay) voiceOverlay.style.display = 'none';
+};
