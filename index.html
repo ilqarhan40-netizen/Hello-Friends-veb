@@ -602,17 +602,9 @@
 </div>
 
 
-        <div class="flex gap-2 w-full mt-4" id="modal-action-buttons">
-            <button id="modal-chat-btn" class="w-full p-2 rounded-lg text-white font-bold transition-transform active:scale-95 flex-1 bg-blue-600 hover:bg-blue-700 flex justify-center items-center gap-1 text-[0.8rem] shadow-md"><i class="fa-solid fa-comment"></i> Chat</button>
-            <button id="modal-sms-btn" class="w-full p-2 rounded-lg text-white font-bold transition-transform active:scale-95 flex-1 bg-green-600 hover:bg-green-700 flex justify-center items-center gap-1 text-[0.8rem] shadow-md"><i class="fa-solid fa-comment-sms"></i> SMS</button>
-            <button id="modal-email-btn" class="w-full p-2 rounded-lg text-white font-bold transition-transform active:scale-95 flex-1 bg-indigo-600 hover:bg-indigo-700 flex justify-center items-center gap-1 text-[0.8rem] shadow-md"><i class="fa-solid fa-envelope"></i> Email</button>
-        </div>
-    </div>
-</div>
 
 <!-- ОВЕРЛЕЙ ПРОФИЛЯ (Левая и Правая панели) -->
-<div id="web-profile-overlay" class="fixed inset-0 z-[10000] hidden items-center justify-between p-4 md:p-20 bg-black/60 backdrop-blur-sm overflow-hidden" onclick="if(event.target===this) closeUserProfile()">
-
+<div id="web-profile-overlay" class="fixed inset-0 z-[10000] hidden items-center justify-center gap-12 p-4 md:p-20 bg-black/85 overflow-hidden" onclick="if(event.target===this) closeUserProfile()">
     <!-- ЛЕВАЯ ПАНЕЛЬ: Инфа профиля -->
     <div id="profile-left-panel" class="bg-[#f0f0f0] text-gray-800 w-full max-w-sm rounded-2xl p-6 shadow-2xl relative transform -translate-x-full transition-transform duration-300" onclick="event.stopPropagation();">
         <button onclick="closeUserProfile()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl"><i class="fa-solid fa-xmark"></i></button>
