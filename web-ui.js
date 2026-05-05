@@ -1,6 +1,6 @@
 // ==========================================
 // Файл: webjs/web-ui.js
-// Назначение: Меню, Вкладки, Базовые модальные окна, Тема, Главный Профиль, Звонки
+// Назначение: Меню, Вкладки, Базовые модальные окна, Тема, Главный Профиль, Звонки, Поиск
 // ==========================================
 
 window.closeDropdown = function() {
@@ -83,8 +83,29 @@ window.closeBankTransferModal = () => closeModal('transfer-modal');
 window.openSearchModal = () => openModal('search-modal');
 window.closeSearchModal = () => { closeModal('search-modal'); if(typeof window.resetGlobalSearch === 'function') window.resetGlobalSearch(); };
 
-// 🔥 Новая функция для Почты из меню (Три точки)
+// Функция для Почты из меню (Три точки)
 window.openEmailStore = () => openModal('email-modal');
+
+// --- ЛОГИКА ВКЛАДОК КОШЕЛЬКА ---
+window.switchTransferTab = function(tab) {
+    const btnCard = document.getElementById('tab-card');
+    const btnIntl = document.getElementById('tab-intl');
+    const formCard = document.getElementById('form-card');
+    const formIntl = document.getElementById('form-intl');
+    if(!btnCard) return;
+
+    if (tab === 'card') {
+        btnCard.className = "flex-1 py-2 bg-emerald-500 text-white text-sm font-bold transition";
+        btnIntl.className = "flex-1 py-2 bg-gray-100 dark:bg-slate-900 text-gray-500 dark:text-gray-400 text-sm font-bold transition";
+        formCard.classList.remove('hidden');
+        formIntl.classList.add('hidden');
+    } else {
+        btnIntl.className = "flex-1 py-2 bg-blue-600 text-white text-sm font-bold transition";
+        btnCard.className = "flex-1 py-2 bg-gray-100 dark:bg-slate-900 text-gray-500 dark:text-gray-400 text-sm font-bold transition";
+        formIntl.classList.remove('hidden');
+        formCard.classList.add('hidden');
+    }
+};
 
 window.openLocationModal = () => {
     openModal('location-modal');
@@ -117,7 +138,7 @@ if (themeToggleBtn) {
 window.triggerImportExport = () => { document.getElementById('import-export-input')?.click(); window.closeDropdown(); };
 
 // ==========================================
-// ГЛАВНЫЙ ПРОФИЛЬ (С поддержкой Светлой и Темной темы)
+// ГЛАВНЫЙ ПРОФИЛЬ 
 // ==========================================
 window.openMyProfile = function() {
     if (!window.myProfileInfo) return alert("Пожалуйста, авторизуйтесь!");
@@ -229,7 +250,7 @@ window.saveProfileData = function(btn) {
 };
 
 // ==========================================
-// СЕТКА ВИДЕОКОНФЕРЕНЦИИ И ЗВОНКИ
+// СЕТКА ВИДЕОКОНФЕРЕНЦИИ И ЗВОНКИ (Исправлены дубликаты и флаг GB)
 // ==========================================
 window.openConference = function() {
     if(typeof window.closeDropdown === 'function') window.closeDropdown();
@@ -241,18 +262,32 @@ window.openConference = function() {
     if (grid && window.participants) {
         grid.innerHTML = ''; 
         
-        let activeUsers = [window.myProfileInfo, ...window.participants.slice(0, 5)].filter(Boolean);
+        // Фильтруем от дубликатов по ID
+        let allUsers = [window.myProfileInfo, ...window.participants].filter(Boolean);
+        let uniqueUsers = [];
+        let seen = new Set();
+        
+        allUsers.forEach(u => {
+            if (u.id && !seen.has(u.id)) {
+                seen.add(u.id);
+                uniqueUsers.push(u);
+            }
+        });
+        
+        // Берем 6 уникальных юзеров
+        let activeUsers = uniqueUsers.slice(0, 6);
         
         activeUsers.forEach(user => {
             let flagText = user.flagCode || user.flag || 'un';
             let fCode = flagText.replace(/[^a-zA-Z]/g, '').toLowerCase();
             if(!fCode || fCode.length !== 2) fCode = 'un';
+            if(fCode === 'en') fCode = 'gb'; // Исправление английского флага
             
             let card = document.createElement('div');
             card.className = "user-card relative aspect-video bg-gray-900 rounded-xl overflow-hidden border border-gray-700 shadow-lg";
             card.innerHTML = `
                 <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full object-cover opacity-80">
-                <div class="absolute top-3 left-3 bg-black/60 px-2 py-1 rounded text-white text-xs font-bold">${user.name.split(' ')[0]}</div>
+                <div class="absolute top-3 left-3 bg-black/60 px-2 py-1 rounded text-white text-xs font-bold">${(user.name || 'User').split(' ')[0]}</div>
                 <img src="https://flagcdn.com/w40/${fCode}.png" class="absolute top-3 right-3 w-6 h-auto rounded shadow">
                 <div class="absolute bottom-3 left-3 right-3 bg-black/60 rounded h-6 overflow-hidden flex items-center">
                     <span class="inline-block pl-[100%] animate-[scroll-text_12s_linear_infinite] text-[10px] text-white whitespace-nowrap font-mono">Waiting for voice translation...</span>
@@ -274,4 +309,62 @@ window.closeCalls = function() {
     const voiceOverlay = document.getElementById('voice-overlay');
     if(confOverlay) confOverlay.style.display = 'none';
     if(voiceOverlay) voiceOverlay.style.display = 'none';
+};
+
+// ==========================================
+// ЛОГИКА ПОИСКОВИКА (ЛУПА)
+// ==========================================
+window.performLiveSearch = function() {
+    const input = document.getElementById('global-search-input');
+    const clearBtn = document.getElementById('clear-search-btn');
+    if (input && input.value.length > 0) {
+        clearBtn.classList.remove('hidden');
+    } else {
+        clearBtn.classList.add('hidden');
+    }
+};
+
+window.resetGlobalSearch = function() {
+    const input = document.getElementById('global-search-input');
+    const clearBtn = document.getElementById('clear-search-btn');
+    const frame = document.getElementById('search-result-frame');
+    
+    if (input) input.value = '';
+    if (clearBtn) clearBtn.classList.add('hidden');
+    if (frame) {
+        frame.src = 'about:blank';
+        frame.classList.add('hidden');
+    }
+};
+
+window.handleSmartSearch = function(query, type) {
+    const input = document.getElementById('global-search-input');
+    const clearBtn = document.getElementById('clear-search-btn');
+    const frame = document.getElementById('search-result-frame');
+    
+    if (input && query) {
+        input.value = query;
+        clearBtn.classList.remove('hidden');
+    }
+    
+    if (type === 'transfer') {
+        window.closeSearchModal();
+        window.openBankTransferModal();
+    } else if (type === 'email') {
+        window.closeSearchModal();
+        window.openEmailStore();
+    } else if (type === 'web' || type === 'text') {
+        if (frame) {
+            frame.classList.remove('hidden');
+            let searchUrl = query ? 'https://en.wikipedia.org/wiki/' + encodeURIComponent(query) : 'https://en.wikipedia.org';
+            frame.src = searchUrl;
+        }
+    }
+};
+
+window.doGoogleSearch = function() {
+    const input = document.getElementById('global-search-input');
+    if (input && input.value) {
+        window.open('https://www.google.com/search?q=' + encodeURIComponent(input.value), '_blank');
+    }
 };
