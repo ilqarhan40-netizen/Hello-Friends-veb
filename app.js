@@ -330,13 +330,19 @@ firebase.auth().onAuthStateChanged((user) => {
 
 // --- Функции Входа и Выхода ---
 
+// --- Функции Входа и Выхода ---
+
 window.signInWithGoogle = function() {
     const provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(provider).catch(err => {
-        alert('Google Sign-In Error: ' + err.message);
-        location.reload();
-    });
+    // Из-за ограничений GitHub Pages используем Redirect вместо Popup
+    firebase.auth().signInWithRedirect(provider);
 };
+
+// Отлавливаем ошибки после возвращения со страницы Google
+firebase.auth().getRedirectResult().catch((error) => {
+    console.error("Google Sign-In Error:", error);
+    alert('Ошибка входа Google: ' + error.message);
+});
 
 window.signOutGoogle = function() {
     firebase.auth().signOut().then(() => {
