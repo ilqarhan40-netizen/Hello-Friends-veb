@@ -80,59 +80,89 @@ window.renderContactsList = function() {
 };
 
 // ==========================================
-// ЛОГИКА ОКОН ПРОФИЛЯ
+// ЛОГИКА ОКОН ПРОФИЛЯ (Полная база на 12+ стран)
 // ==========================================
 
 window.openUserProfile = function(userId) {
     const user = window.participants.find(u => u.id === userId);
     if(!user) return;
 
-    // Подготовка PNG флага для анкеты профиля
+    // Подготовка PNG флага
     let flagText = user.flagCode || user.flag || 'un';
     let fCode = flagText.replace(/[^a-zA-Z]/g, '').toLowerCase();
     if(!fCode || fCode.length !== 2) fCode = 'un';
+    if(fCode === 'en') fCode = 'gb'; // Фикс английского флага
+
+    // 🔥 ПОЛНАЯ БАЗА СТРАН (Под твои 12 языков)
+    const countryInfoDB = {
+        'az': { country: 'Azerbaijan', pop: '~10.1M', seas: 'Caspian Sea', about: 'Azerbaijan is a country in the South Caucasus region of Eurasia.' },
+        'it': { country: 'Italy', pop: '~59M', seas: 'Mediterranean, Adriatic', about: 'Italy is a country in Southern Europe, famous for art and cuisine.' },
+        'de': { country: 'Germany', pop: '~83M', seas: 'North Sea, Baltic Sea', about: 'Germany is a country in Central Europe, known for its strong economy and history.' },
+        'gb': { country: 'United Kingdom', pop: '~67M', seas: 'Atlantic Ocean, North Sea', about: 'The UK is an island nation in northwestern Europe.' },
+        'us': { country: 'USA', pop: '~335M', seas: 'Atlantic, Pacific', about: 'The United States is a country primarily located in North America.' },
+        'ru': { country: 'Russia', pop: '~144M', seas: 'Arctic Ocean, Pacific Ocean', about: 'Russia is the largest country in the world, spanning Eastern Europe and Northern Asia.' },
+        'tr': { country: 'Turkey', pop: '~85M', seas: 'Mediterranean, Black Sea', about: 'Turkey is a transcontinental country located mainly on the Anatolian Peninsula.' },
+        'fr': { country: 'France', pop: '~68M', seas: 'Mediterranean, Atlantic', about: 'France is a country in Western Europe known for its culture and history.' },
+        'es': { country: 'Spain', pop: '~47M', seas: 'Mediterranean, Atlantic', about: 'Spain is a country in Southwestern Europe, known for its diverse geography and cultures.' },
+        'pt': { country: 'Portugal', pop: '~10M', seas: 'Atlantic Ocean', about: 'Portugal is a southern European country on the Iberian Peninsula.' },
+        'jp': { country: 'Japan', pop: '~125M', seas: 'Pacific Ocean, Sea of Japan', about: 'Japan is an island country in East Asia.' },
+        'cn': { country: 'China', pop: '~1.4B', seas: 'Yellow Sea, East China Sea', about: 'China is a country in East Asia and the world\'s second-most populous country.' },
+        'ae': { country: 'UAE', pop: '~9.4M', seas: 'Persian Gulf, Gulf of Oman', about: 'The United Arab Emirates is a country in Western Asia at the southeast end of the Arabian Peninsula.' }
+    };
+
+    // Берем данные из базы стран (или пустые, если страны нет в списке)
+    const defaultInfo = countryInfoDB[fCode] || { country: 'Global', pop: '', seas: '', about: '' };
 
     // 1. Заполняем Левую Панель (Анкета)
-    document.getElementById('modal-user-photo').src = user.photo || 'https://ui-avatars.com/api/?name=U';
-    document.getElementById('modal-user-name').innerText = user.name || 'User';
-    // Добавляем PNG флаг в анкету рядом со страной
-    document.getElementById('modal-user-country').innerHTML = `<img src="https://flagcdn.com/w40/${fCode}.png" class="w-5 h-auto rounded-sm"> <span class="font-medium">${user.country || 'Azerbaijan'}</span>`;
-    document.getElementById('modal-user-langs').innerText = user.languages || 'Azerbaijani, Russian, English';
-    document.getElementById('modal-user-pop').innerText = user.population || '~10.1M';
-    document.getElementById('modal-user-seas').innerText = user.seas || 'Caspian Sea';
-    document.getElementById('modal-user-about').innerText = user.about || 'Azerbaijan is a country in the South Caucasus region of Eurasia.';
+    const photoEl = document.getElementById('modal-user-photo');
+    if (photoEl) photoEl.src = user.photo || 'https://ui-avatars.com/api/?name=U';
+    
+    const nameEl = document.getElementById('modal-user-name');
+    if (nameEl) nameEl.innerText = user.name || 'User';
+    
+    const countryEl = document.getElementById('modal-user-country');
+    if (countryEl) countryEl.innerHTML = `<img src="https://flagcdn.com/w40/${fCode}.png" class="w-5 h-auto rounded-sm border border-gray-200 dark:border-slate-700"> <span class="font-medium">${user.country || defaultInfo.country}</span>`;
+    
+    const langsEl = document.getElementById('modal-user-langs');
+    if (langsEl) langsEl.innerText = user.languages || user.profileLangs || '';
+    
+    const popEl = document.getElementById('modal-user-pop');
+    if (popEl) popEl.innerText = user.population || defaultInfo.pop;
+    
+    const seasEl = document.getElementById('modal-user-seas');
+    if (seasEl) seasEl.innerText = user.seas || defaultInfo.seas;
+    
+    const aboutEl = document.getElementById('modal-user-about');
+    if (aboutEl) aboutEl.innerText = user.about || defaultInfo.about;
 
     // 2. Назначаем действия на Правой Панели (Кнопки)
-    document.getElementById('btn-priv-chat').onclick = () => { window.closeUserProfile(); window.switchWebChat(userId); };
-    document.getElementById('btn-voice-msg').onclick = () => { alert('Voice Msg feature coming soon!'); };
-    document.getElementById('btn-app-audio').onclick = () => { window.closeUserProfile(); window.startWebCall(userId, 'voice'); };
-    document.getElementById('btn-app-video').onclick = () => { window.closeUserProfile(); window.openConference(); };
-    document.getElementById('btn-phone-call').onclick = () => { alert('Calling ' + (user.phone || 'Hidden') + ' via Phone'); };
+    const btnPrivChat = document.getElementById('btn-priv-chat');
+    if (btnPrivChat) btnPrivChat.onclick = () => { window.closeUserProfile(); if(typeof window.switchWebChat === 'function') window.switchWebChat(userId); };
+    
+    const btnVoiceMsg = document.getElementById('btn-voice-msg');
+    if (btnVoiceMsg) btnVoiceMsg.onclick = () => { alert('Voice Msg feature coming soon!'); };
+    
+    const btnAppAudio = document.getElementById('btn-app-audio');
+    if (btnAppAudio) btnAppAudio.onclick = () => { window.closeUserProfile(); if(typeof window.startWebCall === 'function') window.startWebCall(userId, 'voice'); };
+    
+    const btnAppVideo = document.getElementById('btn-app-video');
+    if (btnAppVideo) btnAppVideo.onclick = () => { window.closeUserProfile(); if(typeof window.openConference === 'function') window.openConference(); };
+    
+    const btnPhoneCall = document.getElementById('btn-phone-call');
+    if (btnPhoneCall) btnPhoneCall.onclick = () => { alert('Calling ' + (user.phone || 'Hidden') + ' via Phone'); };
 
     // 3. Показываем панели и запускаем анимацию выезда
     const overlay = document.getElementById('web-profile-overlay');
     const leftPanel = document.getElementById('profile-left-panel');
     const rightPanel = document.getElementById('profile-right-panel');
 
-    overlay.classList.remove('hidden');
-    overlay.classList.add('flex');
-    
-    setTimeout(() => {
-        leftPanel.classList.remove('-translate-x-full');
-        rightPanel.classList.remove('translate-x-full');
-    }, 50);
-};
-
-window.closeUserProfile = function() {
-    const overlay = document.getElementById('web-profile-overlay');
-    const leftPanel = document.getElementById('profile-left-panel');
-    const rightPanel = document.getElementById('profile-right-panel');
-
-    leftPanel.classList.add('-translate-x-full');
-    rightPanel.classList.add('translate-x-full');
-
-    setTimeout(() => {
-        overlay.classList.remove('flex');
-        overlay.classList.add('hidden');
-    }, 300);
+    if (overlay && leftPanel && rightPanel) {
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+        
+        setTimeout(() => {
+            leftPanel.classList.remove('-translate-x-full');
+            rightPanel.classList.remove('translate-x-full');
+        }, 50);
+    }
 };
