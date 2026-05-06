@@ -250,7 +250,7 @@ window.saveProfileData = function(btn) {
 };
 
 // ==========================================
-// СЕТКА ВИДЕОКОНФЕРЕНЦИИ И ЗВОНКИ (Исправлены дубликаты и флаг GB)
+// СЕТКА ВИДЕОКОНФЕРЕНЦИИ И ЗВОНКИ (Исправлены дубликаты, флаг GB и пропорции фото)
 // ==========================================
 window.openConference = function() {
     if(typeof window.closeDropdown === 'function') window.closeDropdown();
@@ -285,8 +285,10 @@ window.openConference = function() {
             
             let card = document.createElement('div');
             card.className = "user-card relative aspect-video bg-gray-900 rounded-xl overflow-hidden border border-gray-700 shadow-lg";
+            
+            // 🔥 ДОБАВЛЕНО absolute inset-0 для фиксации пропорций (лица не растягиваются)
             card.innerHTML = `
-                <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full object-cover opacity-80">
+                <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="absolute inset-0 w-full h-full object-cover opacity-80">
                 <div class="absolute top-3 left-3 bg-black/60 px-2 py-1 rounded text-white text-xs font-bold">${(user.name || 'User').split(' ')[0]}</div>
                 <img src="https://flagcdn.com/w40/${fCode}.png" class="absolute top-3 right-3 w-6 h-auto rounded shadow">
                 <div class="absolute bottom-3 left-3 right-3 bg-black/60 rounded h-6 overflow-hidden flex items-center">
@@ -316,55 +318,79 @@ window.closeCalls = function() {
 // ==========================================
 window.performLiveSearch = function() {
     const input = document.getElementById('global-search-input');
-    const clearBtn = document.getElementById('clear-search-btn');
-    if (input && input.value.length > 0) {
-        clearBtn.classList.remove('hidden');
-    } else {
-        clearBtn.classList.add('hidden');
-    }
-};
-
-window.resetGlobalSearch = function() {
-    const input = document.getElementById('global-search-input');
-    const clearBtn = document.getElementById('clear-search-btn');
+    const query = input ? input.value.toLowerCase().trim() : '';
+    const resultsArea = document.getElementById('search-results-area');
     const frame = document.getElementById('search-result-frame');
-    
-    if (input) input.value = '';
-    if (clearBtn) clearBtn.classList.add('hidden');
-    if (frame) {
-        frame.src = 'about:blank';
-        frame.classList.add('hidden');
-    }
-};
-
-window.handleSmartSearch = function(query, type) {
-    const input = document.getElementById('global-search-input');
+    const suggestions = document.getElementById('search-suggestions');
     const clearBtn = document.getElementById('clear-search-btn');
-    const frame = document.getElementById('search-result-frame');
     
-    if (input && query) {
-        input.value = query;
-        clearBtn.classList.remove('hidden');
+    if(frame) frame.classList.add('hidden');
+    
+    if (query.length === 0) {
+        if(resultsArea) { resultsArea.innerHTML = ''; resultsArea.classList.add('hidden'); }
+        if(suggestions) suggestions.style.display = 'block';
+        if(clearBtn) clearBtn.classList.add('hidden');
+        return;
     }
     
-    if (type === 'transfer') {
-        window.closeSearchModal();
-        window.openBankTransferModal();
-    } else if (type === 'email') {
-        window.closeSearchModal();
-        window.openEmailStore();
-    } else if (type === 'web' || type === 'text') {
-        if (frame) {
-            frame.classList.remove('hidden');
-            let searchUrl = query ? 'https://en.wikipedia.org/wiki/' + encodeURIComponent(query) : 'https://en.wikipedia.org';
-            frame.src = searchUrl;
+    if(clearBtn) clearBtn.classList.remove('hidden');
+    if(suggestions) suggestions.style.display = 'none';
+    if(resultsArea) resultsArea.classList.remove('hidden');
+
+    let html = ''; let found = false;
+    
+    // 1. Собираем РЕАЛЬНЫХ пользователей (Свой профиль + Юзеры из Firebase)
+    let allUsers = [];
+    if (window.myProfileInfo) allUsers.push(window.myProfileInfo);
+    if (window.participants) allUsers = [...allUsers, ...window.participants];
+    
+    // 2. Убираем дубликаты и ИИ
+    let uniqueUsers = [];
+    let seen = new Set();
+    allUsers.forEach(u => {
+        if (u && u.id && !seen.has(u.id) && u.id !== 'ai') {
+            seen.add(u.id);
+            uniqueUsers.push(u);
         }
-    }
-};
+    });
 
-window.doGoogleSearch = function() {
-    const input = document.getElementById('global-search-input');
-    if (input && input.value) {
-        window.open('https://www.google.com/search?q=' + encodeURIComponent(input.value), '_blank');
-    }
+    // 3. Фильтруем и выводим
+    uniqueUsers.forEach(p => {
+        // Подтягиваем данные
+        const name = p.name || 'User';
+        const prof = p.profession || p.prof || (p.cv && p.cv.profession) || 'Member';
+        const country = p.country || '';
+        const langs = p.languages || p.profileLangs || (p.cv && p.cv.languages) || '';
+        
+        if (name.toLowerCase().includes(query) || prof.toLowerCase().includes(query) || country.toLowerCase().includes(query) || langs.toLowerCase().includes(query)) {
+            found = true;
+            
+            // Универсальный генератор кода для ЛЮБОЙ страны мира
+            let flagText = p.flagCode || p.flag || 'un';
+            let fCode = flagText.replace(/[^a-zA-Z]/g, '').toLowerCase();
+            if(!fCode || fCode.length !== 2) fCode = 'un';
+            if(fCode === 'en') fCode = 'gb'; // Единственное исключение для флага Англии
+            
+            let shortCode = fCode.toUpperCase(); // Автоматически делает DE, IT, AZ, US, TR, KZ и т.д.
+            let photo = p.photo || 'https://ui-avatars.com/api/?name=U';
+
+            html += `
+                <div class="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm mb-2" onclick="closeSearchModal(); setTimeout(() => { if(typeof openUserProfile === 'function') openUserProfile('${p.id}'); else if(typeof openAvatarModal === 'function') openAvatarModal('${p.id}', 'cv'); }, 300);">
+                    <div class="flex items-center gap-4">
+                        <img src="${photo}" class="w-10 h-10 rounded-full object-cover shadow-sm border border-gray-200 dark:border-slate-600">
+                        <div class="flex flex-col">
+                            <span class="text-gray-900 dark:text-white text-sm font-bold flex items-center gap-2">
+                                ${name.split(' ')[0]} 
+                                <span class="text-[10px] text-gray-500 uppercase font-bold">${shortCode}</span>
+                            </span>
+                            <span class="text-[#8b9fc4] dark:text-indigo-400 text-xs truncate max-w-[200px]">${prof} | ${country}</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-300"></i>
+                </div>`;
+        }
+    });
+    
+    if (!found) html = `<p class="text-sm text-gray-500 dark:text-gray-400 text-center mt-6">No real users found. Click 'Search Web' below.</p>`;
+    if(resultsArea) resultsArea.innerHTML = html;
 };
