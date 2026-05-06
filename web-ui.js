@@ -314,8 +314,51 @@ window.closeCalls = function() {
 };
 
 // ==========================================
-// ЛОГИКА ПОИСКОВИКА (ЛУПА)
+// ЛОГИКА ПОИСКОВИКА (ЛУПА) В WEB-UI.JS
 // ==========================================
+
+window.openSearchModal = function() {
+    if(typeof window.closeDropdown === 'function') window.closeDropdown();
+    
+    // УБИВАЕМ СТАРЫЙ НЕВИДИМЫЙ СЛОЙ, КОТОРЫЙ БЛОКИРОВАЛ КЛИКИ
+    const oldSearch = document.getElementById('search-modal');
+    if (oldSearch && !oldSearch.innerHTML.includes('global-search-input')) {
+        oldSearch.remove(); 
+    }
+
+    const modal = document.getElementById('search-modal');
+    if (modal) {
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+        setTimeout(() => { modal.classList.remove('opacity-0'); modal.querySelector('div').classList.remove('scale-95'); }, 10);
+    }
+};
+
+window.closeSearchModal = function() {
+    const modal = document.getElementById('search-modal');
+    if (modal) {
+        modal.classList.add('opacity-0'); modal.querySelector('div').classList.add('scale-95');
+        setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); window.resetGlobalSearch(); }, 300);
+    }
+};
+
+window.handleSmartSearch = function(text, type = 'text') {
+    const input = document.getElementById('global-search-input');
+    if (type === 'text') { 
+        if(input) input.value = text; 
+        window.performLiveSearch(); 
+    } 
+    else if (type === 'transfer') { 
+        window.closeSearchModal(); setTimeout(window.openBankTransferModal, 350); 
+    } 
+    else if (type === 'email') { 
+        window.closeSearchModal(); setTimeout(window.openEmailStore, 350); // Открывает Магазин Почты
+    } 
+    else if (type === 'web') { 
+        if(input) input.value = text; 
+        window.doGoogleSearch(); 
+    }
+};
+
 window.performLiveSearch = function() {
     const input = document.getElementById('global-search-input');
     const query = input ? input.value.toLowerCase().trim() : '';
@@ -339,24 +382,22 @@ window.performLiveSearch = function() {
 
     let html = ''; let found = false;
     
-    // 1. Собираем РЕАЛЬНЫХ пользователей (Свой профиль + Юзеры из Firebase)
     let allUsers = [];
     if (window.myProfileInfo) allUsers.push(window.myProfileInfo);
-    if (window.participants) allUsers = [...allUsers, ...window.participants];
+    if (window.appUsers) {
+        Object.keys(window.appUsers).forEach(id => allUsers.push(window.appUsers[id]));
+    } else if (window.participants) {
+        allUsers = [...allUsers, ...window.participants];
+    }
     
-    // 2. Убираем дубликаты и ИИ
-    let uniqueUsers = [];
-    let seen = new Set();
+    let uniqueUsers = []; let seen = new Set();
     allUsers.forEach(u => {
         if (u && u.id && !seen.has(u.id) && u.id !== 'ai') {
-            seen.add(u.id);
-            uniqueUsers.push(u);
+            seen.add(u.id); uniqueUsers.push(u);
         }
     });
 
-    // 3. Фильтруем и выводим
     uniqueUsers.forEach(p => {
-        // Подтягиваем данные
         const name = p.name || 'User';
         const prof = p.profession || p.prof || (p.cv && p.cv.profession) || 'Member';
         const country = p.country || '';
@@ -364,18 +405,15 @@ window.performLiveSearch = function() {
         
         if (name.toLowerCase().includes(query) || prof.toLowerCase().includes(query) || country.toLowerCase().includes(query) || langs.toLowerCase().includes(query)) {
             found = true;
-            
-            // Универсальный генератор кода для ЛЮБОЙ страны мира
             let flagText = p.flagCode || p.flag || 'un';
             let fCode = flagText.replace(/[^a-zA-Z]/g, '').toLowerCase();
             if(!fCode || fCode.length !== 2) fCode = 'un';
-            if(fCode === 'en') fCode = 'gb'; // Единственное исключение для флага Англии
-            
-            let shortCode = fCode.toUpperCase(); // Автоматически делает DE, IT, AZ, US, TR, KZ и т.д.
+            if(fCode === 'en') fCode = 'gb';
+            let shortCode = fCode.toUpperCase();
             let photo = p.photo || 'https://ui-avatars.com/api/?name=U';
 
             html += `
-                <div class="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm mb-2" onclick="closeSearchModal(); setTimeout(() => { if(typeof openUserProfile === 'function') openUserProfile('${p.id}'); else if(typeof openAvatarModal === 'function') openAvatarModal('${p.id}', 'cv'); }, 300);">
+                <div class="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm mb-2" onclick="closeSearchModal(); setTimeout(() => { if(typeof openUserProfile === 'function') openUserProfile('${p.id}'); else if(typeof openAvatarModal === 'function') openAvatarModal('${p.id}'); }, 300);">
                     <div class="flex items-center gap-4">
                         <img src="${photo}" class="w-10 h-10 rounded-full object-cover shadow-sm border border-gray-200 dark:border-slate-600">
                         <div class="flex flex-col">
@@ -391,6 +429,124 @@ window.performLiveSearch = function() {
         }
     });
     
-    if (!found) html = `<p class="text-sm text-gray-500 dark:text-gray-400 text-center mt-6">No real users found. Click 'Search Web' below.</p>`;
+    if (!found) html = `<p class="text-sm text-gray-500 dark:text-gray-400 text-center mt-6 font-medium">No real users found. Click 'Search Web' below.</p>`;
     if(resultsArea) resultsArea.innerHTML = html;
+};
+
+window.resetGlobalSearch = function() {
+    const input = document.getElementById('global-search-input');
+    if(input) input.value = '';
+    window.performLiveSearch();
+};
+
+window.doGoogleSearch = function() {
+    const input = document.getElementById('global-search-input');
+    const q = input ? input.value : '';
+    if(q.trim() === '') return alert('Enter search query first');
+    
+    const searchUrl = 'https://www.google.com/search?igu=1&q=' + encodeURIComponent(q);
+    const iframe = document.getElementById('search-result-frame');
+    const resultsArea = document.getElementById('search-results-area');
+    const suggestions = document.getElementById('search-suggestions');
+    const clearBtn = document.getElementById('clear-search-btn');
+    
+    if(suggestions) suggestions.style.display = 'none';
+    if(resultsArea) { resultsArea.innerHTML = ''; resultsArea.classList.add('hidden'); }
+    if(clearBtn) clearBtn.classList.remove('hidden');
+    
+    if(iframe) { iframe.src = searchUrl; iframe.classList.remove('hidden'); }
+};
+
+// ==========================================
+// УМНАЯ БАЗА СТРАН В WEB-UI.JS
+// ==========================================
+
+window.getSmartCountryInfo = function(user) {
+    const db = {
+        'az': { pop: '~10.1M', seas: 'Caspian Sea' },
+        'it': { pop: '~59M', seas: 'Mediterranean, Adriatic' },
+        'de': { pop: '~83M', seas: 'North Sea, Baltic Sea' },
+        'gb': { pop: '~67M', seas: 'Atlantic Ocean' },
+        'us': { pop: '~335M', seas: 'Atlantic, Pacific' },
+        'ru': { pop: '~144M', seas: 'Arctic, Pacific' },
+        'tr': { pop: '~85M', seas: 'Mediterranean, Black Sea' },
+        'fr': { pop: '~68M', seas: 'Mediterranean, Atlantic' },
+        'es': { pop: '~47M', seas: 'Mediterranean, Atlantic' },
+        'pt': { pop: '~10M', seas: 'Atlantic Ocean' },
+        'ja': { pop: '~125M', seas: 'Pacific Ocean' },
+        'zh': { pop: '~1.4B', seas: 'Yellow Sea' },
+        'ae': { pop: '~9.4M', seas: 'Persian Gulf' },
+        'en': { pop: '~67M', seas: 'Atlantic Ocean' }
+    };
+    let fCode = (user.flagCode || 'un').replace(/[^a-zA-Z]/g, '').toLowerCase();
+    if (fCode === 'en') fCode = 'gb';
+    return db[fCode] || { pop: '-', seas: '-' };
+};
+
+// Модалка Аватара (чистая, без чужих стран)
+window.openAvatarModal = function(uid) {
+    if(typeof window.closeDropdown === 'function') window.closeDropdown();
+    const user = window.appUsers ? window.appUsers[uid] : null;
+    let uData = user;
+    
+    if (uid === 'ai') uData = { id: 'ai', name: 'AI Assistant', photo: './ai-avatar.jpg', flagCode: 'gb', country: 'Digital World', profileLangs: 'All' };
+    if (uid === 'me' && window.myProfileInfo) uData = window.myProfileInfo;
+    if (!uData) return;
+    
+    const cv = uData.cv || {};
+    const smartInfo = window.getSmartCountryInfo(uData);
+    
+    let modalContainer = document.getElementById('combined-avatar-modal');
+    if (!modalContainer) {
+        modalContainer = document.createElement('div');
+        modalContainer.id = 'combined-avatar-modal';
+        modalContainer.className = 'fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[10000] flex justify-center items-center p-4 transition-opacity animate-fade-in';
+        document.body.appendChild(modalContainer);
+        modalContainer.addEventListener('click', (e) => { if(e.target === modalContainer) modalContainer.remove(); });
+    }
+
+    modalContainer.innerHTML = `
+        <div class="bg-white dark:bg-[#1e293b] w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative flex flex-col md:flex-row" onclick="event.stopPropagation()">
+            <button onclick="document.getElementById('combined-avatar-modal').remove()" class="absolute top-4 right-4 text-gray-500 hover:text-red-500 z-50 text-2xl outline-none">&times;</button>
+            
+            <div class="w-full md:w-1/2 p-8 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700">
+                <div class="flex flex-col items-center mb-6">
+                    <img src="${uData.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-24 h-24 rounded-full object-cover border-4 border-indigo-500 shadow-md mb-4">
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">${uData.name.replace(' (You)', '')}</h3>
+                </div>
+                <div class="space-y-4 text-sm mt-4 text-gray-800 dark:text-gray-200">
+                    <p><b class="text-gray-500" data-i18n="cv_country">Country:</b> ${uData.flag || '🌍'} ${uData.country || '-'}</p>
+                    <p><b class="text-gray-500" data-i18n="cv_langs">Languages:</b> ${uData.profileLangs || cv.languages || '-'}</p>
+                    <p><b class="text-gray-500" data-i18n="prof_pop">Population:</b> ${uData.population || smartInfo.pop}</p>
+                    <p><b class="text-gray-500" data-i18n="prof_seas">Seas:</b> ${uData.seas || smartInfo.seas}</p>
+                </div>
+            </div>
+            
+            <div class="w-full md:w-1/2 p-8 flex flex-col justify-center bg-[#1e293b] text-white">
+                <div class="grid grid-cols-2 gap-3 w-full">
+                    <button onclick="actionPrivateChatFromCV('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700">
+                        <i class="fa-solid fa-message text-xl mb-2 text-indigo-500"></i>
+                        <span class="text-xs font-bold" data-i18n="action_chat">Private Chat</span>
+                    </button>
+                    <button onclick="actionVoiceRoom('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700">
+                        <i class="fa-solid fa-phone text-xl mb-2 text-green-500"></i>
+                        <span class="text-xs font-bold" data-i18n="action_voice">Voice Room</span>
+                    </button>
+                    <button onclick="actionVideoConf('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700">
+                        <i class="fa-solid fa-video text-xl mb-2 text-blue-500"></i>
+                        <span class="text-xs font-bold" data-i18n="action_video">Video Conf</span>
+                    </button>
+                    <button onclick="actionSendEmail('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700">
+                        <i class="fa-solid fa-envelope text-xl mb-2 text-red-500"></i>
+                        <span class="text-xs font-bold" data-i18n="action_email">Send Email</span>
+                    </button>
+                    <button onclick="actionExternalCall('${uid}')" class="col-span-2 flex items-center justify-center gap-3 p-4 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-colors shadow-md mt-1">
+                        <i class="fa-solid fa-mobile-screen-button text-lg"></i>
+                        <span class="text-sm font-bold tracking-wide" data-i18n="action_cellular">Cellular Call</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    if(typeof window.applySystemLanguage === 'function') window.applySystemLanguage(); 
 };
