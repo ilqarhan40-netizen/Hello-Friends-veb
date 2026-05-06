@@ -74,37 +74,33 @@
 <body class="bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-gray-100 relative transition-colors duration-300">
 
 <!-- ========================================== -->
-<!-- SPLASH SCREEN / СТАРТОВАЯ ЗАСТАВКА (WEB & MOBILE) -->
+<!-- SPLASH SCREEN -->
 <!-- ========================================== -->
 <div id="welcome-splash" class="fixed inset-0 bg-[#121c25] z-[99999] flex flex-col items-center justify-center cursor-pointer transition-opacity duration-700" onclick="this.style.opacity='0'; setTimeout(() => this.style.display='none', 700);">
     
-    <!-- Логотип HF со свечением -->
     <div class="w-24 h-24 rounded-full bg-[#00faad] shadow-[0_0_80px_6px_rgba(0,250,173,0.6)] mb-10 animate-pulse flex items-center justify-center">
         <span class="text-4xl font-extrabold text-white tracking-tighter">HF</span>
     </div>
     
-    <!-- Заголовок -->
     <h1 class="text-2xl md:text-4xl font-extrabold text-white mb-3 text-center tracking-wide" data-i18n="welcome_title">
         Добро пожаловать в Hello Friends!
     </h1>
     
-    <!-- Подзаголовок -->
     <p class="text-sm md:text-base text-gray-300 font-medium tracking-widest mb-16" data-i18n="global_network">
         Глобальная Смарт-Сеть
     </p>
 
-    <!-- Блок Создателя (Полупрозрачная капсула) -->
     <div class="flex items-center gap-4 px-6 py-3 rounded-[2rem] border border-[#00faad]/50 bg-white/5 backdrop-blur-sm shadow-[0_0_15px_rgba(0,250,173,0.1)] transition-transform hover:scale-105">
-        <!-- Ваше фото -->
         <img src="ilgar.jpg" alt="Creator" class="w-10 h-10 rounded-full object-cover border border-[#00faad]" onerror="this.src='https://ui-avatars.com/api/?name=Ilgar&background=00faad&color=fff'">
-        <!-- Текст Создателя -->
         <span class="text-[#00faad] font-bold text-sm md:text-base" data-i18n="creator_badge">
             Создатель Hello Friends
         </span>
     </div>
-
 </div>
 
+<!-- ========================================== -->
+<!-- SECURITY LOCK -->
+<!-- ========================================== -->
 <div id="security-lock" class="fixed inset-0 z-[999999] flex flex-col justify-center items-center bg-gray-100 dark:bg-slate-900 px-6 transition-opacity duration-500">
     <div id="auth-spinner" class="flex flex-col items-center">
         <i class="fa-solid fa-circle-notch fa-spin text-indigo-600 text-5xl mb-6"></i>
@@ -126,6 +122,9 @@
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- MAIN APP INTERFACE -->
+<!-- ========================================== -->
 <div id="app-wrapper" class="flex flex-col h-full w-full opacity-0 transition-opacity duration-500">
 
     <input type="file" id="import-export-input" class="hidden">
@@ -211,13 +210,14 @@
                 </div>
             </div>
         </header>
+
    <nav id="main-nav" class="bg-white dark:bg-slate-800 md:rounded-xl shadow-md hidden md:flex flex-wrap justify-center gap-2 mb-4 p-2 transition-colors duration-300">
-        <a href="#" data-target="chat" class="nav-link active px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">Chat</a>
-        <a href="#" onclick="openVoiceChat(); return false;" class="px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">Voice Chat</a>
-        <a href="#" onclick="openConference(); return false;" class="px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">Conference</a>
-        <a href="#" data-target="profession" class="nav-link px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">Profession</a>
+        <a href="#" data-target="chat" class="nav-link active px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_chat">Chat</a>
+        <a href="#" onclick="openVoiceChat(); return false;" class="px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_voice">Voice Chat</a>
+        <a href="#" onclick="openConference(); return false;" class="px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_conf">Conference</a>
+        <a href="#" data-target="profession" class="nav-link px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_prof">Profession</a>
         <a href="#" data-target="contacts" class="nav-link px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_contacts">Contacts</a>
-        <a href="#" data-target="archive" class="nav-link px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">Archive</a>
+        <a href="#" data-target="archive" class="nav-link px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_archive">Archive</a>
     </nav>
 
     <div class="flex justify-center gap-6 mb-6 text-2xl">
@@ -314,7 +314,6 @@
             <div id="web-profession-list" class="flex flex-col gap-8"></div>
         </section>
 
-        <!-- СЕКЦИЯ КОНТАКТОВ -->
         <section id="contacts" class="page-section hidden p-4 md:p-6 w-full max-w-4xl mx-auto">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -322,7 +321,6 @@
                 </h2>
             </div>
             <div id="footer-contacts-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <!-- Сюда JS загрузит контакты с кнопками -->
             </div>
         </section>
 
@@ -335,7 +333,9 @@
     </main>
 </div>
 
+<!-- ========================================== -->
 <!-- ОВЕРЛЕЙ КОНФЕРЕНЦИИ -->
+<!-- ========================================== -->
 <div id="conference-overlay" class="call-overlay bg-gray-100 dark:bg-[#0f172a]">
     <div class="p-4 flex justify-between items-center bg-white/80 dark:bg-black/50 border-b border-gray-300 dark:border-white/5 backdrop-blur-md shrink-0 shadow-sm z-20">
         <div class="font-bold text-indigo-600 dark:text-[#00C4CC] tracking-widest text-lg">LIVE VIDEO TRANSLATION</div>
@@ -344,10 +344,8 @@
         </div>
     </div>
     
-    <!-- СЕТКА ОКОН (JS рисует их здесь) -->
     <div id="conference-grid" class="grid-conf overflow-y-auto flex-grow p-4 md:p-8"></div>
     
-    <!-- ФУТЕР ЗВОНКА (Теперь он надежно спрятан внутри оверлея!) -->
     <div class="w-full shrink-0 mt-auto pb-8 pt-4 flex justify-center z-50 bg-gradient-to-t from-gray-100 dark:from-[#0f172a] to-transparent">
         <div class="flex items-center gap-4 bg-white/95 dark:bg-[#1a1e23]/95 backdrop-blur-md px-6 py-3 rounded-full border border-gray-300 dark:border-gray-700 shadow-2xl">
             <input type="text" id="conf-text-input" placeholder="Message or mic..." class="bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white px-4 py-3 rounded-full outline-none w-48 transition-colors">
@@ -369,45 +367,18 @@
         </div>
     </div>
 </div>
-<!-- КОНЕЦ ОВЕРЛЕЯ КОНФЕРЕНЦИИ -->
 
+<!-- ========================================== -->
+<!-- ОВЕРЛЕЙ ГОЛОСОВОГО ЧАТА (ОЧИЩЕННЫЙ!) -->
+<!-- ========================================== -->
 <div id="voice-overlay" class="call-overlay bg-gray-100 dark:bg-[#0f172a]">
     <div class="p-6 flex justify-between items-center w-full max-w-5xl mx-auto border-b border-gray-300 dark:border-white/5 bg-white/80 dark:bg-black/50 backdrop-blur-md shrink-0 shadow-sm z-20 relative">
         <div class="font-bold text-indigo-600 dark:text-[#00C4CC] tracking-widest text-lg">HELLO FRIENDS VOICE</div>
         <div class="flex items-center gap-4 bg-gray-100 dark:bg-slate-800 px-4 py-2 rounded-full border border-gray-200 dark:border-slate-700 text-sm text-gray-700 dark:text-gray-300"><i class="fa-solid fa-lock text-green-500"></i> Encrypted</div>
     </div>
     
-    <div class="voice-area flex-col gap-10 flex-grow overflow-y-auto py-10">
-        <div class="flex gap-16 items-center">
-            <div class="flex flex-col items-center">
-                <div class="w-40 h-40 rounded-full border-4 border-gray-300 dark:border-slate-600 overflow-hidden relative mb-4 shadow-lg">
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&fit=crop&crop=faces" class="w-full h-full object-cover dynamic-avatar">
-                </div>
-                <h2 class="text-3xl font-bold flex items-center justify-center gap-3 text-gray-900 dark:text-white dynamic-name">
-                    Marinella <img src="https://flagcdn.com/w40/it.png" class="w-10 rounded shadow border border-gray-200 dark:border-slate-800">
-                </h2>
-            </div>
-            
-            <div class="flex gap-2 text-indigo-500 dark:text-[#00C4CC] opacity-60">
-                <div class="w-3 h-10 bg-current rounded-full animate-bounce"></div>
-                <div class="w-3 h-20 bg-current rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                <div class="w-3 h-10 bg-current rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-            </div>
-            
-            <div class="flex flex-col items-center relative">
-                <div id="vr-pulse" class="absolute top-20 left-20 w-40 h-40 rounded-full transform -translate-x-1/2 -translate-y-1/2 hidden animate-ping pulse-ring"></div>
-                <div class="w-40 h-40 rounded-full border-4 border-indigo-600 dark:border-[#00C4CC] overflow-hidden relative mb-4 shadow-xl z-10">
-                    <img src="https://images.unsplash.com/photo-1557862921-37829c790f19?w=400&h=400&fit=crop&crop=faces" class="w-full h-full object-cover dynamic-my-avatar">
-                </div>
-                <h2 class="text-3xl font-bold flex items-center justify-center gap-3 text-gray-900 dark:text-white dynamic-my-name">
-                    Ilgar (You) <img src="https://flagcdn.com/w40/az.png" class="w-10 rounded shadow border border-gray-200 dark:border-slate-800">
-                </h2>
-            </div>
-        </div>
-        
-        <div id="vr-marquee-container" class="w-full max-w-2xl overflow-hidden hidden px-6 mt-8 bg-white dark:bg-slate-900 rounded-xl py-3 border border-gray-200 dark:border-slate-700 shadow-md">
-            <span id="vr-marquee-text" class="inline-block pl-[100%] animate-[scroll-text_12s_linear_infinite] font-bold text-xl text-indigo-600 dark:text-green-400 whitespace-nowrap"></span>
-        </div>
+    <!-- 🔥 АБСОЛЮТНО ПУСТАЯ ЗОНА. БЕЗ БОТОВ И ДУБЛИКАТОВ 🔥 -->
+    <div id="voice-speakers-area" class="voice-area flex-col gap-10 flex-grow overflow-y-auto py-10">
     </div>
     
     <div class="w-full shrink-0 mt-auto pb-8 pt-4 px-4 z-50 flex justify-center bg-gradient-to-t from-gray-100 dark:from-[#0f172a] to-transparent">
@@ -453,6 +424,9 @@
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- МОДАЛЬНЫЕ ОКНА -->
+<!-- ========================================== -->
 <div id="search-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] opacity-0 transition-opacity duration-300 backdrop-blur-sm" onclick="if(event.target===this) closeSearchModal()">
     <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-2xl shadow-2xl transform scale-95 transition-transform duration-300 relative border border-gray-100 dark:border-slate-700 flex flex-col max-h-[85vh]" onclick="event.stopPropagation();">
         <button onclick="closeSearchModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -594,6 +568,7 @@
         </div>
     </div>
 </div>
+
 <div id="auth-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] opacity-0 transition-opacity duration-300 backdrop-blur-sm" onclick="if(event.target===this) closeAuthModal()">
     <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 relative border border-gray-100 dark:border-slate-700 mx-4 flex flex-col items-center" onclick="event.stopPropagation();">
         <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -636,11 +611,7 @@
     </div>
 </div>
 
-
-
-<!-- ОВЕРЛЕЙ ПРОФИЛЯ (Левая и Правая панели) -->
 <div id="web-profile-overlay" class="fixed inset-0 z-[10000] hidden items-center justify-center gap-12 p-4 md:p-20 bg-black/85 overflow-hidden" onclick="if(event.target===this) closeUserProfile()">
-    <!-- ЛЕВАЯ ПАНЕЛЬ: Инфа профиля -->
     <div id="profile-left-panel" class="bg-[#f0f0f0] text-gray-800 w-full max-w-sm rounded-2xl p-6 shadow-2xl relative transform -translate-x-full transition-transform duration-300" onclick="event.stopPropagation();">
         <button onclick="closeUserProfile()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl"><i class="fa-solid fa-xmark"></i></button>
         
@@ -680,7 +651,6 @@
         </div>
     </div>
 
-    <!-- ПРАВАЯ ПАНЕЛЬ: Действия (Стекло) -->
     <div id="profile-right-panel" class="w-full max-w-sm grid grid-cols-2 gap-4 transform translate-x-full transition-transform duration-300" onclick="event.stopPropagation();">
         <button id="btn-priv-chat" class="bg-white/10 border border-white/10 backdrop-blur-md rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:bg-white/20 transition shadow-lg group">
             <i class="fa-solid fa-lock text-green-400 text-3xl drop-shadow-[0_0_8px_rgba(74,222,128,0.5)] group-hover:scale-110 transition"></i>
@@ -702,7 +672,6 @@
             <span class="text-white font-bold text-base tracking-widest drop-shadow-md">Phone Call</span>
         </button>
     </div>
-
 </div>
 
 <div id="personal-lang-modal" class="fixed inset-0 z-[105] hidden flex-col items-center justify-center bg-black/50 backdrop-blur-sm px-4 opacity-0 transition-opacity duration-300" onclick="if(event.target===this) closePersonalLangModal()">
@@ -721,11 +690,10 @@
             <button onclick="setPersonalLang('ar')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇦🇪 العربية</button>
             <button onclick="setPersonalLang('ja')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇯🇵 日本語</button>
             <button onclick="setPersonalLang('zh')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇨🇳 中文</button>
-</div>
+        </div>
         <button onclick="closePersonalLangModal()" class="w-full mt-5 py-3 bg-gray-100 dark:bg-slate-600 rounded-xl font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-500 transition-colors" data-i18n="cancel">Cancel</button>
     </div>
 </div>
-
 
 <!-- 1. Инициализация базы данных (Сердце) -->
 <script src="js/core/firebase-init.js"></script>
@@ -741,9 +709,8 @@
 <script src="web-cv.js"></script>
 <script src="web-archive.js"></script>
 
-<!-- 4. ГЛАВНЫЙ КОНТРОЛЛЕР (Убийца спиннера и Вход) -->
+<!-- 4. ГЛАВНЫЙ КОНТРОЛЛЕР (С добавленным скачиванием CV) -->
 <script>
-    // --- ФУНКЦИИ ВХОДА И ВЫХОДА (Для кнопки Google) ---
     window.signInWithGoogle = function() {
         const provider = new firebase.auth.GoogleAuthProvider();
         firebase.auth().signInWithPopup(provider).catch(err => {
@@ -757,7 +724,6 @@
         });
     };
 
-    // Генерируем уникальную сессию для сообщений
     window.mySessionId = Math.random().toString(36).substring(2, 15);
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -769,7 +735,6 @@
                 const appWrapper = document.getElementById('app-wrapper');
 
                 if (user) {
-                    // ЮЗЕР АВТОРИЗОВАН
                     const userRef = firebase.database().ref('users/' + user.uid);
                     userRef.once('value').then((snapshot) => {
                         let userData = snapshot.val();
@@ -794,7 +759,16 @@
                         window.myProfileInfo = userData;
                         window.myUsername = userData.name;
 
-                        // СНИМАЕМ ЭКРАН БЛОКИРОВКИ
+                        // 🔥 СЛУШАТЕЛЬ БАЗЫ: СКАЧИВАЕМ ВСЕХ ЮЗЕРОВ ДЛЯ CV 🔥
+                        firebase.database().ref('users').on('value', (snapshot) => {
+                            const allUsers = snapshot.val() || {};
+                            window.appUsers = allUsers; 
+                            
+                            if (typeof window.renderProfessionSection === 'function') {
+                                window.renderProfessionSection(allUsers);
+                            }
+                        });
+
                         if(lockScreen) lockScreen.classList.add('opacity-0');
                         setTimeout(() => {
                             if(lockScreen) lockScreen.classList.add('hidden');
@@ -805,7 +779,6 @@
                         }, 500);
                     });
                 } else {
-                    // ЮЗЕР НЕ АВТОРИЗОВАН - Показываем логин
                     if(spinner) { spinner.classList.add('hidden'); spinner.classList.remove('flex'); }
                     if(loginBox) { loginBox.classList.remove('hidden'); loginBox.classList.add('flex'); }
                     window.myProfileInfo = null;
