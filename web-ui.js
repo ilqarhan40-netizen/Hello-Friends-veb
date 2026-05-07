@@ -550,3 +550,27 @@ window.openAvatarModal = function(uid) {
     `;
     if(typeof window.applySystemLanguage === 'function') window.applySystemLanguage(); 
 };
+// ==========================================
+// ГЛОБАЛЬНАЯ БАЗА ГЕО-ДАННЫХ (Авто-подстановка БЕЗ ЯЗЫКОВ)
+// Вставляем в файл: web-ui.js
+// ==========================================
+window.getCountryFacts = function(fCode) {
+    const db = {
+        'az': { country: 'Azerbaijan', pop: '~10.1M', seas: 'Caspian Sea', about: 'Azerbaijan is located at the boundary of Eastern Europe and Western Asia.' },
+        'ru': { country: 'Russia', pop: '~144M', seas: 'Arctic, Pacific, Baltic, Black, Caspian', about: 'Russia is the largest country in the world by area.' },
+        'it': { country: 'Italy', pop: '~59M', seas: 'Mediterranean, Adriatic, Ionian, Tyrrhenian', about: 'Italy is famous for its Renaissance culture and Mediterranean coastline.' },
+        'de': { country: 'Germany', pop: '~83M', seas: 'North Sea, Baltic Sea', about: 'Germany is a major economic and political power in Central Europe.' },
+        'gb': { country: 'United Kingdom', pop: '~67M', seas: 'Atlantic, North Sea, English Channel, Irish Sea', about: 'The UK is an island nation in northwestern Europe.' },
+        'us': { country: 'USA', pop: '~335M', seas: 'Atlantic, Pacific, Arctic, Gulf of Mexico', about: 'The USA is a vast country in North America.' },
+        'tr': { country: 'Turkey', pop: '~85M', seas: 'Mediterranean, Aegean, Black Sea', about: 'Turkey is a transcontinental country bridging Europe and Asia.' },
+        'fr': { country: 'France', pop: '~68M', seas: 'Atlantic, Mediterranean, English Channel', about: 'France is known for its culture, art, and varied geography.' },
+        'es': { country: 'Spain', pop: '~47M', seas: 'Mediterranean, Atlantic', about: 'Spain occupies most of the Iberian Peninsula in Europe.' },
+        'pt': { country: 'Portugal', pop: '~10M', seas: 'Atlantic Ocean', about: 'Portugal is located on the Iberian Peninsula bordering the Atlantic.' },
+        'ja': { country: 'Japan', pop: '~125M', seas: 'Pacific, Sea of Japan', about: 'Japan is an island country in East Asia.' },
+        'cn': { country: 'China', pop: '~1.4B', seas: 'Yellow, East China, South China', about: 'China is the most populous country in East Asia.' },
+        'ae': { country: 'UAE', pop: '~9.4M', seas: 'Persian Gulf, Gulf of Oman', about: 'The UAE is known for its modern architecture and desert landscape.' }
+    };
+    
+    // Защита, если флага нет в списке
+    return db[fCode] || { country: 'Global', pop: 'Unknown', seas: 'Unknown', about: 'No data available for this region.' };
+};
