@@ -108,37 +108,55 @@ if (themeToggleBtn) {
 window.triggerImportExport = () => { document.getElementById('import-export-input')?.click(); window.closeDropdown(); };
 
 // ==========================================
-// УМНАЯ ГЕО-БАЗА: РАСШИРЕННОЕ ОПИСАНИЕ СТРАН
+// УМНАЯ ГЕО-БАЗА: РАСШИРЕННОЕ ОПИСАНИЕ СТРАН (12 СТРАН)
 // ==========================================
 window.getCountryFacts = function(fCode) {
     const db = {
-        'az': { country: 'Azerbaijan', location: 'Caucasus, Eastern Europe / Western Asia', pop: '~10.14 M', seas: 'Caspian Sea', about: 'Azerbaijan is known as the "Land of Fire." It features a unique blend of ancient history and modern architecture.' },
-        'ru': { country: 'Russia', location: 'Eastern Europe and Northern Asia', pop: '~144.5 M', seas: 'Arctic, Pacific, Atlantic, Baltic, Black, Caspian', about: 'The largest country in the world, spanning eleven time zones and two continents.' },
-        'it': { country: 'Italy', location: 'Southern Europe, Mediterranean peninsula', pop: '~58.9 M', seas: 'Mediterranean, Adriatic, Ionian, Tyrrhenian', about: 'Italy is famous for its Renaissance culture and stunning coastal landscapes.' },
-        'de': { country: 'Germany', location: 'Central Europe', pop: '~83.2 M', seas: 'North Sea, Baltic Sea', about: 'Germany is a major European power with a diverse geography ranging from the Alps to sandy northern shores.' },
-        'gb': { country: 'United Kingdom', location: 'Northwestern Europe, Island nation', pop: '~67.3 M', seas: 'Atlantic Ocean, North Sea, English Channel', about: 'An island country consisting of Great Britain and Northern Ireland.' },
-        'tr': { country: 'Turkey', location: 'Eurasia, bridging Europe and Asia', pop: '~85.3 M', seas: 'Mediterranean, Aegean, Black Sea, Marmara', about: 'Turkey is unique for its transcontinental location and historic crossroad of civilizations.' },
-        'fr': { country: 'France', location: 'Western Europe', pop: '~67.9 M', seas: 'Mediterranean, Atlantic (Bay of Biscay), English Channel', about: 'France features diverse coasts, from the glamorous Riviera to the rugged Atlantic.' },
-        'es': { country: 'Spain', location: 'Southwestern Europe, Iberian Peninsula', pop: '~47.7 M', seas: 'Mediterranean Sea, Atlantic Ocean', about: 'Spain occupies most of the Iberian Peninsula, deeply influenced by the Atlantic and Mediterranean.' },
-        'us': { country: 'USA', location: 'North America', pop: '~333.3 M', seas: 'Atlantic, Pacific, Arctic Oceans; Gulf of Mexico', about: 'A vast country spanning the North American continent with immense geographic variety.' },
-        'pt': { country: 'Portugal', location: 'Southwestern Europe, Iberian Peninsula', pop: '~10.3 M', seas: 'Atlantic Ocean', about: 'Portugal is defined by its long Atlantic coastline and maritime history.' },
-        'ja': { country: 'Japan', location: 'East Asia, Archipelago', pop: '~125.1 M', seas: 'Pacific Ocean, Sea of Japan, East China Sea', about: 'An island nation in the Pacific Ocean with mountainous territory surrounded by sea.' },
-        'cn': { country: 'China', location: 'East Asia', pop: '~1.41 B', seas: 'Yellow Sea, East China Sea, South China Sea', about: 'China has a long coastline along the Pacific\'s marginal seas, hosting busy ports.' },
-        'ae': { country: 'UAE', location: 'Middle East, Arabian Peninsula', pop: '~9.4 M', seas: 'Persian Gulf, Gulf of Oman', about: 'The UAE is known for its modern architecture and dramatic desert-meets-sea landscapes.' }
+        'az': { country: 'Azerbaijan', pop: '~10.14 M', seas: 'Caspian Sea', about: 'Azerbaijan is known as the "Land of Fire." It features a unique blend of ancient history and modern architecture.' },
+        'ru': { country: 'Russia', pop: '~144.5 M', seas: 'Arctic, Pacific, Baltic, Black, Caspian', about: 'The largest country in the world, spanning eleven time zones.' },
+        'de': { country: 'Germany', pop: '~83.2 M', seas: 'North Sea, Baltic Sea', about: 'Germany is a major European power with a diverse geography.' },
+        'it': { country: 'Italy', pop: '~58.9 M', seas: 'Mediterranean, Adriatic, Ionian', about: 'Italy is famous for its Renaissance culture and stunning coastal landscapes.' },
+        'gb': { country: 'United Kingdom', pop: '~67.3 M', seas: 'Atlantic Ocean, North Sea', about: 'An island country consisting of Great Britain and Northern Ireland.' },
+        'tr': { country: 'Turkey', pop: '~85.3 M', seas: 'Mediterranean, Aegean, Black Sea', about: 'Turkey is unique for its transcontinental location.' },
+        'es': { country: 'Spain', pop: '~47.7 M', seas: 'Mediterranean Sea, Atlantic Ocean', about: 'Spain occupies most of the Iberian Peninsula.' },
+        'fr': { country: 'France', pop: '~67.9 M', seas: 'Mediterranean, Atlantic', about: 'France features diverse coasts and a rich cultural history.' },
+        'us': { country: 'USA', pop: '~333.3 M', seas: 'Atlantic, Pacific, Arctic', about: 'A vast country spanning the North American continent.' },
+        'ae': { country: 'UAE', pop: '~9.4 M', seas: 'Persian Gulf, Gulf of Oman', about: 'The UAE is known for its modern architecture and desert landscapes.' },
+        'cn': { country: 'China', pop: '~1.41 B', seas: 'Yellow Sea, East China Sea, South China Sea', about: 'China has a long coastline along the Pacific marginal seas.' },
+        'jp': { country: 'Japan', pop: '~125.1 M', seas: 'Pacific Ocean, Sea of Japan', about: 'An island nation in the Pacific Ocean with mountainous territory.' }
     };
-    return db[fCode] || { country: 'Global', location: 'Earth', pop: 'Unknown', seas: 'International Waters', about: 'No data available.' };
+    return db[fCode] || { country: 'Global', pop: 'Unknown', seas: 'International Waters', about: 'No additional data.' };
 };
 
 // ==========================================
-// ГЛАВНЫЙ ПРОФИЛЬ 
+// ГЛАВНЫЙ ПРОФИЛЬ (Форма редактирования с Умной Гео-Локацией)
 // ==========================================
 window.openMyProfile = function() {
-    if (!window.myProfileInfo) return alert("Пожалуйста, авторизуйтесь!");
+    if (!window.myProfileInfo) return alert("Please authorize first!");
     if(typeof window.closeDropdown === 'function') window.closeDropdown(); 
     
     const user = window.myProfileInfo;
     const cv = user.cv || {}; 
+
+    const countries = [
+        { code: 'az', flag: '🇦🇿', name: 'Azerbaijan', dial: '+994' },
+        { code: 'ru', flag: '🇷🇺', name: 'Russia', dial: '+7' },
+        { code: 'de', flag: '🇩🇪', name: 'Germany', dial: '+49' },
+        { code: 'it', flag: '🇮🇹', name: 'Italy', dial: '+39' },
+        { code: 'gb', flag: '🇬🇧', name: 'United Kingdom', dial: '+44' },
+        { code: 'tr', flag: '🇹🇷', name: 'Turkey', dial: '+90' },
+        { code: 'es', flag: '🇪🇸', name: 'Spain', dial: '+34' },
+        { code: 'fr', flag: '🇫🇷', name: 'France', dial: '+33' },
+        { code: 'us', flag: '🇺🇸', name: 'USA', dial: '+1' },
+        { code: 'ae', flag: '🇦🇪', name: 'UAE', dial: '+971' },
+        { code: 'cn', flag: '🇨🇳', name: 'China', dial: '+86' },
+        { code: 'jp', flag: '🇯🇵', name: 'Japan', dial: '+81' }
+    ];
+    let currentCode = user.flagCode || 'gb';
+    let optionsHtml = countries.map(c => `<option value="${c.code}" data-dial="${c.dial}" data-flag="${c.flag}" ${currentCode === c.code ? 'selected' : ''}>${c.flag} ${c.name}</option>`).join('');
     
+    const startGeo = window.getCountryFacts(currentCode);
+
     let modal = document.getElementById('profile-modal-container');
     if (!modal) {
         modal = document.createElement('div');
@@ -149,81 +167,134 @@ window.openMyProfile = function() {
 
     modal.innerHTML = `
         <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden relative flex flex-col border border-gray-200 dark:border-slate-700 animate-fade-in" onclick="event.stopPropagation()">
-            <button onclick="document.getElementById('profile-modal-container').remove()" class="absolute top-4 right-4 w-8 h-8 bg-gray-100 dark:bg-slate-700 hover:bg-red-500 hover:text-white text-gray-500 dark:text-gray-300 rounded-full flex items-center justify-center transition-colors z-50"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="document.getElementById('profile-modal-container').remove()" class="absolute top-4 right-4 w-8 h-8 bg-gray-100 dark:bg-slate-700 hover:bg-red-500 hover:text-white text-gray-500 dark:text-gray-300 rounded-full flex items-center justify-center transition-colors z-50 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
 
             <div class="pt-8 pb-2 flex flex-col items-center justify-center relative">
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-1">My Profile</h2>
-                <p class="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-4">Complete Registration</p>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-1" data-i18n="my_profile">My Profile</h2>
+                <p class="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-4" data-i18n="complete_reg">Complete Registration</p>
                 
-                <div class="relative w-24 h-24 rounded-full p-1 border-2 border-[#10b981] mb-2 cursor-pointer group" onclick="document.getElementById('attachment-input').click()">
+                <div class="relative w-24 h-24 rounded-full p-1 border-2 border-[#10b981] mb-2 cursor-pointer group" onclick="document.getElementById('attachment-input')?.click()">
                     <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full rounded-full object-cover">
                     <div class="absolute bottom-0 right-0 w-7 h-7 bg-[#10b981] rounded-full border-2 border-white dark:border-slate-800 flex items-center justify-center text-white text-xs"><i class="fa-solid fa-camera"></i></div>
                 </div>
             </div>
 
-            <div class="p-6 pt-2 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+            <div class="p-6 pt-2 space-y-4 max-h-[65vh] overflow-y-auto custom-scrollbar">
+                
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1">Full Name</label>
-                        <input type="text" id="prof-name" value="${user.name || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981]">
+                        <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1" data-i18n="full_name">Full Name</label>
+                        <input type="text" id="prof-name" value="${user.name || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] font-medium">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1">Country</label>
-                        <input type="text" id="prof-country" value="${user.country || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981]">
+                        <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1" data-i18n="profession">Profession</label>
+                        <input type="text" id="prof-role" value="${cv.profession || cv.role || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] font-medium">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1">Phone Number</label>
-                        <input type="text" id="prof-phone" value="${user.phone || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981]">
+                        <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1" data-i18n="country">Country</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm" id="prof-flag-display">${user.flag || '🌍'}</span>
+                            <select id="prof-country-select" onchange="window.updateProfileGeo(this)" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl pl-9 pr-3 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] appearance-none cursor-pointer text-sm font-medium">
+                                ${optionsHtml}
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                        </div>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1">Languages (Your Skills)</label>
-                        <input type="text" id="prof-langs" value="${user.profileLangs || cv.languages || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981]">
+                        <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1" data-i18n="phone">Phone Number</label>
+                        <input type="text" id="prof-phone" value="${user.phone || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] font-medium">
+                    </div>
+                </div>
+
+                <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-4 border border-indigo-100 dark:border-indigo-800/30">
+                    <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2"><i class="fa-solid fa-robot"></i> Smart Geo Data</p>
+                    <div class="space-y-1 text-xs text-gray-600 dark:text-gray-300">
+                        <p><b data-i18n="population">Population:</b> <span id="smart-pop">${startGeo.pop}</span></p>
+                        <p><b data-i18n="seas">Seas:</b> <span id="smart-seas">${startGeo.seas}</span></p>
+                        <p class="mt-2 text-[10px] italic text-gray-500" id="smart-about">${startGeo.about}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1" data-i18n="email">Email</label>
+                        <input type="email" id="prof-email" value="${user.email || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1" data-i18n="languages">Languages</label>
+                        <input type="text" id="prof-langs" value="${user.profileLangs || cv.languages || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] font-medium">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1">Email</label>
-                    <input type="email" id="prof-email" value="${user.email || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981]">
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1">About Me</label>
-                    <textarea id="prof-about" rows="3" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] resize-none">${cv.about || user.about || ''}</textarea>
+                    <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1" data-i18n="about_me">About Me</label>
+                    <textarea id="prof-about" rows="3" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] resize-none font-medium text-sm">${cv.about || user.about || ''}</textarea>
                 </div>
                 
-                <button onclick="saveProfileData(this)" class="mt-2 w-full bg-[#10b981] hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all">Speichern (Save)</button>
+                <button onclick="saveProfileData(this)" class="mt-2 w-full bg-[#10b981] hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all cursor-pointer uppercase text-xs tracking-wider" data-i18n="save_profile">Save Profile</button>
             </div>
         </div>
     `;
+    if(typeof window.applySystemLanguage === 'function') window.applySystemLanguage();
+};
+
+window.updateProfileGeo = function(sel) {
+    const opt = sel.options[sel.selectedIndex];
+    const dial = opt.getAttribute('data-dial');
+    const flag = opt.getAttribute('data-flag');
+    const code = sel.value;
+
+    const phoneInput = document.getElementById('prof-phone');
+    if (phoneInput) { phoneInput.value = dial + " "; phoneInput.focus(); }
+    const flagDisplay = document.getElementById('prof-flag-display');
+    if (flagDisplay) flagDisplay.innerText = flag;
+
+    const geo = window.getCountryFacts(code);
+    document.getElementById('smart-pop').innerText = geo.pop;
+    document.getElementById('smart-seas').innerText = geo.seas;
+    document.getElementById('smart-about').innerText = geo.about;
 };
 
 window.saveProfileData = function(btn) {
-    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
+    if(!window.firebase || !window.myProfileInfo) return;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    
+    const sel = document.getElementById('prof-country-select');
+    const opt = sel.options[sel.selectedIndex];
+
     const data = {
         name: document.getElementById('prof-name').value.trim(),
-        country: document.getElementById('prof-country').value.trim(),
+        country: opt.text.trim().replace(/^[\uD83C][\uDDE6-\uDDFF][\uD83C][\uDDE6-\uDDFF]\s*/, ''),
+        flagCode: sel.value,
+        flag: opt.getAttribute('data-flag'),
         phone: document.getElementById('prof-phone').value.trim(),
         profileLangs: document.getElementById('prof-langs').value.trim(),
         email: document.getElementById('prof-email').value.trim(),
         about: document.getElementById('prof-about').value.trim() 
     };
-    if (window.firebase) {
-        firebase.database().ref('users/' + window.myProfileInfo.id).update(data).then(() => {
-            firebase.database().ref('users/' + window.myProfileInfo.id + '/cv').update({
-                languages: data.profileLangs, about: data.about
-            });
-            Object.assign(window.myProfileInfo, data);
-            document.getElementById('profile-modal-container').remove();
-            if(typeof window.renderMainScreenAvatars === 'function') window.renderMainScreenAvatars(window.appUsers);
-            if(typeof window.renderContactsList === 'function') window.renderContactsList(); 
-        }).catch(err => {
-            alert("Error: " + err.message);
-            if (btn) { btn.disabled = false; btn.innerHTML = 'Speichern (Save)'; }
+
+    firebase.database().ref('users/' + window.myProfileInfo.id).update(data).then(() => {
+        const profession = document.getElementById('prof-role').value.trim();
+        firebase.database().ref('users/' + window.myProfileInfo.id + '/cv').update({
+            languages: data.profileLangs, about: data.about, profession: profession, role: profession
         });
-    }
+        
+        Object.assign(window.myProfileInfo, data);
+        if(!window.myProfileInfo.cv) window.myProfileInfo.cv = {};
+        window.myProfileInfo.cv.profession = profession;
+        
+        document.getElementById('profile-modal-container').remove();
+        if(typeof window.renderMainScreenAvatars === 'function') window.renderMainScreenAvatars(window.appUsers);
+        if(typeof window.renderProfessionSection === 'function') window.renderProfessionSection(window.appUsers);
+    }).catch(err => {
+        alert("Error: " + err.message);
+        btn.disabled = false;
+        btn.innerHTML = 'Save Profile';
+    });
 };
 
 // ==========================================
@@ -515,7 +586,6 @@ window.performLiveSearch = function() {
     
     let uniqueUsers = []; let seen = new Set();
     allUsers.forEach(u => {
-        // Оставляем ИИ, но отсекаем фейки без имени
         if (u && u.id && !seen.has(u.id) && (u.name || u.id === 'ai')) {
             seen.add(u.id); uniqueUsers.push(u);
         }
@@ -605,7 +675,6 @@ window.openLupeCV = function(uid) {
     let flagText = user.flagCode || user.flag || 'un';
     let fCode = flagText.replace(/[^a-zA-Z]/g, '').toLowerCase();
     if(!fCode || fCode.length !== 2) fCode = 'un';
-    if(fCode === 'en') fCode = 'gb';
 
     const autoFacts = typeof window.getCountryFacts === 'function' ? window.getCountryFacts(fCode) : { country: 'Global', pop: '-', seas: '-', about: '-' };
 
@@ -630,40 +699,40 @@ window.openLupeCV = function(uid) {
             <div class="w-full space-y-3 text-sm text-gray-600 font-medium mb-6 px-2">
                 <div class="flex items-center">
                     <i class="fa-solid fa-globe text-indigo-400 w-6 text-center text-lg"></i>
-                    <span class="w-24 text-gray-400 ml-2">Country:</span>
+                    <span class="w-24 text-gray-400 ml-2" data-i18n="country">Country:</span>
                     <span class="flex items-center gap-2 text-gray-800 font-bold truncate"><img src="https://flagcdn.com/w20/${fCode}.png" class="w-4 rounded-sm shadow-sm"> ${autoFacts.country}</span>
                 </div>
                 <div class="flex items-center">
                     <i class="fa-solid fa-briefcase text-indigo-400 w-6 text-center text-lg"></i>
-                    <span class="w-24 text-gray-400 ml-2">Profession:</span>
+                    <span class="w-24 text-gray-400 ml-2" data-i18n="profession">Profession:</span>
                     <span class="text-gray-800 font-bold truncate">${cv.profession || cv.role || 'Member'}</span>
                 </div>
                 <div class="flex items-center">
                     <i class="fa-solid fa-language text-indigo-400 w-6 text-center text-lg"></i>
-                    <span class="w-24 text-gray-400 ml-2">Languages:</span>
+                    <span class="w-24 text-gray-400 ml-2" data-i18n="languages">Languages:</span>
                     <span class="text-gray-800 font-bold truncate">${cv.languages || user.profileLangs || '-'}</span>
                 </div>
                 <div class="flex items-center">
                     <i class="fa-solid fa-users text-indigo-400 w-6 text-center text-lg"></i>
-                    <span class="w-24 text-gray-400 ml-2">Population:</span>
+                    <span class="w-24 text-gray-400 ml-2" data-i18n="population">Population:</span>
                     <span class="text-gray-800 font-bold">${autoFacts.pop}</span>
                 </div>
                 <div class="flex items-center">
                     <i class="fa-solid fa-water text-indigo-400 w-6 text-center text-lg"></i>
-                    <span class="w-24 text-gray-400 ml-2">Seas:</span>
+                    <span class="w-24 text-gray-400 ml-2" data-i18n="seas">Seas:</span>
                     <span class="text-gray-800 font-bold truncate">${autoFacts.seas}</span>
                 </div>
             </div>
 
             <div class="w-full text-left mb-6 border-t border-gray-200 pt-3 px-2">
-                <p class="text-xs text-gray-400 mb-1">About:</p>
+                <p class="text-xs text-gray-400 mb-1" data-i18n="about_me">About:</p>
                 <p class="text-xs text-gray-600 leading-relaxed">${cv.about || user.about || autoFacts.about}</p>
             </div>
 
             <div class="w-full flex justify-between gap-2 mt-auto">
-                <button onclick="document.getElementById('lupe-cv-modal').remove(); if(typeof window.actionPrivateChatFromCV === 'function') window.actionPrivateChatFromCV('${uid}')" class="flex-1 bg-[#3b82f6] hover:bg-blue-600 text-white text-[11px] font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"><i class="fa-solid fa-comment pointer-events-none"></i> <span class="pointer-events-none">Chat</span></button>
-                <button onclick="document.getElementById('lupe-cv-modal').remove(); if(typeof window.actionSMSFromCV === 'function') window.actionSMSFromCV('${uid}')" class="flex-1 bg-[#10b981] hover:bg-green-600 text-white text-[11px] font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"><i class="fa-solid fa-comment-sms pointer-events-none"></i> <span class="pointer-events-none">SMS</span></button>
-                <button onclick="document.getElementById('lupe-cv-modal').remove(); if(typeof window.actionEmailFromCV === 'function') window.actionEmailFromCV('${uid}')" class="flex-1 bg-[#6366f1] hover:bg-indigo-600 text-white text-[11px] font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"><i class="fa-solid fa-envelope pointer-events-none"></i> <span class="pointer-events-none">Email</span></button>
+                <button onclick="document.getElementById('lupe-cv-modal').remove(); if(typeof window.switchWebChat === 'function') { window.switchWebChat('${uid}'); document.querySelector('.nav-link[data-target=\\'chat\\']')?.click(); }" class="flex-1 bg-[#3b82f6] hover:bg-blue-600 text-white text-[11px] font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"><i class="fa-solid fa-comment pointer-events-none"></i> <span class="pointer-events-none" data-i18n="chat">Chat</span></button>
+                <button onclick="if('${user.phone}') { document.getElementById('lupe-cv-modal').remove(); window.location.href='sms:${user.phone}'; } else alert('No phone number');" class="flex-1 bg-[#10b981] hover:bg-green-600 text-white text-[11px] font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"><i class="fa-solid fa-comment-sms pointer-events-none"></i> <span class="pointer-events-none" data-i18n="sms">SMS</span></button>
+                <button onclick="if('${user.email}') { document.getElementById('lupe-cv-modal').remove(); window.location.href='mailto:${user.email}'; } else alert('No email address');" class="flex-1 bg-[#6366f1] hover:bg-indigo-600 text-white text-[11px] font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"><i class="fa-solid fa-envelope pointer-events-none"></i> <span class="pointer-events-none" data-i18n="email_btn">Email</span></button>
             </div>
         </div>
     `;
@@ -671,14 +740,14 @@ window.openLupeCV = function(uid) {
 };
 
 // ==========================================
-// МОДАЛКА АВАТАРА (Сдвоенная панель профиля, 5 кнопок)
+// МОДАЛКА АВАТАРА (Сдвоенная панель профиля, Без локации, 5 кнопок)
 // ==========================================
 window.openAvatarModal = function(uid) {
     if(typeof window.closeDropdown === 'function') window.closeDropdown();
     const user = window.appUsers ? window.appUsers[uid] : null;
     let uData = user;
     
-    if (uid === 'ai') uData = { id: 'ai', name: 'AI Assistant', photo: './ai-avatar.jpg', flagCode: 'gb', country: 'Digital World', profileLangs: 'English', phone: '000-AI-000', email: 'ai@hellofriends.app', cv: { role: 'AI Bot', about: 'I am your intelligent assistant.' } };
+    if (uid === 'ai') uData = { id: 'ai', name: 'AI Assistant', photo: './ai-avatar.jpg', flagCode: 'gb', country: 'Digital World', profileLangs: 'English', phone: '000-AI-000', email: 'ai@hellofriends.app', cv: { profession: 'AI Bot', about: 'I am your intelligent assistant.' } };
     if (uid === 'me' && window.myProfileInfo) uData = window.myProfileInfo;
     if (!uData) return;
     
@@ -686,7 +755,6 @@ window.openAvatarModal = function(uid) {
     let flagText = uData.flagCode || uData.flag || 'un';
     let fCode = flagText.replace(/[^a-zA-Z]/g, '').toLowerCase();
     if(!fCode || fCode.length !== 2) fCode = 'un';
-    if(fCode === 'en') fCode = 'gb';
 
     const smartInfo = typeof window.getCountryFacts === 'function' ? window.getCountryFacts(fCode) : { country: 'Global', pop: '-', seas: '-', about: '-' };
     
@@ -710,40 +778,38 @@ window.openAvatarModal = function(uid) {
                     <h3 class="text-2xl font-bold text-gray-900 dark:text-white">${uData.name.replace(' (You)', '')}</h3>
                 </div>
                 <div class="space-y-4 text-sm mt-4 text-gray-800 dark:text-gray-200">
-                    <p class="flex items-center gap-2"><i class="fa-solid fa-globe text-indigo-400 w-4"></i> <b class="text-gray-500">Country:</b> <img src="https://flagcdn.com/w20/${fCode}.png" class="w-4 rounded-sm"> ${smartInfo.country}</p>
-                    
-                    <p class="flex items-center gap-2"><i class="fa-solid fa-phone text-indigo-400 w-4"></i> <b class="text-gray-500">Phone:</b> <span class="font-semibold">${uData.phone || 'Not specified'}</span></p>
-                    
-                    <p class="flex items-center gap-2"><i class="fa-solid fa-language text-indigo-400 w-4"></i> <b class="text-gray-500">Languages:</b> <span class="truncate">${uData.profileLangs || cv.languages || 'Not specified'}</span></p>
-                    <p class="flex items-center gap-2"><i class="fa-solid fa-users text-indigo-400 w-4"></i> <b class="text-gray-500">Population:</b> ${smartInfo.pop}</p>
-                    <p class="flex items-center gap-2"><i class="fa-solid fa-water text-indigo-400 w-4"></i> <b class="text-gray-500">Seas:</b> <span class="truncate">${smartInfo.seas}</span></p>
+                    <p class="flex items-center gap-2"><i class="fa-solid fa-globe text-indigo-400 w-4"></i> <b class="text-gray-500" data-i18n="country">Country:</b> <img src="https://flagcdn.com/w20/${fCode}.png" class="w-4 rounded-sm shadow-sm"> ${smartInfo.country}</p>
+                    <p class="flex items-center gap-2"><i class="fa-solid fa-briefcase text-indigo-400 w-4"></i> <b class="text-gray-500" data-i18n="profession">Profession:</b> <span class="font-semibold">${cv.profession || cv.role || '-'}</span></p>
+                    <p class="flex items-center gap-2"><i class="fa-solid fa-language text-indigo-400 w-4"></i> <b class="text-gray-500" data-i18n="languages">Languages:</b> <span class="truncate font-semibold">${uData.profileLangs || cv.languages || '-'}</span></p>
+                    <p class="flex items-center gap-2"><i class="fa-solid fa-users text-indigo-400 w-4"></i> <b class="text-gray-500" data-i18n="population">Population:</b> <span class="font-semibold">${smartInfo.pop}</span></p>
+                    <p class="flex items-center gap-2"><i class="fa-solid fa-water text-indigo-400 w-4"></i> <b class="text-gray-500" data-i18n="seas">Seas:</b> <span class="truncate font-semibold">${smartInfo.seas}</span></p>
                 </div>
                 <div class="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
-                    <p class="text-xs text-gray-500 mb-1">About:</p>
+                    <p class="text-xs text-gray-500 mb-1" data-i18n="about_me">About:</p>
                     <p class="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">${cv.about || uData.about || smartInfo.about}</p>
                 </div>
             </div>
             
             <div class="w-full md:w-1/2 p-8 flex flex-col justify-center bg-[#1e293b] text-white relative z-10">
                 <div class="grid grid-cols-2 gap-3 w-full">
-                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.actionPrivateChatFromCV === 'function') window.actionPrivateChatFromCV('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer">
-                        <i class="fa-solid fa-message text-xl mb-2 text-indigo-500 pointer-events-none"></i>
+                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.switchWebChat === 'function') window.switchWebChat('${uid}'); document.querySelector('.nav-link[data-target=\\'chat\\']')?.click();" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer group">
+                        <i class="fa-solid fa-message text-xl mb-2 text-indigo-500 group-hover:scale-110 transition pointer-events-none"></i>
                         <span class="text-xs font-bold pointer-events-none" data-i18n="action_chat">Private Chat</span>
                     </button>
-                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.actionVoiceRoom === 'function') window.actionVoiceRoom('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer">
-                        <i class="fa-solid fa-phone text-xl mb-2 text-green-500 pointer-events-none"></i>
+                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.openVoiceChat === 'function') window.openVoiceChat();" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer group">
+                        <i class="fa-solid fa-phone text-xl mb-2 text-green-500 group-hover:scale-110 transition pointer-events-none"></i>
                         <span class="text-xs font-bold pointer-events-none" data-i18n="action_voice">Voice Room</span>
                     </button>
-                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.actionVideoConf === 'function') window.actionVideoConf('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer">
-                        <i class="fa-solid fa-video text-xl mb-2 text-blue-500 pointer-events-none"></i>
+                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.openConference === 'function') window.openConference();" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer group">
+                        <i class="fa-solid fa-video text-xl mb-2 text-blue-500 group-hover:scale-110 transition pointer-events-none"></i>
                         <span class="text-xs font-bold pointer-events-none" data-i18n="action_video">Video Conf</span>
                     </button>
-                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.actionSendEmail === 'function') window.actionSendEmail('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer">
-                        <i class="fa-solid fa-envelope text-xl mb-2 text-red-500 pointer-events-none"></i>
+                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.openEmailModal === 'function') { window.openEmailModal(); setTimeout(() => { const el = document.getElementById('email-to-input'); if(el) el.value = '${uData.email || ''}'; }, 100); } else window.location.href='mailto:${uData.email || ''}';" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer group">
+                        <i class="fa-solid fa-envelope text-xl mb-2 text-red-500 group-hover:scale-110 transition pointer-events-none"></i>
                         <span class="text-xs font-bold pointer-events-none" data-i18n="action_email">Send Email</span>
                     </button>
-                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.actionExternalCall === 'function') window.actionExternalCall('${uid}')" class="col-span-2 flex items-center justify-center gap-3 p-4 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-colors shadow-md mt-1 cursor-pointer">
-                        <i class="fa-solid fa-mobile-screen-button text-lg pointer-events-none"></i>
+                    <button onclick="if('${uData.phone}') { document.getElementById('combined-avatar-modal').remove(); window.location.href='tel:${uData.phone}'; } else alert('No phone number');" class="col-span-2 flex items-center justify-center gap-3 p-4 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-colors shadow-md mt-1 cursor-pointer group">
+                        <i class="fa-solid fa-mobile-screen-button text-lg pointer-events-none group-hover:scale-110 transition"></i>
                         <span class="text-sm font-bold tracking-wide pointer-events-none" data-i18n="action_cellular">Cellular Call</span>
                     </button>
                 </div>
