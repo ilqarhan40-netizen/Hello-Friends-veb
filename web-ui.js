@@ -1,6 +1,6 @@
 // ==========================================
 // Файл: webjs/web-ui.js
-// Назначение: Меню, Вкладки, Базовые модальные окна, Тема, Главный Профиль, Поиск, Кошелек, Почта
+// Назначение: Меню, Вкладки, Базовые модальные окна, Тема, Главный Профиль, Поиск (Лупа), Кошелек, Почта, Аватар
 // ==========================================
 
 window.closeDropdown = function() {
@@ -162,7 +162,6 @@ window.openMyProfile = function() {
             </div>
 
             <div class="p-6 pt-2 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1">Full Name</label>
@@ -228,7 +227,7 @@ window.saveProfileData = function(btn) {
 };
 
 // ==========================================
-// КОШЕЛЕК / БАНК (Темная/Светлая тема, Неон)
+// КОШЕЛЕК / БАНК
 // ==========================================
 window.openBankTransferModal = function() {
     window.closeDropdown();
@@ -324,6 +323,68 @@ window.switchTransferTab = function(tab) {
         formIntl.classList.remove('hidden');
         formCard.classList.add('hidden');
     }
+};
+
+// ==========================================
+// ПОЧТА: СОЗДАТЬ ПИСЬМО (Compose Email)
+// ==========================================
+window.openEmailModal = function() {
+    if(typeof window.closeDropdown === 'function') window.closeDropdown();
+    
+    let oldModal = document.getElementById('email-compose-modal');
+    if (oldModal) oldModal.remove();
+
+    let modal = document.createElement('div');
+    modal.id = 'email-compose-modal';
+    modal.className = 'fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[100000] flex justify-center items-center p-4 transition-opacity animate-fade-in pointer-events-auto';
+    document.body.appendChild(modal);
+
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-3xl shadow-2xl p-6 md:p-8 relative border border-gray-200 dark:border-slate-700 pointer-events-auto" onclick="event.stopPropagation()">
+            <button onclick="document.getElementById('email-compose-modal').remove()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl z-50 cursor-pointer outline-none">&times;</button>
+            
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-envelope-open-text text-indigo-500"></i> Compose Email
+            </h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 tracking-wider">To</label>
+                    <input type="email" id="email-to-input" placeholder="recipient@example.com" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500 transition-colors shadow-inner">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 tracking-wider">Subject</label>
+                    <input type="text" id="email-subject-input" placeholder="Enter subject..." class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500 transition-colors shadow-inner">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 tracking-wider">Message</label>
+                    <textarea id="email-body-input" rows="4" placeholder="Write your message here..." class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500 resize-none transition-colors shadow-inner"></textarea>
+                </div>
+                
+                <button onclick="window.sendEmailAction(this)" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-md transition-colors flex justify-center items-center gap-2 mt-2 cursor-pointer">
+                    <i class="fa-solid fa-paper-plane"></i> Send Email
+                </button>
+            </div>
+        </div>
+    `;
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+    if(typeof window.applySystemLanguage === 'function') window.applySystemLanguage();
+};
+
+window.sendEmailAction = function(btn) {
+    const to = document.getElementById('email-to-input').value.trim();
+    const subject = document.getElementById('email-subject-input').value.trim();
+    const body = document.getElementById('email-body-input').value.trim();
+    
+    if(!to) return alert('Please enter recipient email.');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+    
+    setTimeout(() => {
+        window.location.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        document.getElementById('email-compose-modal').remove();
+    }, 500);
 };
 
 // ==========================================
@@ -454,7 +515,7 @@ window.performLiveSearch = function() {
     
     let uniqueUsers = []; let seen = new Set();
     allUsers.forEach(u => {
-        // ИЗМЕНЕНИЕ: Оставляем ИИ, но отсекаем фейки без имени
+        // Оставляем ИИ, но отсекаем фейки без имени
         if (u && u.id && !seen.has(u.id) && (u.name || u.id === 'ai')) {
             seen.add(u.id); uniqueUsers.push(u);
         }
@@ -475,7 +536,6 @@ window.performLiveSearch = function() {
             let shortCode = fCode.toUpperCase();
             let photo = p.photo || 'https://ui-avatars.com/api/?name=U';
 
-            // ИЗМЕНЕНИЕ: Вызов openLupeCV вместо openDetailedCV
             html += `
                 <div class="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm mb-2" onclick="closeSearchModal(); setTimeout(() => { if(typeof window.openLupeCV === 'function') window.openLupeCV('${p.id}'); }, 300);">
                     <div class="flex items-center gap-4 w-full overflow-hidden pointer-events-none">
@@ -522,7 +582,7 @@ window.doGoogleSearch = function() {
 };
 
 // ==========================================
-// МОДАЛКА ЛУПЫ (Дизайн image_fc3550.png: 5 полей инфо, 3 кнопки внизу)
+// МОДАЛКА ЛУПЫ (Из поиска: 5 полей инфо, 3 кнопки внизу)
 // ==========================================
 window.openLupeCV = function(uid) {
     if(typeof window.closeDropdown === 'function') window.closeDropdown();
@@ -609,8 +669,9 @@ window.openLupeCV = function(uid) {
     `;
     if(typeof window.applySystemLanguage === 'function') window.applySystemLanguage();
 };
+
 // ==========================================
-// МОДАЛКА АВАТАРА (Сдвоенная панель профиля)
+// МОДАЛКА АВАТАРА (Сдвоенная панель профиля, 5 кнопок)
 // ==========================================
 window.openAvatarModal = function(uid) {
     if(typeof window.closeDropdown === 'function') window.closeDropdown();
@@ -633,7 +694,6 @@ window.openAvatarModal = function(uid) {
     if (!modalContainer) {
         modalContainer = document.createElement('div');
         modalContainer.id = 'combined-avatar-modal';
-        // z-[999999] чтобы гарантированно перекрывать всё
         modalContainer.className = 'fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[999999] flex justify-center items-center p-4 transition-opacity animate-fade-in pointer-events-auto';
         document.body.appendChild(modalContainer);
         modalContainer.addEventListener('click', (e) => { if(e.target === modalContainer) modalContainer.remove(); });
@@ -644,7 +704,7 @@ window.openAvatarModal = function(uid) {
             
             <button onclick="document.getElementById('combined-avatar-modal').remove()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 z-[9999] text-3xl outline-none cursor-pointer p-2">&times;</button>
             
-            <div class="w-full md:w-1/2 p-8 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700">
+            <div class="w-full md:w-1/2 p-8 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700 relative z-10">
                 <div class="flex flex-col items-center mb-6">
                     <img src="${uData.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-24 h-24 rounded-full object-cover border-4 border-indigo-500 shadow-md mb-4">
                     <h3 class="text-2xl font-bold text-gray-900 dark:text-white">${uData.name.replace(' (You)', '')}</h3>
@@ -664,34 +724,28 @@ window.openAvatarModal = function(uid) {
                 </div>
             </div>
             
-            <div class="w-full md:w-1/2 p-8 flex flex-col justify-center bg-[#1e293b] text-white">
+            <div class="w-full md:w-1/2 p-8 flex flex-col justify-center bg-[#1e293b] text-white relative z-10">
                 <div class="grid grid-cols-2 gap-3 w-full">
-                    
                     <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.actionPrivateChatFromCV === 'function') window.actionPrivateChatFromCV('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer">
                         <i class="fa-solid fa-message text-xl mb-2 text-indigo-500 pointer-events-none"></i>
                         <span class="text-xs font-bold pointer-events-none" data-i18n="action_chat">Private Chat</span>
                     </button>
-                    
                     <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.actionVoiceRoom === 'function') window.actionVoiceRoom('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer">
                         <i class="fa-solid fa-phone text-xl mb-2 text-green-500 pointer-events-none"></i>
                         <span class="text-xs font-bold pointer-events-none" data-i18n="action_voice">Voice Room</span>
                     </button>
-                    
                     <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.actionVideoConf === 'function') window.actionVideoConf('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer">
                         <i class="fa-solid fa-video text-xl mb-2 text-blue-500 pointer-events-none"></i>
                         <span class="text-xs font-bold pointer-events-none" data-i18n="action_video">Video Conf</span>
                     </button>
-                    
                     <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.actionSendEmail === 'function') window.actionSendEmail('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer">
                         <i class="fa-solid fa-envelope text-xl mb-2 text-red-500 pointer-events-none"></i>
                         <span class="text-xs font-bold pointer-events-none" data-i18n="action_email">Send Email</span>
                     </button>
-                    
                     <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.actionExternalCall === 'function') window.actionExternalCall('${uid}')" class="col-span-2 flex items-center justify-center gap-3 p-4 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-colors shadow-md mt-1 cursor-pointer">
                         <i class="fa-solid fa-mobile-screen-button text-lg pointer-events-none"></i>
                         <span class="text-sm font-bold tracking-wide pointer-events-none" data-i18n="action_cellular">Cellular Call</span>
                     </button>
-                    
                 </div>
             </div>
         </div>
