@@ -19,20 +19,27 @@ window.renderProfessionSection = function(usersObj) {
 
     Object.keys(usersObj).forEach(uid => {
         const user = usersObj[uid];
-        if (!user.name) return;
+        if (!user.name || uid === 'ai') return;
         
         const cv = user.cv || {};
-        const role = cv.role || 'Professional';
+        const role = cv.role || cv.profession || 'Professional';
+        const isMe = window.myProfileInfo && window.myProfileInfo.id === uid;
         
+        const btnAction = isMe ? `openEditCVModal()` : `openDetailedCV('${uid}')`;
+        const btnText = isMe ? `<i class="fa-solid fa-pen-to-square"></i> <span data-i18n="edit_cv">Edit CV</span>` : `<span data-i18n="view_cv">View CV</span>`;
+        const btnClass = isMe ? `bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-500/20` : `bg-gray-50 hover:bg-gray-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-slate-600`;
+
         html += `
-            <div class="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-3xl p-6 flex flex-col items-center relative overflow-hidden group hover:shadow-xl hover:border-indigo-500/50 transition-all duration-300">
-                <div onclick="openDetailedCV('${uid}')" class="relative w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-gray-50 dark:border-slate-700 shadow-sm mb-4 cursor-pointer overflow-hidden transform group-hover:scale-105 transition-transform">
+            <div class="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-3xl p-6 flex flex-col items-center relative overflow-hidden group hover:shadow-xl transition-all duration-300">
+                <div onclick="${btnAction}" class="relative w-24 h-24 rounded-full border-4 border-gray-50 dark:border-slate-700 shadow-sm mb-4 cursor-pointer overflow-hidden transform group-hover:scale-105 transition-transform">
                     <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full object-cover">
                 </div>
                 <h3 class="font-bold text-gray-900 dark:text-white text-lg text-center w-full truncate">${user.name.split(' ')[0]}</h3>
-                <p class="text-xs text-indigo-500 dark:text-indigo-400 mb-5 font-medium uppercase tracking-wide text-center w-full truncate">${role}</p>
-                <button onclick="openDetailedCV('${uid}')" class="w-full bg-gray-50 hover:bg-gray-100 dark:bg-slate-700/50 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 font-semibold text-sm py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 transition-colors">
-                    View CV
+                <p class="text-xs text-indigo-500 dark:text-indigo-400 mb-5 font-bold uppercase tracking-wide text-center w-full truncate flex items-center justify-center gap-1.5">
+                    <img src="https://flagcdn.com/w20/${user.flagCode || 'un'}.png" class="w-3 rounded-sm shadow-sm"> ${role}
+                </p>
+                <button onclick="${btnAction}" class="w-full font-bold text-xs py-3 rounded-xl transition-colors flex items-center justify-center gap-2 ${btnClass} uppercase tracking-wider cursor-pointer">
+                    ${btnText}
                 </button>
             </div>
         `;
@@ -40,6 +47,7 @@ window.renderProfessionSection = function(usersObj) {
 
     html += `</div>`;
     cvContainer.innerHTML = html;
+    if(typeof window.applySystemLanguage === 'function') window.applySystemLanguage();
 };
 
 // ==========================================
@@ -64,66 +72,66 @@ window.openDetailedCV = function(uid) {
     }
 
     modalContainer.innerHTML = `
-        <div class="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-3xl shadow-2xl relative p-8 md:p-10 border border-gray-100 dark:border-slate-700 pointer-events-auto my-auto" onclick="event.stopPropagation()">
-            <button onclick="document.getElementById('detailed-cv-modal').remove()" class="absolute top-6 right-6 text-gray-400 hover:text-red-500 text-3xl cursor-pointer p-2 transition-colors outline-none">&times;</button>
+        <div class="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-[2rem] shadow-2xl relative p-8 md:p-12 border border-gray-100 dark:border-slate-700 pointer-events-auto my-auto" onclick="event.stopPropagation()">
+            <button onclick="document.getElementById('detailed-cv-modal').remove()" class="absolute top-6 right-6 text-gray-300 hover:text-red-500 text-3xl cursor-pointer p-2 transition-colors outline-none">&times;</button>
             
-            <div class="flex flex-col md:flex-row items-center md:items-start gap-8 mb-8 border-b border-gray-100 dark:border-slate-700 pb-8 text-center md:text-left">
-                <div class="w-32 h-32 rounded-full border-4 border-white dark:border-slate-700 shadow-md overflow-hidden shrink-0 bg-gray-50">
+            <div class="flex flex-col md:flex-row items-center md:items-start gap-8 mb-10 border-b border-gray-50 dark:border-slate-700/50 pb-10 text-center md:text-left">
+                <div class="w-36 h-36 rounded-full border-4 border-white dark:border-slate-700 shadow-lg overflow-hidden shrink-0 bg-gray-50">
                     <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full object-cover">
                 </div>
                 <div class="flex flex-col justify-center items-center md:items-start pt-2">
-                    <h2 class="text-4xl font-bold text-gray-900 dark:text-white">${user.name}</h2>
-                    <p class="text-indigo-600 dark:text-indigo-400 text-lg font-bold mt-1 uppercase tracking-widest">${cv.profession || cv.role || 'Professional'}</p>
-                    <div class="mt-4 flex items-center gap-2 bg-gray-50 dark:bg-slate-900 px-4 py-1.5 rounded-full border border-gray-200 dark:border-slate-700 w-fit shadow-sm">
+                    <h2 class="text-4xl font-black text-gray-900 dark:text-white tracking-tight">${user.name}</h2>
+                    <p class="text-indigo-600 dark:text-indigo-400 font-bold mt-1 uppercase tracking-widest text-sm">${cv.profession || cv.role || 'Professional'}</p>
+                    <div class="mt-4 flex items-center gap-2 bg-gray-50 dark:bg-slate-900 px-5 py-2 rounded-full border border-gray-200 dark:border-slate-700 shadow-sm w-fit">
                         <img src="https://flagcdn.com/w20/${fCode}.png" class="w-4 rounded-sm shadow-sm">
-                        <span class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">${user.country || 'Global'}</span>
+                        <span class="text-xs font-black text-gray-600 dark:text-gray-300 uppercase">${user.country || 'Global'}</span>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12 mb-10 text-sm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12 mb-10 text-sm">
                 <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shadow-sm border border-blue-100 dark:border-blue-800/30 text-lg"><i class="fa-solid fa-phone"></i></div>
-                    <div><p class="text-gray-400 font-bold uppercase text-[10px] mb-0.5 tracking-widest" data-i18n="phone">Phone</p><p class="text-gray-900 dark:text-white font-bold text-base">${user.phone || '-'}</p></div>
+                    <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shadow-sm border border-blue-100 dark:border-blue-800/30 text-xl"><i class="fa-solid fa-phone"></i></div>
+                    <div><p class="text-gray-400 font-black uppercase text-[10px] mb-0.5 tracking-widest" data-i18n="phone">Phone</p><p class="text-gray-900 dark:text-white font-bold text-base">${user.phone || '-'}</p></div>
                 </div>
                 <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-500 shadow-sm border border-purple-100 dark:border-purple-800/30 text-lg"><i class="fa-solid fa-envelope"></i></div>
-                    <div><p class="text-gray-400 font-bold uppercase text-[10px] mb-0.5 tracking-widest" data-i18n="email">Email</p><p class="text-gray-900 dark:text-white font-bold text-base truncate max-w-[200px]">${user.email || '-'}</p></div>
+                    <div class="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-500 shadow-sm border border-purple-100 dark:border-purple-800/30 text-xl"><i class="fa-solid fa-envelope"></i></div>
+                    <div><p class="text-gray-400 font-black uppercase text-[10px] mb-0.5 tracking-widest" data-i18n="email">Email</p><p class="text-gray-900 dark:text-white font-bold text-base truncate max-w-[200px]">${user.email || '-'}</p></div>
                 </div>
                 <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center text-amber-500 shadow-sm border border-amber-100 dark:border-amber-800/30 text-lg"><i class="fa-solid fa-language"></i></div>
-                    <div><p class="text-gray-400 font-bold uppercase text-[10px] mb-0.5 tracking-widest" data-i18n="languages">Languages</p><p class="text-gray-900 dark:text-white font-bold text-base">${cv.languages || user.profileLangs || '-'}</p></div>
+                    <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center text-amber-500 shadow-sm border border-amber-100 dark:border-amber-800/30 text-xl"><i class="fa-solid fa-language"></i></div>
+                    <div><p class="text-gray-400 font-black uppercase text-[10px] mb-0.5 tracking-widest" data-i18n="languages">Languages</p><p class="text-gray-900 dark:text-white font-bold text-base">${cv.languages || user.profileLangs || '-'}</p></div>
                 </div>
                 <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 rounded-xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-500 shadow-sm border border-green-100 dark:border-green-800/30 text-lg"><i class="fa-solid fa-briefcase"></i></div>
-                    <div><p class="text-gray-400 font-bold uppercase text-[10px] mb-0.5 tracking-widest" data-i18n="experience">Experience</p><p class="text-gray-900 dark:text-white font-bold text-base">${cv.experience || '-'}</p></div>
+                    <div class="w-12 h-12 rounded-2xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-500 shadow-sm border border-green-100 dark:border-green-800/30 text-xl"><i class="fa-solid fa-briefcase"></i></div>
+                    <div><p class="text-gray-400 font-black uppercase text-[10px] mb-0.5 tracking-widest" data-i18n="experience">Experience</p><p class="text-gray-900 dark:text-white font-bold text-base">${cv.experience || '-'}</p></div>
                 </div>
                 <div class="flex items-center gap-4 md:col-span-2">
-                    <div class="w-11 h-11 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-500 shadow-sm border border-indigo-100 dark:border-indigo-800/30 text-lg"><i class="fa-solid fa-graduation-cap"></i></div>
-                    <div><p class="text-gray-400 font-bold uppercase text-[10px] mb-0.5 tracking-widest" data-i18n="education">Education</p><p class="text-gray-900 dark:text-white font-bold text-base">${cv.education || '-'}</p></div>
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-500 shadow-sm border border-indigo-100 dark:border-indigo-800/30 text-xl"><i class="fa-solid fa-graduation-cap"></i></div>
+                    <div><p class="text-gray-400 font-black uppercase text-[10px] mb-0.5 tracking-widest" data-i18n="education">Education</p><p class="text-gray-900 dark:text-white font-bold text-base">${cv.education || '-'}</p></div>
                 </div>
             </div>
 
-            <div class="space-y-6 mb-10 border-t border-gray-100 dark:border-slate-700 pt-8">
+            <div class="space-y-6 mb-12 border-t border-gray-50 dark:border-slate-700/50 pt-10">
                 <div>
-                    <p class="text-indigo-500 font-black uppercase text-[11px] mb-3 tracking-widest flex items-center gap-2"><i class="fa-solid fa-user-tag"></i> <span data-i18n="about_me">About Professional</span></p>
-                    <p class="text-gray-600 dark:text-gray-300 leading-relaxed text-sm italic">"${cv.about || user.about || 'No description provided.'}"</p>
+                    <p class="text-indigo-500 font-black uppercase text-[11px] mb-3 tracking-[0.2em] flex items-center gap-2"><i class="fa-solid fa-user-tag"></i> <span data-i18n="about_me">About Professional</span></p>
+                    <p class="text-gray-600 dark:text-gray-300 leading-relaxed text-sm font-medium italic">"${cv.about || user.about || '-'}"</p>
                 </div>
                 ${cv.skills ? `
                 <div>
-                    <p class="text-indigo-500 font-black uppercase text-[11px] mb-3 tracking-widest flex items-center gap-2"><i class="fa-solid fa-star"></i> <span data-i18n="skills">Core Skills</span></p>
-                    <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">${cv.skills}</p>
+                    <p class="text-indigo-500 font-black uppercase text-[11px] mb-3 tracking-[0.2em] flex items-center gap-2"><i class="fa-solid fa-star"></i> <span data-i18n="skills">Core Competencies</span></p>
+                    <p class="text-gray-600 dark:text-gray-300 text-sm font-medium leading-relaxed">${cv.skills}</p>
                 </div>` : ''}
             </div>
 
-            <div class="flex gap-3 w-full">
-                <button onclick="document.getElementById('detailed-cv-modal').remove(); if(typeof window.actionPrivateChatFromCV === 'function') window.actionPrivateChatFromCV('${uid}')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition shadow-lg shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-2 uppercase tracking-widest text-xs">
+            <div class="flex gap-4 w-full">
+                <button onclick="document.getElementById('detailed-cv-modal').remove(); if(typeof window.actionPrivateChatFromCV === 'function') window.actionPrivateChatFromCV('${uid}')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl transition shadow-xl shadow-blue-500/30 cursor-pointer flex items-center justify-center gap-3 uppercase text-xs tracking-widest">
                     <i class="fa-solid fa-message text-base"></i> <span data-i18n="chat">Chat</span>
                 </button>
-                <button onclick="if('${user.phone}') { document.getElementById('detailed-cv-modal').remove(); window.location.href='sms:${user.phone}'; } else alert('No phone specified');" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-2xl transition shadow-lg shadow-emerald-500/20 cursor-pointer flex items-center justify-center gap-2 uppercase tracking-widest text-xs">
+                <button onclick="if('${user.phone}') { document.getElementById('detailed-cv-modal').remove(); window.actionSMSFromCV('${uid}'); } else alert('No phone specified');" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-black py-4 rounded-2xl transition shadow-xl shadow-emerald-500/30 cursor-pointer flex items-center justify-center gap-3 uppercase text-xs tracking-widest">
                     <i class="fa-solid fa-comment-sms text-base"></i> <span data-i18n="sms">SMS</span>
                 </button>
-                <button onclick="if('${user.email}') { document.getElementById('detailed-cv-modal').remove(); window.location.href='mailto:${user.email}'; } else alert('No email specified');" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-2xl transition shadow-lg shadow-indigo-500/20 cursor-pointer flex items-center justify-center gap-2 uppercase tracking-widest text-xs">
+                <button onclick="if('${user.email}') { document.getElementById('detailed-cv-modal').remove(); window.actionEmailFromCV('${uid}'); } else alert('No email specified');" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-black py-4 rounded-2xl transition shadow-xl shadow-indigo-500/30 cursor-pointer flex items-center justify-center gap-3 uppercase text-xs tracking-widest">
                     <i class="fa-solid fa-envelope text-base"></i> <span data-i18n="email_btn">Email</span>
                 </button>
             </div>
@@ -133,84 +141,7 @@ window.openDetailedCV = function(uid) {
 };
 
 // ==========================================
-// 3. СДВОЕННАЯ МОДАЛКА АВАТАРА (СЕТКА НА 5 КНОПОК)
-// ==========================================
-window.openAvatarModal = function(uid) {
-    if(typeof window.closeDropdown === 'function') window.closeDropdown();
-    const user = window.appUsers ? window.appUsers[uid] : null;
-    let uData = user;
-    
-    if (uid === 'ai') uData = { id: 'ai', name: 'AI Assistant', photo: './ai-avatar.jpg', flagCode: 'gb', country: 'Digital World', profileLangs: 'All', population: 'Infinite', seas: 'Data Lake', cv: { role: 'AI Bot', about: 'I am your intelligent assistant.' } };
-    if (uid === 'me' && window.myProfileInfo) uData = window.myProfileInfo;
-    
-    if (!uData) return;
-    const cv = uData.cv || {};
-    
-    let flagText = uData.flagCode || uData.flag || 'un';
-    let fCode = flagText.replace(/[^a-zA-Z]/g, '').toLowerCase();
-    if(!fCode || fCode.length !== 2) fCode = 'un';
-    if(fCode === 'en') fCode = 'gb';
-
-    const smartInfo = typeof window.getCountryFacts === 'function' ? window.getCountryFacts(fCode) : { country: 'Global', location: '-', pop: '-', seas: '-', about: '-' };
-
-    let modalContainer = document.getElementById('combined-avatar-modal');
-    if (!modalContainer) {
-        modalContainer = document.createElement('div');
-        modalContainer.id = 'combined-avatar-modal';
-        modalContainer.className = 'fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[10000] flex justify-center items-center p-4 transition-opacity animate-fade-in';
-        document.body.appendChild(modalContainer);
-        modalContainer.addEventListener('click', (e) => { if(e.target === modalContainer) modalContainer.remove(); });
-    }
-
-    modalContainer.innerHTML = `
-        <div class="bg-white dark:bg-[#1e293b] w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative flex flex-col md:flex-row" onclick="event.stopPropagation()">
-            <button onclick="document.getElementById('combined-avatar-modal').remove()" class="absolute top-4 right-4 text-gray-500 hover:text-red-500 z-50 text-2xl outline-none">&times;</button>
-            
-            <div class="w-full md:w-1/2 p-8 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700">
-                <div class="flex flex-col items-center mb-6">
-                    <img src="${uData.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-24 h-24 rounded-full object-cover border-4 border-indigo-500 shadow-md mb-4">
-                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">${uData.name.replace(' (You)', '')}</h3>
-                </div>
-                <div class="space-y-4 text-sm mt-4 text-gray-800 dark:text-gray-200">
-                    <p class="flex items-center gap-2"><i class="fa-solid fa-globe text-indigo-400 w-4"></i> <b class="text-gray-500" data-i18n="cv_country">Country:</b> <img src="https://flagcdn.com/w20/${fCode}.png" class="w-4 rounded-sm shadow-sm"> ${smartInfo.country}</p>
-                    <p class="flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-indigo-400 w-4"></i> <b class="text-gray-500">Location:</b> <span class="truncate">${smartInfo.location}</span></p>
-                    <p class="flex items-center gap-2"><i class="fa-solid fa-language text-indigo-400 w-4"></i> <b class="text-gray-500" data-i18n="cv_langs">Languages:</b> <span class="truncate">${uData.profileLangs || cv.languages || 'Not specified'}</span></p>
-                    <p class="flex items-center gap-2"><i class="fa-solid fa-users text-indigo-400 w-4"></i> <b class="text-gray-500" data-i18n="prof_pop">Population:</b> ${smartInfo.pop}</p>
-                    <p class="flex items-center gap-2"><i class="fa-solid fa-water text-indigo-400 w-4"></i> <b class="text-gray-500" data-i18n="prof_seas">Seas:</b> <span class="truncate">${smartInfo.seas}</span></p>
-                </div>
-            </div>
-            
-            <div class="w-full md:w-1/2 p-8 flex flex-col justify-center bg-[#1e293b] text-white">
-                <div class="grid grid-cols-2 gap-3 w-full">
-                    <button onclick="actionPrivateChatFromCV('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700">
-                        <i class="fa-solid fa-message text-xl mb-2 text-indigo-500"></i>
-                        <span class="text-xs font-bold" data-i18n="action_chat">Private Chat</span>
-                    </button>
-                    <button onclick="actionVoiceRoom('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700">
-                        <i class="fa-solid fa-phone text-xl mb-2 text-green-500"></i>
-                        <span class="text-xs font-bold" data-i18n="action_voice">Voice Room</span>
-                    </button>
-                    <button onclick="actionVideoConf('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700">
-                        <i class="fa-solid fa-video text-xl mb-2 text-blue-500"></i>
-                        <span class="text-xs font-bold" data-i18n="action_video">Video Conf</span>
-                    </button>
-                    <button onclick="actionSendEmail('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700">
-                        <i class="fa-solid fa-envelope text-xl mb-2 text-red-500"></i>
-                        <span class="text-xs font-bold" data-i18n="action_email">Send Email</span>
-                    </button>
-                    <button onclick="actionExternalCall('${uid}')" class="col-span-2 flex items-center justify-center gap-3 p-4 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-colors shadow-md mt-1">
-                        <i class="fa-solid fa-mobile-screen-button text-lg"></i>
-                        <span class="text-sm font-bold tracking-wide" data-i18n="action_cellular">Cellular Call</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    if(typeof window.applySystemLanguage === 'function') window.applySystemLanguage(); 
-};
-
-// ==========================================
-// 4. ФОРМА РЕДАКТИРОВАНИЯ (УМНАЯ ЛОГИКА СТРАН)
+// 4. ФОРМА РЕДАКТИРОВАНИЯ (ТЁМНО-ЗЕЛЕНАЯ, 12 СТРАН, УМНАЯ ЛОГИКА)
 // ==========================================
 window.openEditCVModal = function() {
     if (!window.myProfileInfo) return alert("Пожалуйста, авторизуйтесь!");
@@ -228,10 +159,10 @@ window.openEditCVModal = function() {
         { code: 'tr', flag: '🇹🇷', name: 'Turkey', dial: '+90' },
         { code: 'es', flag: '🇪🇸', name: 'Spain', dial: '+34' },
         { code: 'fr', flag: '🇫🇷', name: 'France', dial: '+33' },
+        { code: 'us', flag: '🇺🇸', name: 'USA', dial: '+1' },
         { code: 'ae', flag: '🇦🇪', name: 'UAE', dial: '+971' },
         { code: 'cn', flag: '🇨🇳', name: 'China', dial: '+86' },
-        { code: 'jp', flag: '🇯🇵', name: 'Japan', dial: '+81' },
-        { code: 'us', flag: '🇺🇸', name: 'USA', dial: '+1' }
+        { code: 'jp', flag: '🇯🇵', name: 'Japan', dial: '+81' }
     ];
 
     let currentCode = user.flagCode || 'az';
@@ -243,80 +174,83 @@ window.openEditCVModal = function() {
     if (!modalContainer) {
         modalContainer = document.createElement('div');
         modalContainer.id = 'edit-cv-modal';
-        modalContainer.className = 'fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[10000] flex justify-center items-center p-4 overflow-y-auto';
+        modalContainer.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[100000] flex justify-center items-center p-4 overflow-y-auto animate-fade-in pointer-events-auto';
         wrapper.appendChild(modalContainer);
     }
 
     modalContainer.innerHTML = `
-        <div class="bg-white dark:bg-[#1e293b] w-full max-w-2xl rounded-3xl shadow-2xl p-6 md:p-8 my-auto border border-gray-200 dark:border-slate-700 relative animate-fade-in">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-user-pen text-indigo-500"></i> <span data-i18n="cv_edit_title">Edit CV & Contacts</span>
-                </h3>
-                <button onclick="document.getElementById('edit-cv-modal').remove()" class="text-gray-400 hover:text-red-500 text-2xl transition outline-none">&times;</button>
-            </div>
+        <div class="bg-[#1a2332] w-full max-w-2xl rounded-[2.5rem] p-8 border border-slate-700 relative text-white pointer-events-auto shadow-2xl my-auto" onclick="event.stopPropagation()">
+            <button onclick="document.getElementById('edit-cv-modal').remove()" class="absolute top-6 right-6 w-10 h-10 bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white rounded-full flex items-center justify-center cursor-pointer transition-all border border-red-500/30 shadow-lg outline-none">&times;</button>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_country">Country</label>
-                    <div class="relative">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xl" id="cv-flag-display">${user.flag || '🌍'}</span>
-                        <select id="cv-input-country" onchange="window.updateCVPhonePrefix(this)" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl pl-12 pr-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500 appearance-none cursor-pointer">
-                            ${optionsHtml}
-                        </select>
-                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+            <div class="flex flex-col items-center mb-10 text-center">
+                <div class="w-24 h-24 rounded-full border-2 border-emerald-400 p-1 mb-4 shadow-[0_0_20px_rgba(52,211,153,0.3)]">
+                    <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full rounded-full object-cover">
+                </div>
+                <h3 class="text-2xl font-black tracking-tight" data-i18n="edit_pro_cv">Professional CV</h3>
+                <p class="text-xs text-gray-400 mt-1 uppercase tracking-widest font-bold">${user.name}</p>
+            </div>
+
+            <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block" data-i18n="profession">Profession</label>
+                        <input type="text" id="cv-input-prof" value="${cv.profession || cv.role || ''}" class="w-full bg-[#202b3d] border border-slate-600 rounded-2xl px-5 py-4 outline-none focus:border-emerald-400 text-sm font-bold shadow-inner text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block" data-i18n="languages">Languages</label>
+                        <input type="text" id="cv-input-langs" value="${cv.languages || user.profileLangs || ''}" class="w-full bg-[#202b3d] border border-slate-600 rounded-2xl px-5 py-4 outline-none focus:border-emerald-400 text-sm font-bold shadow-inner text-white">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_phone">Phone Number</label>
-                    <input type="text" id="cv-input-phone" value="${user.phone || ''}" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500 font-medium">
+                    <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block" data-i18n="cv_country">Country</label>
+                    <div class="relative">
+                        <select id="cv-input-country" onchange="window.updateCVPhonePrefix(this)" class="w-full bg-[#202b3d] border border-slate-600 rounded-2xl pl-14 pr-5 py-4 outline-none focus:border-emerald-400 text-sm font-bold appearance-none cursor-pointer shadow-inner text-white">
+                            ${optionsHtml}
+                        </select>
+                        <span class="absolute left-5 top-1/2 -translate-y-1/2 text-xl" id="cv-flag-display">${user.flag || '🌍'}</span>
+                        <i class="fa-solid fa-chevron-down absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2 block" data-i18n="phone">Phone Number</label>
+                        <input type="text" id="cv-input-phone" value="${user.phone || ''}" class="w-full bg-[#202b3d] border border-slate-600 rounded-2xl px-5 py-4 outline-none focus:border-emerald-400 text-sm font-bold shadow-inner text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2 block" data-i18n="email">Email Address</label>
+                        <input type="email" id="cv-input-email" value="${user.email || ''}" class="w-full bg-[#202b3d] border border-slate-600 rounded-2xl px-5 py-4 outline-none focus:border-emerald-400 text-sm font-bold shadow-inner text-white">
+                    </div>
+                </div>
+
+                <div class="hidden">
+                    <input type="text" id="cv-input-role" value="${cv.role || ''}">
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_email">Email Address</label>
-                    <input type="email" id="cv-input-email" value="${user.email || ''}" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
+                    <label class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2 block" data-i18n="skills">Core Competencies</label>
+                    <input type="text" id="cv-input-skills" value="${cv.skills || ''}" class="w-full bg-[#202b3d] border border-slate-600 rounded-2xl px-5 py-4 outline-none focus:border-emerald-400 text-sm font-bold shadow-inner text-white">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2 block" data-i18n="experience">Experience</label>
+                        <input type="text" id="cv-input-exp" value="${cv.experience || ''}" class="w-full bg-[#202b3d] border border-slate-600 rounded-2xl px-5 py-4 outline-none focus:border-emerald-400 text-sm font-bold shadow-inner text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2 block" data-i18n="education">Education</label>
+                        <input type="text" id="cv-input-edu" value="${cv.education || ''}" class="w-full bg-[#202b3d] border border-slate-600 rounded-2xl px-5 py-4 outline-none focus:border-emerald-400 text-sm font-bold shadow-inner text-white">
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_role">Main Role</label>
-                    <input type="text" id="cv-input-role" value="${cv.role || ''}" placeholder="e.g. CEO, Author" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_prof">Profession</label>
-                    <input type="text" id="cv-input-prof" value="${cv.profession || ''}" placeholder="Design, IT..." class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_langs">Languages</label>
-                    <input type="text" id="cv-input-langs" value="${cv.languages || user.profileLangs || ''}" placeholder="AZ, RU, ENG" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_exp">Experience</label>
-                    <input type="text" id="cv-input-exp" value="${cv.experience || ''}" placeholder="2000 - 2026" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_edu">Education</label>
-                    <input type="text" id="cv-input-edu" value="${cv.education || ''}" placeholder="University" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
+                    <label class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2 block" data-i18n="about_me">About Me</label>
+                    <textarea id="cv-input-about" rows="3" class="w-full bg-[#202b3d] border border-slate-600 rounded-2xl px-5 py-4 outline-none focus:border-emerald-400 resize-none text-sm font-bold shadow-inner text-white">${cv.about || user.about || ''}</textarea>
                 </div>
             </div>
 
-            <div class="space-y-5 mb-6">
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_skills">Core Competencies</label>
-                    <input type="text" id="cv-input-skills" value="${cv.skills || ''}" placeholder="JavaScript, Design..." class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500">
-                </div>
-                
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1" data-i18n="cv_about">About Me</label>
-                    <textarea id="cv-input-about" rows="3" class="w-full p-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white outline-none focus:border-indigo-500 resize-none" placeholder="Professional summary...">${cv.about || ''}</textarea>
-                </div>
-            </div>
-
-            <button onclick="saveWebCVData(this)" class="w-full bg-[#00C4CC] hover:bg-[#00aeb5] text-white font-bold py-4 rounded-xl shadow-lg transition-colors text-lg uppercase tracking-wider" data-i18n="cv_save_btn">Save CV</button>
+            <button onclick="saveWebCVData(this)" class="w-full mt-8 bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-black py-5 rounded-[1.5rem] transition shadow-[0_10px_30px_rgba(16,185,129,0.3)] uppercase tracking-widest text-xs cursor-pointer" data-i18n="save_cv">Save CV</button>
         </div>
     `;
 
@@ -345,9 +279,11 @@ window.saveWebCVData = function(btn) {
     const selectEl = document.getElementById('cv-input-country');
     const selectedOption = selectEl.options[selectEl.selectedIndex];
 
+    const profVal = document.getElementById('cv-input-prof').value.trim();
+    
     const cvData = {
-        role: document.getElementById('cv-input-role').value.trim(),
-        profession: document.getElementById('cv-input-prof').value.trim(),
+        role: profVal,
+        profession: profVal,
         languages: document.getElementById('cv-input-langs').value.trim(),
         skills: document.getElementById('cv-input-skills').value.trim(),
         experience: document.getElementById('cv-input-exp').value.trim(),
@@ -382,6 +318,9 @@ window.saveWebCVData = function(btn) {
             btn.disabled = false;
             btn.innerText = 'Save CV';
         });
+    } else {
+        // Fallback if no firebase
+        document.getElementById('edit-cv-modal').remove();
     }
 };
 
