@@ -454,13 +454,14 @@ window.performLiveSearch = function() {
     
     let uniqueUsers = []; let seen = new Set();
     allUsers.forEach(u => {
-        if (u && u.id && !seen.has(u.id) && u.id !== 'ai') {
+        // ИЗМЕНЕНИЕ: Оставляем ИИ, но отсекаем фейки без имени
+        if (u && u.id && !seen.has(u.id) && (u.name || u.id === 'ai')) {
             seen.add(u.id); uniqueUsers.push(u);
         }
     });
 
     uniqueUsers.forEach(p => {
-        const name = p.name || 'User';
+        const name = p.name || 'AI Assistant';
         const prof = p.profession || p.prof || (p.cv && p.cv.profession) || (p.cv && p.cv.role) || 'Member';
         const country = p.country || '';
         const langs = p.languages || p.profileLangs || (p.cv && p.cv.languages) || '';
@@ -474,9 +475,10 @@ window.performLiveSearch = function() {
             let shortCode = fCode.toUpperCase();
             let photo = p.photo || 'https://ui-avatars.com/api/?name=U';
 
+            // ИЗМЕНЕНИЕ: Вызов openLupeCV вместо openDetailedCV
             html += `
-                <div class="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm mb-2" onclick="closeSearchModal(); setTimeout(() => { if(typeof window.openDetailedCV === 'function') window.openDetailedCV('${p.id}'); }, 300);">
-                    <div class="flex items-center gap-4 w-full overflow-hidden">
+                <div class="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm mb-2" onclick="closeSearchModal(); setTimeout(() => { if(typeof window.openLupeCV === 'function') window.openLupeCV('${p.id}'); }, 300);">
+                    <div class="flex items-center gap-4 w-full overflow-hidden pointer-events-none">
                         <img src="${photo}" class="w-10 h-10 rounded-full object-cover shadow-sm border border-gray-200 dark:border-slate-600 shrink-0">
                         <div class="flex flex-col flex-grow overflow-hidden">
                             <span class="text-gray-900 dark:text-white text-sm font-bold flex items-center gap-2">
@@ -486,12 +488,12 @@ window.performLiveSearch = function() {
                             <span class="text-indigo-500 dark:text-indigo-400 text-xs truncate">${prof} | ${country}</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-right text-gray-400 pr-2 shrink-0"></i>
+                    <i class="fa-solid fa-chevron-right text-gray-400 pr-2 shrink-0 pointer-events-none"></i>
                 </div>`;
         }
     });
     
-    if (!found) html = `<p class="text-sm text-gray-500 dark:text-gray-400 text-center mt-6 font-medium">No real users found. Click 'Search Web' below.</p>`;
+    if (!found) html = `<p class="text-sm text-gray-500 dark:text-gray-400 text-center mt-6 font-medium">No matches found.</p>`;
     if(resultsArea) resultsArea.innerHTML = html;
 };
 
@@ -520,14 +522,102 @@ window.doGoogleSearch = function() {
 };
 
 // ==========================================
-// МОДАЛКА АВАТАРА (Выезжающая)
+// МОДАЛКА ЛУПЫ (Дизайн image_fc3550.png: 5 полей инфо, 3 кнопки внизу)
+// ==========================================
+window.openLupeCV = function(uid) {
+    if(typeof window.closeDropdown === 'function') window.closeDropdown();
+    
+    let user = null;
+    if (uid === 'ai') {
+        user = { 
+            id: 'ai', name: 'AI Assistant', photo: './ai-avatar.jpg', flagCode: 'gb', country: 'Digital World', profileLangs: 'All',
+            cv: { role: 'AI Bot', profession: 'AI Assistant', about: 'I am your intelligent assistant.' } 
+        };
+    } else {
+        user = window.appUsers ? window.appUsers[uid] : (window.participants ? window.participants.find(u => u.id === uid) : null);
+    }
+    
+    if (!user) return;
+
+    const cv = user.cv || {};
+    const wrapper = document.body;
+
+    let flagText = user.flagCode || user.flag || 'un';
+    let fCode = flagText.replace(/[^a-zA-Z]/g, '').toLowerCase();
+    if(!fCode || fCode.length !== 2) fCode = 'un';
+    if(fCode === 'en') fCode = 'gb';
+
+    const autoFacts = typeof window.getCountryFacts === 'function' ? window.getCountryFacts(fCode) : { country: 'Global', pop: '-', seas: '-', about: '-' };
+
+    let modalContainer = document.getElementById('lupe-cv-modal');
+    if (!modalContainer) {
+        modalContainer = document.createElement('div');
+        modalContainer.id = 'lupe-cv-modal';
+        modalContainer.className = 'fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[999999] flex justify-center items-center p-4 transition-opacity animate-fade-in pointer-events-auto';
+        wrapper.appendChild(modalContainer);
+        modalContainer.addEventListener('click', (e) => { if (e.target === modalContainer) modalContainer.remove(); });
+    }
+
+    modalContainer.innerHTML = `
+        <div class="bg-[#f8f9fa] w-full max-w-[340px] rounded-3xl shadow-2xl relative p-6 flex flex-col items-center pointer-events-auto" onclick="event.stopPropagation()">
+            <button onclick="document.getElementById('lupe-cv-modal').remove()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl z-50 cursor-pointer p-2 outline-none">&times;</button>
+
+            <div class="w-20 h-20 rounded-full p-1 bg-white border border-gray-200 shadow-sm mb-3">
+                <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full rounded-full object-cover">
+            </div>
+            <h2 class="text-xl font-bold text-gray-900 mb-6">${user.name.split(' ')[0]}</h2>
+
+            <div class="w-full space-y-3 text-sm text-gray-600 font-medium mb-6 px-2">
+                <div class="flex items-center">
+                    <i class="fa-solid fa-globe text-indigo-400 w-6 text-center text-lg"></i>
+                    <span class="w-24 text-gray-400 ml-2">Country:</span>
+                    <span class="flex items-center gap-2 text-gray-800 font-bold truncate"><img src="https://flagcdn.com/w20/${fCode}.png" class="w-4 rounded-sm shadow-sm"> ${autoFacts.country}</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fa-solid fa-briefcase text-indigo-400 w-6 text-center text-lg"></i>
+                    <span class="w-24 text-gray-400 ml-2">Profession:</span>
+                    <span class="text-gray-800 font-bold truncate">${cv.profession || cv.role || 'Member'}</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fa-solid fa-language text-indigo-400 w-6 text-center text-lg"></i>
+                    <span class="w-24 text-gray-400 ml-2">Languages:</span>
+                    <span class="text-gray-800 font-bold truncate">${cv.languages || user.profileLangs || '-'}</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fa-solid fa-users text-indigo-400 w-6 text-center text-lg"></i>
+                    <span class="w-24 text-gray-400 ml-2">Population:</span>
+                    <span class="text-gray-800 font-bold">${autoFacts.pop}</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fa-solid fa-water text-indigo-400 w-6 text-center text-lg"></i>
+                    <span class="w-24 text-gray-400 ml-2">Seas:</span>
+                    <span class="text-gray-800 font-bold truncate">${autoFacts.seas}</span>
+                </div>
+            </div>
+
+            <div class="w-full text-left mb-6 border-t border-gray-200 pt-3 px-2">
+                <p class="text-xs text-gray-400 mb-1">About:</p>
+                <p class="text-xs text-gray-600 leading-relaxed">${cv.about || user.about || autoFacts.about}</p>
+            </div>
+
+            <div class="w-full flex justify-between gap-2 mt-auto">
+                <button onclick="document.getElementById('lupe-cv-modal').remove(); if(typeof window.actionPrivateChatFromCV === 'function') window.actionPrivateChatFromCV('${uid}')" class="flex-1 bg-[#3b82f6] hover:bg-blue-600 text-white text-[11px] font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"><i class="fa-solid fa-comment pointer-events-none"></i> <span class="pointer-events-none">Chat</span></button>
+                <button onclick="document.getElementById('lupe-cv-modal').remove(); if(typeof window.actionSMSFromCV === 'function') window.actionSMSFromCV('${uid}')" class="flex-1 bg-[#10b981] hover:bg-green-600 text-white text-[11px] font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"><i class="fa-solid fa-comment-sms pointer-events-none"></i> <span class="pointer-events-none">SMS</span></button>
+                <button onclick="document.getElementById('lupe-cv-modal').remove(); if(typeof window.actionEmailFromCV === 'function') window.actionEmailFromCV('${uid}')" class="flex-1 bg-[#6366f1] hover:bg-indigo-600 text-white text-[11px] font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"><i class="fa-solid fa-envelope pointer-events-none"></i> <span class="pointer-events-none">Email</span></button>
+            </div>
+        </div>
+    `;
+    if(typeof window.applySystemLanguage === 'function') window.applySystemLanguage();
+};
+// ==========================================
+// МОДАЛКА АВАТАРА (Сдвоенная панель профиля)
 // ==========================================
 window.openAvatarModal = function(uid) {
     if(typeof window.closeDropdown === 'function') window.closeDropdown();
     const user = window.appUsers ? window.appUsers[uid] : null;
     let uData = user;
     
-    if (uid === 'ai') uData = { id: 'ai', name: 'AI Assistant', photo: './ai-avatar.jpg', flagCode: 'gb', country: 'Digital World', profileLangs: 'English' };
+    if (uid === 'ai') uData = { id: 'ai', name: 'AI Assistant', photo: './ai-avatar.jpg', flagCode: 'gb', country: 'Digital World', profileLangs: 'English', phone: '000-AI-000', email: 'ai@hellofriends.app', cv: { role: 'AI Bot', about: 'I am your intelligent assistant.' } };
     if (uid === 'me' && window.myProfileInfo) uData = window.myProfileInfo;
     if (!uData) return;
     
@@ -537,20 +627,22 @@ window.openAvatarModal = function(uid) {
     if(!fCode || fCode.length !== 2) fCode = 'un';
     if(fCode === 'en') fCode = 'gb';
 
-    const smartInfo = window.getCountryFacts(fCode);
+    const smartInfo = typeof window.getCountryFacts === 'function' ? window.getCountryFacts(fCode) : { country: 'Global', pop: '-', seas: '-', about: '-' };
     
     let modalContainer = document.getElementById('combined-avatar-modal');
     if (!modalContainer) {
         modalContainer = document.createElement('div');
         modalContainer.id = 'combined-avatar-modal';
-        modalContainer.className = 'fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[10000] flex justify-center items-center p-4 transition-opacity animate-fade-in';
+        // z-[999999] чтобы гарантированно перекрывать всё
+        modalContainer.className = 'fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[999999] flex justify-center items-center p-4 transition-opacity animate-fade-in pointer-events-auto';
         document.body.appendChild(modalContainer);
         modalContainer.addEventListener('click', (e) => { if(e.target === modalContainer) modalContainer.remove(); });
     }
 
     modalContainer.innerHTML = `
-        <div class="bg-white dark:bg-[#1e293b] w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative flex flex-col md:flex-row" onclick="event.stopPropagation()">
-            <button onclick="document.getElementById('combined-avatar-modal').remove()" class="absolute top-4 right-4 text-gray-500 hover:text-red-500 z-50 text-2xl outline-none">&times;</button>
+        <div class="bg-white dark:bg-[#1e293b] w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative flex flex-col md:flex-row pointer-events-auto border border-gray-200 dark:border-slate-700" onclick="event.stopPropagation()">
+            
+            <button onclick="document.getElementById('combined-avatar-modal').remove()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 z-[9999] text-3xl outline-none cursor-pointer p-2">&times;</button>
             
             <div class="w-full md:w-1/2 p-8 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700">
                 <div class="flex flex-col items-center mb-6">
@@ -559,7 +651,9 @@ window.openAvatarModal = function(uid) {
                 </div>
                 <div class="space-y-4 text-sm mt-4 text-gray-800 dark:text-gray-200">
                     <p class="flex items-center gap-2"><i class="fa-solid fa-globe text-indigo-400 w-4"></i> <b class="text-gray-500">Country:</b> <img src="https://flagcdn.com/w20/${fCode}.png" class="w-4 rounded-sm"> ${smartInfo.country}</p>
-                    <p class="flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-indigo-400 w-4"></i> <b class="text-gray-500">Location:</b> <span class="truncate">${smartInfo.location}</span></p>
+                    
+                    <p class="flex items-center gap-2"><i class="fa-solid fa-phone text-indigo-400 w-4"></i> <b class="text-gray-500">Phone:</b> <span class="font-semibold">${uData.phone || 'Not specified'}</span></p>
+                    
                     <p class="flex items-center gap-2"><i class="fa-solid fa-language text-indigo-400 w-4"></i> <b class="text-gray-500">Languages:</b> <span class="truncate">${uData.profileLangs || cv.languages || 'Not specified'}</span></p>
                     <p class="flex items-center gap-2"><i class="fa-solid fa-users text-indigo-400 w-4"></i> <b class="text-gray-500">Population:</b> ${smartInfo.pop}</p>
                     <p class="flex items-center gap-2"><i class="fa-solid fa-water text-indigo-400 w-4"></i> <b class="text-gray-500">Seas:</b> <span class="truncate">${smartInfo.seas}</span></p>
@@ -572,26 +666,32 @@ window.openAvatarModal = function(uid) {
             
             <div class="w-full md:w-1/2 p-8 flex flex-col justify-center bg-[#1e293b] text-white">
                 <div class="grid grid-cols-2 gap-3 w-full">
-                    <button onclick="actionPrivateChatFromCV('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700">
-                        <i class="fa-solid fa-message text-xl mb-2 text-indigo-500"></i>
-                        <span class="text-xs font-bold" data-i18n="action_chat">Private Chat</span>
+                    
+                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.actionPrivateChatFromCV === 'function') window.actionPrivateChatFromCV('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer">
+                        <i class="fa-solid fa-message text-xl mb-2 text-indigo-500 pointer-events-none"></i>
+                        <span class="text-xs font-bold pointer-events-none" data-i18n="action_chat">Private Chat</span>
                     </button>
-                    <button onclick="actionVoiceRoom('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700">
-                        <i class="fa-solid fa-phone text-xl mb-2 text-green-500"></i>
-                        <span class="text-xs font-bold" data-i18n="action_voice">Voice Room</span>
+                    
+                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.actionVoiceRoom === 'function') window.actionVoiceRoom('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer">
+                        <i class="fa-solid fa-phone text-xl mb-2 text-green-500 pointer-events-none"></i>
+                        <span class="text-xs font-bold pointer-events-none" data-i18n="action_voice">Voice Room</span>
                     </button>
-                    <button onclick="actionVideoConf('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700">
-                        <i class="fa-solid fa-video text-xl mb-2 text-blue-500"></i>
-                        <span class="text-xs font-bold" data-i18n="action_video">Video Conf</span>
+                    
+                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.actionVideoConf === 'function') window.actionVideoConf('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer">
+                        <i class="fa-solid fa-video text-xl mb-2 text-blue-500 pointer-events-none"></i>
+                        <span class="text-xs font-bold pointer-events-none" data-i18n="action_video">Video Conf</span>
                     </button>
-                    <button onclick="actionSendEmail('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700">
-                        <i class="fa-solid fa-envelope text-xl mb-2 text-red-500"></i>
-                        <span class="text-xs font-bold" data-i18n="action_email">Send Email</span>
+                    
+                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.actionSendEmail === 'function') window.actionSendEmail('${uid}')" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer">
+                        <i class="fa-solid fa-envelope text-xl mb-2 text-red-500 pointer-events-none"></i>
+                        <span class="text-xs font-bold pointer-events-none" data-i18n="action_email">Send Email</span>
                     </button>
-                    <button onclick="actionExternalCall('${uid}')" class="col-span-2 flex items-center justify-center gap-3 p-4 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-colors shadow-md mt-1">
-                        <i class="fa-solid fa-mobile-screen-button text-lg"></i>
-                        <span class="text-sm font-bold tracking-wide" data-i18n="action_cellular">Cellular Call</span>
+                    
+                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.actionExternalCall === 'function') window.actionExternalCall('${uid}')" class="col-span-2 flex items-center justify-center gap-3 p-4 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-colors shadow-md mt-1 cursor-pointer">
+                        <i class="fa-solid fa-mobile-screen-button text-lg pointer-events-none"></i>
+                        <span class="text-sm font-bold tracking-wide pointer-events-none" data-i18n="action_cellular">Cellular Call</span>
                     </button>
+                    
                 </div>
             </div>
         </div>
