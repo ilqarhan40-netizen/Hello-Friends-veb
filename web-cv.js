@@ -43,85 +43,92 @@ window.renderProfessionSection = function(usersObj) {
 };
 
 // ==========================================
-// 2. ОТКРЫТИЕ РЕЗЮМЕ (ДЕТАЛЬНЫЙ ПРОСМОТР ИЗ ЛУПЫ И СЕТКИ)
+// 2. ОТКРЫТИЕ РЕЗЮМЕ (ДЕТАЛЬНЫЙ ПРОСМОТР - СВЕТЛЫЙ WEB ДИЗАЙН)
 // ==========================================
 window.openDetailedCV = function(uid) {
+    if(typeof window.closeDropdown === 'function') window.closeDropdown();
     const user = window.appUsers ? window.appUsers[uid] : (window.participants ? window.participants.find(u => u.id === uid) : null);
     if (!user) return;
     
     const cv = user.cv || {};
     const wrapper = document.getElementById('cv-modals-wrapper') || document.body;
-
-    let flagText = user.flagCode || user.flag || 'un';
-    let fCode = flagText.replace(/[^a-zA-Z]/g, '').toLowerCase();
-    if(!fCode || fCode.length !== 2) fCode = 'un';
-    if(fCode === 'en') fCode = 'gb';
-
-    const autoFacts = typeof window.getCountryFacts === 'function' ? window.getCountryFacts(fCode) : { country: 'Global', location: '-', pop: '-', seas: '-', about: '-' };
+    let fCode = (user.flagCode || 'un').toLowerCase();
 
     let modalContainer = document.getElementById('detailed-cv-modal');
     if (!modalContainer) {
         modalContainer = document.createElement('div');
         modalContainer.id = 'detailed-cv-modal';
-        modalContainer.className = 'fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[10000] flex justify-center items-center p-4 transition-opacity';
+        modalContainer.className = 'fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[999999] flex justify-center items-center p-4 transition-opacity animate-fade-in pointer-events-auto overflow-y-auto';
         wrapper.appendChild(modalContainer);
+        modalContainer.addEventListener('click', (e) => { if (e.target === modalContainer) modalContainer.remove(); });
     }
 
     modalContainer.innerHTML = `
-        <div class="bg-[#f8f9fa] dark:bg-slate-800 w-full max-w-sm rounded-3xl shadow-2xl relative p-6 md:p-8 flex flex-col items-center animate-fade-in" onclick="event.stopPropagation()">
-            <button onclick="document.getElementById('detailed-cv-modal').remove()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white text-xl transition-colors"><i class="fa-solid fa-xmark"></i></button>
+        <div class="bg-white dark:bg-slate-800 w-full max-w-3xl rounded-3xl shadow-2xl relative p-8 md:p-10 border border-gray-100 dark:border-slate-700 pointer-events-auto my-auto" onclick="event.stopPropagation()">
+            <button onclick="document.getElementById('detailed-cv-modal').remove()" class="absolute top-6 right-6 text-gray-400 hover:text-red-500 text-3xl cursor-pointer p-2 transition-colors outline-none">&times;</button>
             
-            <div class="w-24 h-24 rounded-full p-1 bg-gradient-to-b from-blue-100 to-transparent dark:from-slate-700 mb-3 shadow-inner relative">
-                <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-sm">
-            </div>
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-6">${user.name.split(' ')[0]}</h2>
-
-            <div class="w-full space-y-3 text-sm text-gray-600 dark:text-gray-300 font-medium mb-6">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-globe text-indigo-400 w-5 text-center"></i>
-                    <span class="w-24 text-gray-400 dark:text-gray-500">Country:</span>
-                    <span class="flex items-center gap-2 text-gray-900 dark:text-white font-bold"><img src="https://flagcdn.com/w20/${fCode}.png" class="w-4 shadow-sm rounded-sm"> ${autoFacts.country}</span>
+            <div class="flex flex-col md:flex-row items-center md:items-start gap-8 mb-8 border-b border-gray-100 dark:border-slate-700 pb-8 text-center md:text-left">
+                <div class="w-32 h-32 rounded-full border-4 border-white dark:border-slate-700 shadow-md overflow-hidden shrink-0 bg-gray-50">
+                    <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full object-cover">
                 </div>
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-map-location-dot text-indigo-400 w-5 text-center"></i>
-                    <span class="w-24 text-gray-400 dark:text-gray-500">Location:</span>
-                    <span class="text-gray-900 dark:text-white font-bold truncate">${autoFacts.location}</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-briefcase text-indigo-400 w-5 text-center"></i>
-                    <span class="w-24 text-gray-400 dark:text-gray-500">Profession:</span>
-                    <span class="text-gray-900 dark:text-white font-bold truncate">${cv.profession || cv.role || 'Member'}</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-language text-indigo-400 w-5 text-center"></i>
-                    <span class="w-24 text-gray-400 dark:text-gray-500">Languages:</span>
-                    <span class="text-gray-900 dark:text-white font-bold truncate">${cv.languages || user.profileLangs || 'Not specified'}</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-users text-indigo-400 w-5 text-center"></i>
-                    <span class="w-24 text-gray-400 dark:text-gray-500">Population:</span>
-                    <span class="text-gray-900 dark:text-white font-bold">${autoFacts.pop}</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-water text-indigo-400 w-5 text-center"></i>
-                    <span class="w-24 text-gray-400 dark:text-gray-500">Seas:</span>
-                    <span class="text-gray-900 dark:text-white font-bold truncate">${autoFacts.seas}</span>
+                <div class="flex flex-col justify-center items-center md:items-start pt-2">
+                    <h2 class="text-4xl font-bold text-gray-900 dark:text-white">${user.name}</h2>
+                    <p class="text-indigo-600 dark:text-indigo-400 text-lg font-bold mt-1 uppercase tracking-widest">${cv.profession || cv.role || 'Professional'}</p>
+                    <div class="mt-4 flex items-center gap-2 bg-gray-50 dark:bg-slate-900 px-4 py-1.5 rounded-full border border-gray-200 dark:border-slate-700 w-fit shadow-sm">
+                        <img src="https://flagcdn.com/w20/${fCode}.png" class="w-4 rounded-sm shadow-sm">
+                        <span class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">${user.country || 'Global'}</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="w-full text-left mb-8 border-t border-gray-200 dark:border-slate-700 pt-3">
-                <p class="text-xs text-gray-400 dark:text-gray-500 mb-1">About:</p>
-                <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">${cv.about || user.about || autoFacts.about}</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12 mb-10 text-sm">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 shadow-sm border border-blue-100 dark:border-blue-800/30 text-lg"><i class="fa-solid fa-phone"></i></div>
+                    <div><p class="text-gray-400 font-bold uppercase text-[10px] mb-0.5 tracking-widest" data-i18n="phone">Phone</p><p class="text-gray-900 dark:text-white font-bold text-base">${user.phone || '-'}</p></div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-500 shadow-sm border border-purple-100 dark:border-purple-800/30 text-lg"><i class="fa-solid fa-envelope"></i></div>
+                    <div><p class="text-gray-400 font-bold uppercase text-[10px] mb-0.5 tracking-widest" data-i18n="email">Email</p><p class="text-gray-900 dark:text-white font-bold text-base truncate max-w-[200px]">${user.email || '-'}</p></div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center text-amber-500 shadow-sm border border-amber-100 dark:border-amber-800/30 text-lg"><i class="fa-solid fa-language"></i></div>
+                    <div><p class="text-gray-400 font-bold uppercase text-[10px] mb-0.5 tracking-widest" data-i18n="languages">Languages</p><p class="text-gray-900 dark:text-white font-bold text-base">${cv.languages || user.profileLangs || '-'}</p></div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 rounded-xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-500 shadow-sm border border-green-100 dark:border-green-800/30 text-lg"><i class="fa-solid fa-briefcase"></i></div>
+                    <div><p class="text-gray-400 font-bold uppercase text-[10px] mb-0.5 tracking-widest" data-i18n="experience">Experience</p><p class="text-gray-900 dark:text-white font-bold text-base">${cv.experience || '-'}</p></div>
+                </div>
+                <div class="flex items-center gap-4 md:col-span-2">
+                    <div class="w-11 h-11 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-500 shadow-sm border border-indigo-100 dark:border-indigo-800/30 text-lg"><i class="fa-solid fa-graduation-cap"></i></div>
+                    <div><p class="text-gray-400 font-bold uppercase text-[10px] mb-0.5 tracking-widest" data-i18n="education">Education</p><p class="text-gray-900 dark:text-white font-bold text-base">${cv.education || '-'}</p></div>
+                </div>
             </div>
 
-            <div class="w-full flex justify-between gap-2 mt-auto">
-                <button onclick="actionPrivateChatFromCV('${uid}')" class="flex-1 bg-[#3b82f6] hover:bg-blue-600 text-white text-xs font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5"><i class="fa-solid fa-comment"></i> Chat</button>
-                <button onclick="actionSMSFromCV('${uid}')" class="flex-1 bg-[#10b981] hover:bg-emerald-600 text-white text-xs font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5"><i class="fa-solid fa-comment-sms"></i> SMS</button>
-                <button onclick="actionEmailFromCV('${uid}')" class="flex-1 bg-[#6366f1] hover:bg-indigo-600 text-white text-xs font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5"><i class="fa-solid fa-envelope"></i> Email</button>
+            <div class="space-y-6 mb-10 border-t border-gray-100 dark:border-slate-700 pt-8">
+                <div>
+                    <p class="text-indigo-500 font-black uppercase text-[11px] mb-3 tracking-widest flex items-center gap-2"><i class="fa-solid fa-user-tag"></i> <span data-i18n="about_me">About Professional</span></p>
+                    <p class="text-gray-600 dark:text-gray-300 leading-relaxed text-sm italic">"${cv.about || user.about || 'No description provided.'}"</p>
+                </div>
+                ${cv.skills ? `
+                <div>
+                    <p class="text-indigo-500 font-black uppercase text-[11px] mb-3 tracking-widest flex items-center gap-2"><i class="fa-solid fa-star"></i> <span data-i18n="skills">Core Skills</span></p>
+                    <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">${cv.skills}</p>
+                </div>` : ''}
+            </div>
+
+            <div class="flex gap-3 w-full">
+                <button onclick="document.getElementById('detailed-cv-modal').remove(); if(typeof window.actionPrivateChatFromCV === 'function') window.actionPrivateChatFromCV('${uid}')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition shadow-lg shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-2 uppercase tracking-widest text-xs">
+                    <i class="fa-solid fa-message text-base"></i> <span data-i18n="chat">Chat</span>
+                </button>
+                <button onclick="if('${user.phone}') { document.getElementById('detailed-cv-modal').remove(); window.location.href='sms:${user.phone}'; } else alert('No phone specified');" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-2xl transition shadow-lg shadow-emerald-500/20 cursor-pointer flex items-center justify-center gap-2 uppercase tracking-widest text-xs">
+                    <i class="fa-solid fa-comment-sms text-base"></i> <span data-i18n="sms">SMS</span>
+                </button>
+                <button onclick="if('${user.email}') { document.getElementById('detailed-cv-modal').remove(); window.location.href='mailto:${user.email}'; } else alert('No email specified');" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-2xl transition shadow-lg shadow-indigo-500/20 cursor-pointer flex items-center justify-center gap-2 uppercase tracking-widest text-xs">
+                    <i class="fa-solid fa-envelope text-base"></i> <span data-i18n="email_btn">Email</span>
+                </button>
             </div>
         </div>
     `;
-    modalContainer.addEventListener('click', (e) => { if (e.target === modalContainer) modalContainer.remove(); });
     if(typeof window.applySystemLanguage === 'function') window.applySystemLanguage();
 };
 
