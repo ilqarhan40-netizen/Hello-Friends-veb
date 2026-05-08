@@ -294,6 +294,71 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // ==========================================
+// ЛОГИКА КОРЗИНЫ (Удаление сообщений)
+// ==========================================
+
+window.openTrashModal = function() {
+    if (typeof window.closeDropdown === 'function') window.closeDropdown();
+    const tm = document.getElementById('trash-modal');
+    if (tm) {
+        tm.classList.remove('hidden');
+        tm.classList.add('flex'); // Показываем модалку
+    }
+};
+
+window.closeTrashModal = function() { 
+    const tm = document.getElementById('trash-modal');
+    if (tm) {
+        tm.classList.add('hidden'); 
+        tm.classList.remove('flex');
+    }
+};
+
+// Очистка истории (Clear Chat)
+window.actionClearHistory = function() {
+    if (window.currentRoomId === 'global') {
+        alert("Глобальный чат нельзя очистить! Сообщения в нем остаются навсегда.");
+        return;
+    }
+    if(confirm("Clear all messages in this chat?")) {
+        const chatMsgs = document.getElementById('chat-messages'); 
+        if(chatMsgs) chatMsgs.innerHTML = ''; // Очищаем экран
+        
+        // Удаляем из базы Firebase
+        if(window.currentRoomId) { 
+            firebase.database().ref(window.currentRoomId).remove().catch(e => console.log("Cleared locally")); 
+        }
+        
+        if (typeof window.showToast === 'function') window.showToast("Chat Cleared", "Message history deleted", "", "");
+        window.closeTrashModal();
+    }
+};
+
+// Удаление комнаты навсегда (Delete Forever)
+window.actionDeleteForever = function() {
+    if (window.currentRoomId === 'global') {
+        alert("You cannot delete the Global Chat.");
+        return;
+    }
+    if(confirm("WARNING: Delete this chat forever? This cannot be undone.")) {
+        const chatMsgs = document.getElementById('chat-messages'); 
+        if(chatMsgs) chatMsgs.innerHTML = '';
+        
+        // Удаляем из базы Firebase
+        if(window.currentRoomId) { 
+            firebase.database().ref(window.currentRoomId).remove(); 
+        }
+        
+        if (typeof window.showToast === 'function') window.showToast("Deleted Forever", "Room and history destroyed", "", "");
+        window.closeTrashModal();
+        
+        // Выкидываем пользователя обратно в глобальный чат
+        if (typeof window.switchWebChat === 'function') { 
+            window.switchWebChat('global'); 
+        }
+    }
+};
     // Запускаем глобальную комнату при старте
     setTimeout(() => { window.switchWebChat('global'); }, 2000);
 });
