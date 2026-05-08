@@ -27,7 +27,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         .nav-link.active { background-color: #4f46e5 !important; color: white !important; }
-        .rhombus-avatar { width: 80px; height: 80px; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); object-fit: cover; }
+        .rhombus-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; }
         .marquee-content { animation: marquee 20s linear infinite; }
         @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         .popover-panel { transition: opacity 0.2s ease, transform 0.2s ease; }
@@ -36,11 +36,17 @@
         .call-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; flex-direction: column; overflow: hidden; }
         .grid-conf { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 1400px; margin: 0 auto; align-content: center; }
         .user-card { position: relative; aspect-ratio: 16 / 9; background: #1e1e1e; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
-        
+        .speaker-card { border: 2px solid #00C4CC; box-shadow: 0 0 25px rgba(0, 196, 204, 0.4); transform: scale(1.02); z-index: 10; }
+        .translation-bar { position: absolute; bottom: 12px; left: 12px; right: 12px; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); border-radius: 8px; height: 32px; display: flex; align-items: center; overflow: hidden; transition: opacity 0.3s; }
+        .marquee-text { white-space: nowrap; display: inline-block; animation: scroll-text 12s linear infinite; font-size: 13px; padding-left: 100%; color: #fff; }
         @keyframes scroll-text { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
 
         /* ГОЛОСОВОЙ ЧАТ */
         .voice-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; gap: 40px; }
+        .pulse-ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; border-radius: 50%; z-index: 1; animation: pulse 2s infinite; display: none; }
+        .light .pulse-ring { background: rgba(79, 70, 229, 0.3); } 
+        .dark .pulse-ring { background: rgba(0, 196, 204, 0.4); } 
+        @keyframes pulse { 0% { width: 100%; height: 100%; opacity: 0.8; } 100% { width: 180%; height: 180%; opacity: 0; } }
 
         .smart-trash-btn { width: 100%; text-align: left; padding: 10px 15px; border-radius: 8px; font-weight: 500; transition: 0.2s; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
         .smart-trash-btn:hover { transform: scale(0.98); }
@@ -277,24 +283,32 @@
             </div>
         </section>
 
-     <section id="profession" class="page-section bg-white dark:bg-slate-800 md:rounded-3xl shadow-xl p-6 md:p-10 transition-colors duration-300">
-    
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-gray-100 dark:border-slate-700 pb-6">
-        <div>
-            <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight">Professional Community</h2>
-            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Discover and connect with talents worldwide.</p>
-        </div>
-        
-        <button onclick="openEditCVModal()" class="w-full md:w-auto bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transition-transform hover:scale-105 flex items-center justify-center gap-2 cursor-pointer uppercase text-xs tracking-wider">
-            <i class="fa-solid fa-file-signature text-lg"></i> 
-            <span data-i18n="edit_cv">Edit My CV</span>
-        </button>
-    </div>
+        <section id="profession" class="page-section bg-white dark:bg-slate-800 md:rounded-3xl shadow-xl p-6 md:p-10 transition-colors duration-300">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-gray-100 dark:border-slate-700 pb-6">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight">Professional Community</h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Discover and connect with talents worldwide.</p>
+                </div>
+                <button onclick="openEditCVModal()" class="w-full md:w-auto bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transition-transform hover:scale-105 flex items-center justify-center gap-2 cursor-pointer uppercase text-xs tracking-wider">
+                    <i class="fa-solid fa-file-signature text-lg"></i> 
+                    <span data-i18n="edit_cv">Edit My CV</span>
+                </button>
+            </div>
 
-    <div id="web-profession-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        </div>
+            <div id="web-profession-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            </div>
+        </section>
 
-</section>
+        <section id="contacts" class="page-section hidden p-4 md:p-6 w-full max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-address-book text-indigo-500"></i> <span data-i18n="nav_contacts">Contacts</span>
+                </h2>
+            </div>
+            <div id="footer-contacts-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            </div>
+        </section>
+
         <section id="archive" class="page-section bg-white dark:bg-slate-800 md:rounded-xl shadow-md p-4 md:p-8 transition-colors duration-300">
             <h2 class="text-2xl font-bold mb-4 border-b dark:border-slate-700 pb-2">History & Archive</h2>
             <p id="empty-archive-msg" class="text-gray-500 dark:text-gray-400 italic">Archive is empty. Receipts and emails will appear here.</p>
@@ -311,15 +325,12 @@
             <span class="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span> LIVE REC
         </div>
     </div>
-    
     <div id="conference-grid" class="grid-conf overflow-y-auto flex-grow p-4 md:p-8"></div>
-    
     <div class="w-full shrink-0 mt-auto pb-8 pt-4 flex justify-center z-50 bg-gradient-to-t from-gray-100 dark:from-[#0f172a] to-transparent">
         <div class="flex items-center gap-4 bg-white/95 dark:bg-[#1a1e23]/95 backdrop-blur-md px-6 py-3 rounded-full border border-gray-300 dark:border-gray-700 shadow-2xl">
             <input type="text" id="conf-text-input" placeholder="Message or mic..." class="bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white px-4 py-3 rounded-full outline-none w-48 transition-colors">
             <button id="conf-send-btn" class="text-indigo-600 dark:text-[#00C4CC] hover:scale-110 transition-transform"><i class="fa-solid fa-paper-plane text-xl"></i></button>
             <div class="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-2"></div>
-            
             <button id="main-conf-mic-btn" class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-red-500 hover:text-white text-gray-700 dark:text-white transition-all shadow-md">
                 <i class="fa-solid fa-microphone text-lg"></i>
             </button>
@@ -341,49 +352,23 @@
         <div class="font-bold text-indigo-600 dark:text-[#00C4CC] tracking-widest text-lg">HELLO FRIENDS VOICE</div>
         <div class="flex items-center gap-4 bg-gray-100 dark:bg-slate-800 px-4 py-2 rounded-full border border-gray-200 dark:border-slate-700 text-sm text-gray-700 dark:text-gray-300"><i class="fa-solid fa-lock text-green-500"></i> Encrypted</div>
     </div>
-    
-    <div id="voice-speakers-area" class="voice-area flex-col gap-10 flex-grow overflow-y-auto py-10">
-    </div>
-    
+    <div id="voice-speakers-area" class="voice-area flex-col gap-10 flex-grow overflow-y-auto py-10"></div>
     <div class="w-full shrink-0 mt-auto pb-8 pt-4 px-4 z-50 flex justify-center bg-gradient-to-t from-gray-100 dark:from-[#0f172a] to-transparent">
         <div class="flex items-center gap-3 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md p-2 rounded-full border border-gray-300 dark:border-slate-700 shadow-2xl relative w-full max-w-3xl">
-            
-            <button id="vr-emoji-toggle-btn" class="p-3 text-gray-500 hover:text-yellow-500 transition-colors">
-                <i class="fa-regular fa-face-smile text-2xl"></i>
-            </button>
-            
+            <button id="vr-emoji-toggle-btn" class="p-3 text-gray-500 hover:text-yellow-500 transition-colors"><i class="fa-regular fa-face-smile text-2xl"></i></button>
             <div id="vr-emoji-picker" class="hidden absolute bottom-full left-0 mb-4 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-3 rounded-xl grid grid-cols-5 gap-3 text-2xl shadow-xl z-50">
                 <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertVrEmoji('😀')">😀</span>
                 <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertVrEmoji('😂')">😂</span>
                 <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertVrEmoji('❤️')">❤️</span>
-                <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertVrEmoji('😍')">😍</span>
                 <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertVrEmoji('👍')">👍</span>
                 <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertVrEmoji('🔥')">🔥</span>
-                <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertVrEmoji('🎉')">🎉</span>
-                <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertVrEmoji('😢')">😢</span>
-                <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertVrEmoji('😎')">😎</span>
-                <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertVrEmoji('🤔')">🤔</span>
             </div>
-
             <input type="text" id="vr-text-input" placeholder="Type message or click mic..." class="flex-grow bg-transparent text-gray-900 dark:text-white px-3 py-3 outline-none text-xl">
-            
-            <button id="vr-mic-btn" class="w-12 h-12 rounded-full bg-gray-200 dark:bg-slate-700 hover:bg-red-500 hover:text-white text-gray-600 dark:text-gray-300 flex justify-center items-center shrink-0 transition-colors shadow-sm">
-                <i class="fa-solid fa-microphone text-xl"></i>
-            </button>
-            
-            <button id="vr-send-btn" class="w-12 h-12 rounded-full bg-indigo-600 dark:bg-[#00C4CC] text-white dark:text-black flex justify-center items-center font-bold transition-colors shadow-sm hover:scale-105 shrink-0">
-                <i class="fa-solid fa-paper-plane text-xl"></i>
-            </button>
-
-            <button onclick="toggleVrCC()" id="vr-cc-btn" class="w-12 h-12 rounded-full bg-indigo-600 dark:bg-[#00C4CC] text-white dark:text-black flex justify-center items-center transition-colors shadow-sm hover:scale-105 shrink-0" title="Toggle CC">
-                <i class="fa-solid fa-closed-captioning text-xl"></i>
-            </button>
-            
+            <button id="vr-mic-btn" class="w-12 h-12 rounded-full bg-gray-200 dark:bg-slate-700 hover:bg-red-500 hover:text-white text-gray-600 dark:text-gray-300 flex justify-center items-center shrink-0 transition-colors shadow-sm"><i class="fa-solid fa-microphone text-xl"></i></button>
+            <button id="vr-send-btn" class="w-12 h-12 rounded-full bg-indigo-600 dark:bg-[#00C4CC] text-white dark:text-black flex justify-center items-center font-bold transition-colors shadow-sm hover:scale-105 shrink-0"><i class="fa-solid fa-paper-plane text-xl"></i></button>
+            <button onclick="toggleVrCC()" id="vr-cc-btn" class="w-12 h-12 rounded-full bg-indigo-600 dark:bg-[#00C4CC] text-white dark:text-black flex justify-center items-center transition-colors shadow-sm hover:scale-105 shrink-0" title="Toggle CC"><i class="fa-solid fa-closed-captioning text-xl"></i></button>
             <div class="w-px h-8 bg-gray-300 dark:bg-slate-600 mx-2"></div>
-
-            <button onclick="closeCalls()" class="w-14 h-14 rounded-full bg-red-600 hover:bg-red-500 text-white flex justify-center items-center transition-colors shadow-sm hover:scale-105 shrink-0" title="End Call">
-                <i class="fa-solid fa-phone-slash text-2xl"></i>
-            </button>
+            <button onclick="closeCalls()" class="w-14 h-14 rounded-full bg-red-600 hover:bg-red-500 text-white flex justify-center items-center transition-colors shadow-sm hover:scale-105 shrink-0" title="End Call"><i class="fa-solid fa-phone-slash text-2xl"></i></button>
         </div>
     </div>
 </div>
@@ -402,23 +387,11 @@
             <div class="flex flex-wrap gap-2 mb-4">
                 <button onclick="handleSmartSearch('Engineer', 'text')" class="px-4 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-500 transition">💻 Engineer</button>
                 <button onclick="handleSmartSearch('Designer', 'text')" class="px-4 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-500 transition">🎨 Designer</button>
-                <button onclick="handleSmartSearch('Marketing', 'text')" class="px-4 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-500 transition">📈 Marketing</button>
-            </div>
-            <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mb-2 uppercase tracking-wider">🌍 Places & Languages</p>
-            <div class="flex flex-wrap gap-2 mb-4">
-                <button onclick="handleSmartSearch('Germany', 'text')" class="px-4 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-500 transition">🇩🇪 Germany</button>
-                <button onclick="handleSmartSearch('Italy', 'text')" class="px-4 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-500 transition">🇮🇹 Italy</button>
-                <button onclick="handleSmartSearch('English', 'text')" class="px-4 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-500 transition">🗣️ English</button>
             </div>
             <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mb-2 uppercase tracking-wider">💳 Services & Actions</p>
             <div class="flex flex-wrap gap-2 mb-4">
                 <button onclick="handleSmartSearch('', 'transfer')" class="px-4 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg text-sm text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-800/40 transition">💸 Send Money</button>
                 <button onclick="handleSmartSearch('', 'email')" class="px-4 py-2 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg text-sm text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-800/40 transition">📧 Compose Email</button>
-            </div>
-            <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mb-2 uppercase tracking-wider">🌐 Web Queries</p>
-            <div class="flex flex-wrap gap-2">
-                <button onclick="handleSmartSearch('Current USD to EUR exchange rate', 'web')" class="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg text-sm text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-800/40 transition">💱 Exchange Rates</button>
-                <button onclick="handleSmartSearch('World Tech News Today', 'web')" class="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg text-sm text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-800/40 transition">📰 World News</button>
             </div>
         </div>
         <div class="w-full flex-grow overflow-y-auto flex flex-col gap-2 pr-1 border-t border-gray-200 dark:border-slate-700 pt-4" id="search-results-area"></div>
@@ -448,45 +421,33 @@
     </div>
 </div>
 
+<div id="personal-lang-modal" class="fixed inset-0 z-[105] hidden flex-col items-center justify-center bg-black/50 backdrop-blur-sm px-4 opacity-0 transition-opacity duration-300" onclick="if(event.target===this) closePersonalLangModal()">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-6 w-full max-w-xs transform scale-95 transition-transform duration-300 border border-gray-100 dark:border-slate-700">
+        <h3 class="text-lg font-bold mb-4 text-center text-gray-900 dark:text-white" data-i18n="select_room_lang">Room Language</h3>
+        <div class="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
+            <button onclick="setPersonalLang('en')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇬🇧 English</button>
+            <button onclick="setPersonalLang('ru')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇷🇺 Русский</button>
+            <button onclick="setPersonalLang('az')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇦🇿 Azərbaycanca</button>
+        </div>
+        <button onclick="closePersonalLangModal()" class="w-full mt-5 py-3 bg-gray-100 dark:bg-slate-600 rounded-xl font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-500 transition-colors" data-i18n="cancel">Cancel</button>
+    </div>
+</div>
+
 <div id="web-profile-overlay" class="fixed inset-0 z-[10000] hidden items-center justify-center gap-12 p-4 md:p-20 bg-black/85 overflow-hidden" onclick="if(event.target===this) closeUserProfile()">
     <div id="profile-left-panel" class="bg-[#f0f0f0] text-gray-800 w-full max-w-sm rounded-2xl p-6 shadow-2xl relative transform -translate-x-full transition-transform duration-300" onclick="event.stopPropagation();">
         <button onclick="closeUserProfile()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl"><i class="fa-solid fa-xmark"></i></button>
-        
         <div class="flex flex-col items-center mt-2">
             <div class="w-32 h-32 rounded-full p-1 border-2 border-gray-300 mb-4 shadow-sm relative">
                  <img id="modal-user-photo" src="" class="w-full h-full rounded-full object-cover">
             </div>
             <h2 id="modal-user-name" class="text-2xl font-bold mb-6 text-gray-800">Name</h2>
         </div>
-
         <div class="space-y-4 text-sm text-gray-600 font-medium pl-2">
-            <div class="flex items-center gap-4">
-                <i class="fa-solid fa-globe text-indigo-400 w-5 text-center text-lg"></i>
-                <span class="w-24">Country:</span>
-                <span id="modal-user-country" class="flex items-center gap-2 font-bold text-gray-800"></span>
-            </div>
-            <div class="flex items-center gap-4">
-                <i class="fa-solid fa-map-location-dot text-indigo-400 w-5 text-center text-lg"></i>
-                <span class="w-24">Location:</span>
-                <span id="modal-user-location" class="font-bold text-gray-800 truncate"></span>
-            </div>
-            <div class="flex items-center gap-4">
-                <i class="fa-solid fa-language text-indigo-400 w-5 text-center text-lg"></i>
-                <span class="w-24">Languages:</span>
-                <span id="modal-user-langs" class="font-bold text-gray-800 truncate"></span>
-            </div>
-            <div class="flex items-center gap-4">
-                <i class="fa-solid fa-users text-indigo-400 w-5 text-center text-lg"></i>
-                <span class="w-24">Population:</span>
-                <span id="modal-user-pop" class="font-bold text-gray-800"></span>
-            </div>
-            <div class="flex items-center gap-4">
-                <i class="fa-solid fa-water text-indigo-400 w-5 text-center text-lg"></i>
-                <span class="w-24">Seas:</span>
-                <span id="modal-user-seas" class="font-bold text-gray-800 truncate"></span>
-            </div>
+            <div class="flex items-center gap-4"><i class="fa-solid fa-globe text-indigo-400 w-5 text-center text-lg"></i><span class="w-24">Country:</span><span id="modal-user-country" class="flex items-center gap-2 font-bold text-gray-800"></span></div>
+            <div class="flex items-center gap-4"><i class="fa-solid fa-language text-indigo-400 w-5 text-center text-lg"></i><span class="w-24">Languages:</span><span id="modal-user-langs" class="font-bold text-gray-800 truncate"></span></div>
+            <div class="flex items-center gap-4"><i class="fa-solid fa-users text-indigo-400 w-5 text-center text-lg"></i><span class="w-24">Population:</span><span id="modal-user-pop" class="font-bold text-gray-800"></span></div>
+            <div class="flex items-center gap-4"><i class="fa-solid fa-water text-indigo-400 w-5 text-center text-lg"></i><span class="w-24">Seas:</span><span id="modal-user-seas" class="font-bold text-gray-800 truncate"></span></div>
         </div>
-
         <div class="mt-8 border-t border-gray-300 pt-4 pl-2">
             <p class="text-xs text-gray-500 mb-2">About:</p>
             <p id="modal-user-about" class="text-sm text-gray-700 leading-relaxed"></p>
@@ -498,10 +459,6 @@
             <i class="fa-solid fa-lock text-green-400 text-3xl drop-shadow-[0_0_8px_rgba(74,222,128,0.5)] group-hover:scale-110 transition"></i>
             <span class="text-white font-bold text-sm drop-shadow-md">Private Chat</span>
         </button>
-        <button id="btn-voice-msg" class="bg-white/10 border border-white/10 backdrop-blur-md rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:bg-white/20 transition shadow-lg group">
-            <i class="fa-solid fa-microphone text-blue-400 text-3xl drop-shadow-[0_0_8px_rgba(96,165,250,0.5)] group-hover:scale-110 transition"></i>
-            <span class="text-white font-bold text-sm drop-shadow-md">Voice Msg</span>
-        </button>
         <button id="btn-app-audio" class="bg-white/10 border border-white/10 backdrop-blur-md rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:bg-white/20 transition shadow-lg group">
             <i class="fa-solid fa-headset text-purple-400 text-3xl drop-shadow-[0_0_8px_rgba(192,132,252,0.5)] group-hover:scale-110 transition"></i>
             <span class="text-white font-bold text-sm drop-shadow-md">App Audio</span>
@@ -510,39 +467,32 @@
             <i class="fa-solid fa-video text-pink-500 text-3xl drop-shadow-[0_0_8px_rgba(236,72,153,0.5)] group-hover:scale-110 transition"></i>
             <span class="text-white font-bold text-sm drop-shadow-md">App Video</span>
         </button>
-        <button id="btn-phone-call" class="col-span-2 bg-white/10 border border-white/10 backdrop-blur-md rounded-2xl p-4 flex flex-col items-center justify-center hover:bg-white/20 transition shadow-lg mt-2">
-            <span class="text-white font-bold text-base tracking-widest drop-shadow-md">Phone Call</span>
+        <button id="btn-full-cv" class="col-span-2 bg-emerald-500/10 border border-emerald-500/30 backdrop-blur-md rounded-2xl p-4 flex flex-col items-center justify-center hover:bg-emerald-500/20 transition shadow-lg mt-2 group">
+            <span class="text-emerald-400 font-bold text-base tracking-widest drop-shadow-md group-hover:scale-105 transition">
+                <i class="fa-solid fa-user-tie mr-2"></i>View Full CV
+            </span>
         </button>
     </div>
 </div>
 
-<div id="personal-lang-modal" class="fixed inset-0 z-[105] hidden flex-col items-center justify-center bg-black/50 backdrop-blur-sm px-4 opacity-0 transition-opacity duration-300" onclick="if(event.target===this) closePersonalLangModal()">
-    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-6 w-full max-w-xs transform scale-95 transition-transform duration-300 border border-gray-100 dark:border-slate-700">
-        <h3 class="text-lg font-bold mb-4 text-center text-gray-900 dark:text-white" data-i18n="select_room_lang">Room Language</h3>
-        <div class="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
-            <button onclick="setPersonalLang('en')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇬🇧 English</button>
-            <button onclick="setPersonalLang('ru')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇷🇺 Русский</button>
-            <button onclick="setPersonalLang('az')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇦🇿 Azərbaycanca</button>
-            <button onclick="setPersonalLang('tr')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇹🇷 Türkçe</button>
-            <button onclick="setPersonalLang('de')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇩🇪 Deutsch</button>
-            <button onclick="setPersonalLang('it')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇮🇹 Italiano</button>
-            <button onclick="setPersonalLang('es')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇪🇸 Español</button>
-            <button onclick="setPersonalLang('fr')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇫🇷 Français</button>
-            <button onclick="setPersonalLang('pt')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇵🇹 Português</button>
-            <button onclick="setPersonalLang('ar')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇦🇪 العربية</button>
-            <button onclick="setPersonalLang('ja')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇯🇵 日本語</button>
-            <button onclick="setPersonalLang('zh')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇨🇳 中文</button>
-        </div>
-        <button onclick="closePersonalLangModal()" class="w-full mt-5 py-3 bg-gray-100 dark:bg-slate-600 rounded-xl font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-500 transition-colors" data-i18n="cancel">Cancel</button>
-    </div>
-</div>
-
-<script src="js/core/firebase-init.js"></script>
-
-<script src="web-auth.js"></script>
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyCVFkMsqelcnjjeIwGnAKmn1CFhDGc7kR0",
+        authDomain: "hello-friends-p8p3i7.firebaseapp.com",
+        databaseURL: "https://hello-friends-p8p3i7-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "hello-friends-p8p3i7",
+        storageBucket: "hello-friends-p8p3i7.appspot.com",
+        messagingSenderId: "367351601053",
+        appId: "1:367351601053:web:7852c0326db9cc233d44ba"
+    };
+    
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+</script>
 
 <script src="web-lang.js"></script> 
-
+<script src="web-auth.js"></script>
 <script src="web-ui.js"></script>
 <script src="web-users.js"></script>
 <script src="web-chat.js"></script>
