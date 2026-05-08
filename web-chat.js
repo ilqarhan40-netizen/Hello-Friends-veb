@@ -101,6 +101,20 @@ window.sendFirebaseMsg = async function() {
     let activeFlagCode = window.myProfileInfo ? window.myProfileInfo.flagCode : 'un';
 
     let myBaseText = rawText;
+    
+    // ==========================================
+    // ИСПРАВЛЕНИЕ: УМНЫЙ ПРЕ-ПЕРЕВОД (SMART TYPING)
+    // Переводит текст с любой клавиатуры на язык профиля!
+    // ==========================================
+    try {
+        const res1 = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${myActiveLang.substring(0,2)}&dt=t&q=${encodeURIComponent(rawText)}`);
+        const data1 = await res1.json();
+        if (data1 && data1[0] && data1[0][0][0]) {
+            myBaseText = data1[0][0][0]; 
+        }
+    } catch (e) { console.error("Auto-translation error", e); }
+    // ==========================================
+
     let targetSendLang = window.currentTargetUser ? window.getSmartLang(window.currentTargetUser) : myActiveLang;
     let textToShip = myBaseText;
 
