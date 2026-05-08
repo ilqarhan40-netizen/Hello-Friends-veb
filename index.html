@@ -279,14 +279,23 @@
                 
                 <div class="relative">
                     <button id="actions-btn" class="w-12 h-12 bg-gray-200 dark:bg-slate-700 rounded-full flex items-center justify-center hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors"><i class="fa-solid fa-plus text-gray-600 dark:text-gray-300 text-xl"></i></button>
-                    <div id="actions-panel" class="popover-panel absolute bottom-full right-0 mb-2 bg-white dark:bg-slate-800 p-3 rounded-lg shadow-xl grid grid-cols-2 gap-2 hidden opacity-0 transform scale-95 z-20 transition-colors border border-gray-100 dark:border-slate-700 w-48">
-                        <button onclick="openLocationModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 rounded-lg"><i class="fa-solid fa-location-dot text-xl mb-1"></i><span class="text-[10px] font-medium">Location</span></button>
-                        <button onclick="openSearchModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 rounded-lg"><i class="fa-solid fa-magnifying-glass text-xl mb-1"></i><span class="text-[10px] font-medium">Search</span></button>
-                        <button onclick="openTrashModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-slate-700 hover:text-red-600 rounded-lg"><i class="fa-solid fa-trash text-xl mb-1"></i><span class="text-[10px] font-medium">Clear</span></button>
-                        <button onclick="openConference(); window.closeDropdown();" class="flex flex-col items-center justify-center p-3 text-gray-500 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 rounded-lg"><i class="fa-solid fa-video text-xl mb-1"></i><span class="text-[10px] font-medium">Video</span></button>
-                    </div>
-                </div>
-            </div>
+  <div id="actions-panel" class="popover-panel absolute bottom-full right-0 mb-3 bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-2xl hidden opacity-0 transform scale-95 z-[100] transition-all border border-gray-100 dark:border-slate-700 w-72">
+    <div class="grid grid-cols-3 gap-2">
+        <button onclick="openLocationModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-blue-50 hover:text-blue-600 rounded-2xl transition-colors group"><i class="fa-solid fa-location-dot text-xl mb-1 group-hover:scale-110 transition"></i><span class="text-[9px] font-bold uppercase" data-i18n="menu_location">Location</span></button>
+        
+        <button onclick="alert('Video calls coming soon!')" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-green-50 hover:text-green-600 rounded-2xl transition-colors group"><i class="fa-solid fa-video text-xl mb-1 group-hover:scale-110 transition"></i><span class="text-[9px] font-bold uppercase" data-i18n="menu_video">Video</span></button>
+        
+        <button onclick="alert('Travel Guide coming soon!')" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-yellow-50 hover:text-yellow-600 rounded-2xl transition-colors group"><i class="fa-solid fa-map-location-dot text-xl mb-1 group-hover:scale-110 transition"></i><span class="text-[9px] font-bold uppercase" data-i18n="menu_guide">Guide</span></button>
+
+        <button onclick="smartArchive()" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 rounded-2xl transition-colors group"><i class="fa-solid fa-file-zipper text-xl mb-1 group-hover:scale-110 transition"></i><span class="text-[9px] font-bold uppercase">Archive</span></button>
+        
+        <button onclick="alert('Security settings coming soon!')" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-slate-100 hover:text-gray-800 rounded-2xl transition-colors group"><i class="fa-solid fa-shield-halved text-xl mb-1 group-hover:scale-110 transition"></i><span class="text-[9px] font-bold uppercase" data-i18n="menu_security">Security</span></button>
+        
+        <button onclick="blockUser()" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-red-50 hover:text-red-600 rounded-2xl transition-colors group"><i class="fa-solid fa-user-slash text-xl mb-1 group-hover:scale-110 transition"></i><span class="text-[9px] font-bold uppercase" data-i18n="menu_blacklist">Blacklist</span></button>
+        
+        <button onclick="openQrModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-purple-50 hover:text-purple-600 rounded-2xl transition-colors group"><i class="fa-solid fa-qrcode text-xl mb-1 group-hover:scale-110 transition"></i><span class="text-[9px] font-bold uppercase" data-i18n="menu_qr">Share QR</span></button>
+    </div>
+</div>
         </section>
 
         <section id="profession" class="page-section bg-white dark:bg-slate-800 md:rounded-3xl shadow-xl p-6 md:p-10 transition-colors duration-300">
