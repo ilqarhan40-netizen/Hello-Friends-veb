@@ -1,18 +1,98 @@
 // ==========================================
-// ЧАТ-ДВИЖОК И ПЕРЕВОДЧИК (WEB ВЕРСИЯ)
+// ФАЙЛ: web-chat.js
+// Назначение: Ядро чата для ВЕБ-версии (Отправка, Отрисовка, Глобальный Веер Переводов)
 // ==========================================
 
+window.currentRoomId = 'global';
+window.currentTargetUser = null;
+window.isGeminiWaiting = false;
+window.activeChatListener = null;
+
+// 1. ПЕРЕКЛЮЧЕНИЕ КОМНАТ ВЕБ-ЧАТА (Исправляет ID: undefined)
+window.switchWebChat = function(targetId) {
+    // Отключаем старый слушатель
+    if (window.activeChatListener) {
+        firebase.database().ref(window.currentRoomId).off("child_added", window.activeChatListener);
+    }
+    
+    // Очищаем окно
+    const chatMessages = document.getElementById('chat-messages'); 
+    if (chatMessages) chatMessages.innerHTML = '';
+    
+    window.currentTargetUser = null; 
+    let headerName = "Group Chat"; 
+    let headerStatus = "🌍 All members";
+    let avatarImg = "";
+
+    // Определяем куда переключаемся
+    if (targetId === 'global') {
+        window.currentRoomId = "global"; 
+    } else if (targetId === 'ai') {
+        window.currentRoomId = "private_ai_bot"; 
+        headerName = "AI Assistant";
+        headerStatus = "🤖 Powered by Gemini";
+        avatarImg = "https://ui-avatars.com/api/?name=AI&background=6b21a8&color=fff";
+    } else {
+        const targetUser = window.participants.find(p => String(p.id) === String(targetId));
+        if(targetUser) {
+            window.currentTargetUser = targetUser;
+            // Генерируем правильный ID комнаты (от меньшего ID к большему)
+            let id1 = String(window.myProfileInfo ? window.myProfileInfo.id : 'guest'); 
+            let id2 = String(targetUser.id);
+            window.currentRoomId = (id1 < id2) ? ("private_" + id1 + "_" + id2) : ("private_" + id2 + "_" + id1);
+            
+            headerName = (targetUser.name || 'User').split(' ')[0];
+            headerStatus = `${targetUser.flag || '🌐'} Encrypted Room`;
+            avatarImg = targetUser.photo || 'https://ui-avatars.com/api/?name=U';
+        }
+    }
+
+    // Обновляем ВЕБ-Шапку
+    const hName = document.getElementById('chat-header-name');
+    const hStatus = document.getElementById('chat-header-status');
+    const hAvatar = document.getElementById('chat-header-avatar');
+    
+    if (hName) hName.innerText = headerName;
+    if (hStatus) hStatus.innerText = headerStatus; // Здесь был undefined, теперь починили!
+    
+    if (hAvatar) {
+        if (avatarImg) {
+            hAvatar.innerHTML = '';
+            hAvatar.style.backgroundImage = `url('${avatarImg}')`;
+            hAvatar.className = `w-12 h-12 rounded-full flex items-center justify-center text-white shadow-md cursor-pointer hover:scale-105 transition-transform text-2xl bg-cover bg-center shrink-0 border border-gray-200`;
+        } else {
+            hAvatar.style.backgroundImage = 'none';
+            hAvatar.innerHTML = "🌍";
+            hAvatar.className = `w-12 h-12 rounded-full flex items-center justify-center text-white shadow-md cursor-pointer hover:scale-105 transition-transform text-2xl bg-gradient-to-r from-blue-500 to-purple-500 shrink-0`;
+        }
+    }
+
+    // Обновляем бегущую строку (Marquee)
+    const mText = document.getElementById('top-chat-marquee');
+    if(mText) {
+        if(window.currentRoomId === 'global') mText.innerText = "🌍 Global Chat • AI Translation System Active...";
+        else mText.innerText = `🔒 Secure Room • AI Translation Active...`;
+    }
+    
+    // Подключаем слушатель на новую комнату
+    window.activeChatListener = firebase.database().ref(window.currentRoomId).on("child_added", window.handleNewMessage);
+};
+
+// 2. ОТПРАВКА СООБЩЕНИЯ (FIREBASE + GEMINI)
 window.sendFirebaseMsg = async function() {
-    // В вебе инпут обычно один глобальный или зависит от активной вкладки
     const inputField = document.getElementById('chat-input') || document.getElementById('web-chat-input');
     if (!inputField) return;
 
     const rawText = inputField.value.trim(); 
     if (!rawText) return;
+    
+    if (window.currentRoomId === 'private_ai_bot' && window.isGeminiWaiting) return; 
+    
     inputField.value = '';
 
     let targetDbRoom = window.currentRoomId || 'global';
     let myActiveLang = window.appLang || 'en';
+    if (myActiveLang === 'auto') myActiveLang = window.getSmartLang(window.myProfileInfo);
 
     let safeId = window.myProfileInfo ? window.myProfileInfo.id : 'guest';
     let safeName = window.myUsername || 'User';
@@ -20,34 +100,48 @@ window.sendFirebaseMsg = async function() {
     let activeFlag = window.myProfileInfo ? window.myProfileInfo.flag : '🌐';
     let activeFlagCode = window.myProfileInfo ? window.myProfileInfo.flagCode : 'un';
 
-    // Базовый текст (переводим на СВОЙ язык для истории, если нужно, иначе оставляем как есть)
     let myBaseText = rawText;
     let targetSendLang = window.currentTargetUser ? window.getSmartLang(window.currentTargetUser) : myActiveLang;
     let textToShip = myBaseText;
 
-    // Если языки не совпадают — переводим перед отправкой в базу
-    if (targetSendLang !== myActiveLang && targetDbRoom !== 'global') {
+    if (targetSendLang !== myActiveLang && targetDbRoom !== 'global' && targetDbRoom !== 'private_ai_bot') {
         try {
-            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${myActiveLang}&tl=${targetSendLang}&dt=t&q=${encodeURIComponent(myBaseText)}`);
-            const data = await res.json();
-            if (data && data[0] && data[0][0][0]) textToShip = data[0][0][0];
-        } catch (e) { console.error("Translation error", e); }
+            const res2 = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${myActiveLang.substring(0,2)}&tl=${targetSendLang.substring(0,2)}&dt=t&q=${encodeURIComponent(myBaseText)}`);
+            const data2 = await res2.json();
+            if (data2 && data2[0] && data2[0][0][0]) textToShip = data2[0][0][0];
+        } catch (e) {}
     }
 
     try {
         firebase.database().ref(targetDbRoom).push({
-            userId: safeId, name: safeName, text: textToShip, originalText: myBaseText,
+            userId: safeId, name: safeName, text: textToShip || "Error", originalText: myBaseText || "Error",
             sessionId: window.mySessionId || 'sess', timestamp: firebase.database.ServerValue.TIMESTAMP,
             photo: safePhoto, flag: activeFlag, flagCode: activeFlagCode, langCode: myActiveLang
         });
-    } catch(err) { console.error("Ошибка отправки", err); }
+    } catch(err) { console.error("Firebase send error:", err); }
 
-    // Прокрутка вниз
     const chatMsgs = document.getElementById('chat-messages'); 
     if (chatMsgs) setTimeout(() => { chatMsgs.scrollTop = chatMsgs.scrollHeight; }, 100); 
+
+    // Вызов бота Gemini
+    if (targetDbRoom === 'private_ai_bot') {
+        window.isGeminiWaiting = true;
+        const GEMINI_API_KEY = "AIzaSyB51d72XWcV5AGgLVM1UOg61eCYir78PkY"; 
+        fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, { 
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ contents: [{ parts: [{ text: "Reply in the exact same language: " + rawText }] }] }) 
+        }).then(res => res.json()).then(data => { 
+            let replyText = data.candidates[0].content.parts[0].text; 
+            firebase.database().ref(targetDbRoom).push({ 
+                name: "AI Assistant", text: replyText, sessionId: "ai-bot-session", 
+                timestamp: firebase.database.ServerValue.TIMESTAMP, userId: 'ai', 
+                langCode: 'en', flag: '🤖', photo: 'https://ui-avatars.com/api/?name=AI&background=6b21a8&color=fff' 
+            }); 
+        }).finally(() => { setTimeout(() => { window.isGeminiWaiting = false; }, 2000); });
+    }
 };
 
-// Прием сообщений и отрисовка бабблов
+// 3. ПРИЕМ И ОТРИСОВКА (ВЕБ-ДИЗАЙН БАББЛОВ И ВЕЕР ПЕРЕВОДОВ)
 window.handleNewMessage = async function(snapshot) {
     const data = snapshot.val(); 
     if(!data) return; 
@@ -56,49 +150,104 @@ window.handleNewMessage = async function(snapshot) {
     if (!chatMessages) return;
 
     const isMe = data.sessionId === window.mySessionId || data.userId === (window.myProfileInfo ? window.myProfileInfo.id : 'guest');
-    let senderDisplayName = isMe ? window.myUsername : (data.name || 'User').split(' ')[0];
+    const isAI = data.userId === "ai" || data.sessionId === "ai-bot-session";
+    let p = isMe ? window.myProfileInfo : (isAI ? { id: 'ai', name: 'AI Assistant', photo: 'https://ui-avatars.com/api/?name=AI&background=6b21a8&color=fff', flag: '🤖' } : (window.participants.find(part => part.id === data.userId) || { id: data.userId, photo: data.photo || 'https://ui-avatars.com/api/?name=U', langCode: data.langCode || 'en', flag: data.flag || '🌐', name: data.name || 'User' }));
+    
+    let senderDisplayName = isMe ? window.myUsername || "Me" : (p.name || 'User').split(' ')[0];
 
     const messageGroup = document.createElement('div'); 
-    messageGroup.className = "flex w-full mt-4";
-    
-    // Веб-дизайн бабблов (Светлые/Темные)
+    messageGroup.className = "flex flex-col w-full mt-4 mb-2";
+
     let bubbleStyle = isMe 
         ? "bg-indigo-600 text-white rounded-l-2xl rounded-tr-2xl" 
         : "bg-white dark:bg-slate-800 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-r-2xl rounded-tl-2xl";
     
     let alignment = isMe ? "justify-end" : "justify-start";
-    let avatarHtml = `<img src="${data.photo}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-slate-600 shadow-sm shrink-0 ${isMe ? 'ml-3' : 'mr-3'}">`;
+    let avatarHtml = `<img src="${p.photo || data.photo}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-slate-600 shadow-sm shrink-0 cursor-pointer hover:scale-105 transition" onclick="window.openUserProfile('${p.id}')">`;
 
     let bubbleContent = data.text;
+    let myReadLang = window.appLang === 'auto' ? window.getSmartLang(window.myProfileInfo) : window.appLang;
+    let senderLang = data.langCode || 'auto'; 
 
-    // Вставляем в DOM
+    // ПЕРЕВОД ПРИВАТНОГО ЧАТА (ОБРАТНЫЙ)
+    if (data.originalText && window.currentRoomId !== 'global') {
+        if (!isMe && !isAI && senderLang.substring(0,2) !== myReadLang.substring(0,2)) {
+            try {
+                const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${senderLang.substring(0,2)}&tl=${myReadLang.substring(0,2)}&dt=t&q=${encodeURIComponent(data.originalText)}`);
+                const resData = await res.json();
+                let finalTrans = (resData && resData[0] && resData[0][0]) ? resData[0][0][0] : data.originalText;
+                
+                bubbleContent = `<div>${data.originalText}</div><div class="mt-2 pt-2 border-t border-opacity-20 ${isMe ? 'border-white' : 'border-gray-300 dark:border-slate-500'} text-[0.8rem] ${isMe ? 'text-indigo-100' : 'text-indigo-500 dark:text-indigo-400'} font-bold">➔ ${finalTrans}</div>`;
+            } catch(e) {}
+        }
+    }
+
     messageGroup.innerHTML = `
-        <div class="flex w-full ${alignment}">
+        <div class="flex w-full ${alignment} gap-2">
             ${!isMe ? avatarHtml : ''}
             <div class="flex flex-col max-w-[70%]">
-                <span class="text-xs text-gray-500 mb-1 ${isMe ? 'text-right' : 'text-left'}">${senderDisplayName} ${data.flag || '🌐'}</span>
-                <div class="p-3 shadow-sm ${bubbleStyle}">
+                <span class="text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-1 ${isMe ? 'text-right' : 'text-left'}">${senderDisplayName} ${p.flag || '🌐'}</span>
+                <div class="p-3 shadow-sm text-sm ${bubbleStyle}">
                     ${bubbleContent}
                 </div>
             </div>
             ${isMe ? avatarHtml : ''}
         </div>
     `;
-    
+
+    // ГЛОБАЛЬНЫЙ ЧАТ: ВЕЕР ПЕРЕВОДОВ (Восстановлен)
+    if (window.currentRoomId === 'global' && !isAI) {
+         let targetUsers = []; 
+         let neededLangs = new Set(); 
+         
+         if (myReadLang && myReadLang !== 'un' && myReadLang.substring(0,2) !== senderLang.substring(0,2)) {
+             targetUsers.push({ code: myReadLang.substring(0,2), flag: (window.myProfileInfo ? window.myProfileInfo.flag : '🌐'), photo: (window.myProfileInfo ? window.myProfileInfo.photo : '') });
+             neededLangs.add(myReadLang.substring(0,2));
+         }
+
+         window.participants.filter(part => part.id !== 'ai').forEach(member => {
+             let memberLang = window.getSmartLang(member);
+             if (memberLang && memberLang !== 'un' && memberLang.substring(0,2) !== senderLang.substring(0,2)) {
+                 targetUsers.push({ code: memberLang.substring(0,2), flag: member.flag, photo: member.photo });
+                 neededLangs.add(memberLang.substring(0,2));
+             }
+         });
+
+         if (targetUsers.length > 0) {
+             try {
+                 let transCache = {};
+                 const fetchPromises = Array.from(neededLangs).map(langCode => 
+                     fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${senderLang}&tl=${langCode}&dt=t&q=${encodeURIComponent(data.originalText || data.text)}`)
+                     .then(res => res.json())
+                     .then(resData => { transCache[langCode] = resData[0][0][0]; })
+                     .catch(e => { transCache[langCode] = data.originalText || data.text; }) 
+                 );
+                 
+                 await Promise.all(fetchPromises);
+
+                 const transContainer = document.createElement('div');
+                 transContainer.className = `flex flex-col gap-2 mt-2 w-full ${isMe ? 'items-end pr-14' : 'items-start pl-14'}`;
+
+                 targetUsers.forEach(u => {
+                     let translatedText = transCache[u.code] || data.originalText || data.text;
+                     const rowClass = isMe ? 'flex-row-reverse' : 'flex-row'; 
+                     const radiusClass = isMe ? 'rounded-tr-sm rounded-l-2xl rounded-br-2xl' : 'rounded-tl-sm rounded-r-2xl rounded-bl-2xl';
+                     transContainer.innerHTML += `<div class="flex items-end gap-2 max-w-[85%] ${rowClass}">
+                        <div class="relative shrink-0"><img src="${u.photo}" class="w-5 h-5 rounded-full object-cover border border-gray-300"><span class="absolute -bottom-1 -right-1 text-[8px] bg-white rounded-full leading-none shadow-sm">${u.flag}</span></div>
+                        <div class="bg-indigo-50 border border-indigo-100 dark:bg-slate-800 dark:border-slate-700 text-gray-800 dark:text-gray-200 ${radiusClass} px-3 py-1.5 text-[11px] font-medium shadow-sm">${translatedText}</div>
+                     </div>`;
+                 });
+                 
+                 messageGroup.appendChild(transContainer); 
+             } catch (e) {}
+         }
+    }
+
     chatMessages.appendChild(messageGroup); 
-    chatMessages.scrollTop = chatMessages.scrollHeight; 
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 };
 
-// Привязываем Enter к отправке
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        const activeId = document.activeElement ? document.activeElement.id : null;
-        if (activeId === 'chat-input' || activeId === 'web-chat-input') { 
-            window.sendFirebaseMsg(); 
-        }
-    }
-});
-// --- ФУНКЦИЯ ВОЛШЕБНОЙ ПАЛОЧКИ ИИ ---
+// 4. ПРИВЯЗКИ И ВОЛШЕБНАЯ ПАЛОЧКА
 window.applyAiMagic = function() {
     const wandBtn = document.getElementById('magic-wand-btn');
     const chatInput = document.getElementById('chat-input') || document.getElementById('web-chat-input');
@@ -111,6 +260,7 @@ window.applyAiMagic = function() {
     chatInput.disabled = true;
     chatInput.value = "✨ AI is rewriting your message...";
     
+    // В будущем здесь будет реальный вызов Gemini API, пока имитация
     setTimeout(() => {
         if(wandBtn) wandBtn.classList.remove('animate-spin');
         chatInput.disabled = false;
@@ -118,3 +268,18 @@ window.applyAiMagic = function() {
         chatInput.focus();
     }, 1500);
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+    const sendBtn = document.getElementById('chat-send-btn');
+    if (sendBtn) sendBtn.addEventListener('click', window.sendFirebaseMsg);
+
+    const chatInput = document.getElementById('chat-input') || document.getElementById('web-chat-input');
+    if (chatInput) {
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); window.sendFirebaseMsg(); }
+        });
+    }
+
+    // Запускаем глобальную комнату при старте
+    setTimeout(() => { window.switchWebChat('global'); }, 2000);
+});
