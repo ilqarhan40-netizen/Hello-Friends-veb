@@ -1,77 +1,88 @@
 // ==========================================
-// ГЕНЕРАТОР КОНТАКТОВ И ПРОФИЛЕЙ (WEB ВЕРСИЯ)
+// ФАЙЛ: web-users.js
+// Назначение: Загрузка пользователей, Генератор контактов, Боковая шторка профиля
 // ==========================================
 
 window.participants = [];
+window.appUsers = {};
 
+// 1. ЗАГРУЗКА ДАННЫХ ИЗ FIREBASE
 setTimeout(() => {
     firebase.database().ref('users').on('value', (snapshot) => {
         const data = snapshot.val();
         if (!data) return;
         
         let myId = window.myProfileInfo ? window.myProfileInfo.id : 'guest';
+        
+        // Сохраняем глобальную базу (необходима для CV и поиска)
+        window.appUsers = data;
+        
+        // Формируем список контактов (исключая себя и AI-бота)
         window.participants = Object.values(data).filter(u => u.id && u.id !== 'ai' && u.id !== myId);
         
+        // Обновляем интерфейсы
         if(typeof window.renderContactsList === 'function') window.renderContactsList();
-        if(typeof window.renderCVList === 'function') window.renderCVList();
+        if(typeof window.renderProfessionSection === 'function') window.renderProfessionSection(window.appUsers);
     });
 }, 2000);
 
+// 2. ОТРИСОВКА СПИСКОВ КОНТАКТОВ (Над чатом и во вкладке Contacts)
 window.renderContactsList = function() {
     const topHorizontalBar = document.getElementById('top-users-horizontal-bar'); 
     const footerContacts = document.getElementById('footer-contacts-container'); 
 
-    if (!window.participants || window.participants.length === 0) return;
+    if (!window.participants || window.participants.length === 0) {
+        if (topHorizontalBar) topHorizontalBar.innerHTML = '';
+        return;
+    }
 
-    const usersList = window.participants;
-
+    // Рендер аватарок над чатом
     if (topHorizontalBar) {
         topHorizontalBar.innerHTML = '';
-        usersList.forEach(user => {
+        window.participants.forEach(user => {
             let userName = (user.name || 'User').split(' ')[0];
             let userPhoto = user.photo || 'https://ui-avatars.com/api/?name=U';
             
-            // 🔥 Умный парсинг флага: превращаем буквы (AZ, DE, GB) в PNG картинку
+            // Умный парсинг флага
             let flagText = user.flagCode || user.flag || 'un';
-            // Очищаем от лишнего и переводим в нижний регистр (DE -> de)
             let fCode = flagText.replace(/[^a-zA-Z]/g, '').toLowerCase();
-            if(!fCode || fCode.length !== 2) fCode = 'un'; // Заглушка, если код пустой
+            if(!fCode || fCode.length !== 2) fCode = 'un'; 
             let flagUrl = `https://flagcdn.com/w40/${fCode}.png`;
 
             let avatarItem = document.createElement('div');
-            avatarItem.className = "flex flex-col items-center shrink-0 cursor-pointer hover:opacity-80 hover:scale-105 transition w-16 mx-2"; 
+            avatarItem.className = "flex flex-col items-center shrink-0 cursor-pointer hover:opacity-80 hover:scale-105 transition w-16 mx-2 group"; 
             
             avatarItem.onclick = () => window.openUserProfile(user.id);
             
             avatarItem.innerHTML = `
                 <div class="relative mb-1">
-                    <img src="${userPhoto}" class="w-12 h-12 rounded-full object-cover border-2 border-indigo-500 dark:border-[#00faad] shadow-md">
-                    <!-- 🔥 ТЕПЕРЬ ЗДЕСЬ PNG ФЛАГ 🔥 -->
+                    <img src="${userPhoto}" class="w-12 h-12 rounded-full object-cover border-2 border-indigo-500 dark:border-[#00faad] shadow-md group-hover:shadow-lg transition-all">
                     <img src="${flagUrl}" class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full object-cover border border-white dark:border-slate-800 shadow-sm">
                 </div>
-                <span class="text-[10px] text-gray-800 dark:text-gray-200 font-bold truncate w-full text-center">${userName}</span>
+                <span class="text-[10px] text-gray-800 dark:text-gray-200 font-bold truncate w-full text-center group-hover:text-indigo-600 dark:group-hover:text-[#00faad] transition-colors">${userName}</span>
             `;
             topHorizontalBar.appendChild(avatarItem);
         });
     }
 
+    // Рендер списка во вкладке Contacts (Адаптировано под темную тему)
     if (footerContacts) {
         footerContacts.innerHTML = '';
-        usersList.forEach(user => {
+        window.participants.forEach(user => {
             let userName = (user.name || 'User').split(' ')[0];
             let userPhoto = user.photo || 'https://ui-avatars.com/api/?name=U';
 
             let footerItem = document.createElement('div');
-            footerItem.className = "flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 p-2 rounded-lg transition";
+            footerItem.className = "flex items-center gap-3 cursor-pointer bg-gray-50 hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 p-3 rounded-2xl transition-colors shadow-sm";
             
             footerItem.onclick = () => window.openUserProfile(user.id);
             
             footerItem.innerHTML = `
-                <img src="${userPhoto}" class="w-8 h-8 rounded-full object-cover border border-gray-300 dark:border-slate-600">
-                <span class="text-xs font-bold text-gray-700 dark:text-gray-300">${userName}</span>
-                <div class="ml-auto flex gap-1">
-                    <button onclick="event.stopPropagation(); window.startWebCall('${user.id}', 'voice')" class="text-indigo-500 hover:text-indigo-700 p-1"><i class="fa-solid fa-phone"></i></button>
-                    <button onclick="event.stopPropagation(); window.openConference()" class="text-[#00faad] hover:text-green-400 p-1"><i class="fa-solid fa-video"></i></button>
+                <img src="${userPhoto}" class="w-10 h-10 rounded-full object-cover border-2 border-indigo-100 dark:border-slate-600">
+                <span class="text-sm font-bold text-gray-700 dark:text-gray-200">${userName}</span>
+                <div class="ml-auto flex gap-2">
+                    <button onclick="event.stopPropagation(); if(typeof window.openVoiceChat==='function') window.openVoiceChat()" class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 flex items-center justify-center hover:bg-green-200 dark:hover:bg-green-800/50 transition"><i class="fa-solid fa-phone text-xs"></i></button>
+                    <button onclick="event.stopPropagation(); if(typeof window.openConference==='function') window.openConference()" class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800/50 transition"><i class="fa-solid fa-video text-xs"></i></button>
                 </div>
             `;
             footerContacts.appendChild(footerItem);
@@ -79,41 +90,21 @@ window.renderContactsList = function() {
     }
 };
 
-// ==========================================
-// ЛОГИКА ОКОН ПРОФИЛЯ (Полная база на 12+ стран)
-// ==========================================
-
+// 3. ОТКРЫТИЕ ШТОРКИ ПРОФИЛЯ (Выездные панели из HTML)
 window.openUserProfile = function(userId) {
-    const user = window.participants.find(u => u.id === userId);
+    const user = window.appUsers ? window.appUsers[userId] : window.participants.find(u => u.id === userId);
     if(!user) return;
 
-    // Подготовка PNG флага
+    // Обработка флага
     let flagText = user.flagCode || user.flag || 'un';
     let fCode = flagText.replace(/[^a-zA-Z]/g, '').toLowerCase();
     if(!fCode || fCode.length !== 2) fCode = 'un';
-    if(fCode === 'en') fCode = 'gb'; // Фикс английского флага
+    if(fCode === 'en') fCode = 'gb';
 
-    // 🔥 ПОЛНАЯ БАЗА СТРАН (Под твои 12 языков)
-    const countryInfoDB = {
-        'az': { country: 'Azerbaijan', pop: '~10.1M', seas: 'Caspian Sea', about: 'Azerbaijan is a country in the South Caucasus region of Eurasia.' },
-        'it': { country: 'Italy', pop: '~59M', seas: 'Mediterranean, Adriatic', about: 'Italy is a country in Southern Europe, famous for art and cuisine.' },
-        'de': { country: 'Germany', pop: '~83M', seas: 'North Sea, Baltic Sea', about: 'Germany is a country in Central Europe, known for its strong economy and history.' },
-        'gb': { country: 'United Kingdom', pop: '~67M', seas: 'Atlantic Ocean, North Sea', about: 'The UK is an island nation in northwestern Europe.' },
-        'us': { country: 'USA', pop: '~335M', seas: 'Atlantic, Pacific', about: 'The United States is a country primarily located in North America.' },
-        'ru': { country: 'Russia', pop: '~144M', seas: 'Arctic Ocean, Pacific Ocean', about: 'Russia is the largest country in the world, spanning Eastern Europe and Northern Asia.' },
-        'tr': { country: 'Turkey', pop: '~85M', seas: 'Mediterranean, Black Sea', about: 'Turkey is a transcontinental country located mainly on the Anatolian Peninsula.' },
-        'fr': { country: 'France', pop: '~68M', seas: 'Mediterranean, Atlantic', about: 'France is a country in Western Europe known for its culture and history.' },
-        'es': { country: 'Spain', pop: '~47M', seas: 'Mediterranean, Atlantic', about: 'Spain is a country in Southwestern Europe, known for its diverse geography and cultures.' },
-        'pt': { country: 'Portugal', pop: '~10M', seas: 'Atlantic Ocean', about: 'Portugal is a southern European country on the Iberian Peninsula.' },
-        'jp': { country: 'Japan', pop: '~125M', seas: 'Pacific Ocean, Sea of Japan', about: 'Japan is an island country in East Asia.' },
-        'cn': { country: 'China', pop: '~1.4B', seas: 'Yellow Sea, East China Sea', about: 'China is a country in East Asia and the world\'s second-most populous country.' },
-        'ae': { country: 'UAE', pop: '~9.4M', seas: 'Persian Gulf, Gulf of Oman', about: 'The United Arab Emirates is a country in Western Asia at the southeast end of the Arabian Peninsula.' }
-    };
+    // Получаем гео-данные из единой базы в web-ui.js
+    const smartInfo = typeof window.getCountryFacts === 'function' ? window.getCountryFacts(fCode) : { country: 'Global', pop: '-', seas: '-', about: '-' };
 
-    // Берем данные из базы стран (или пустые, если страны нет в списке)
-    const defaultInfo = countryInfoDB[fCode] || { country: 'Global', pop: '', seas: '', about: '' };
-
-    // 1. Заполняем Левую Панель (Анкета)
+    // Заполняем Левую Панель (Анкета)
     const photoEl = document.getElementById('modal-user-photo');
     if (photoEl) photoEl.src = user.photo || 'https://ui-avatars.com/api/?name=U';
     
@@ -121,37 +112,43 @@ window.openUserProfile = function(userId) {
     if (nameEl) nameEl.innerText = user.name || 'User';
     
     const countryEl = document.getElementById('modal-user-country');
-    if (countryEl) countryEl.innerHTML = `<img src="https://flagcdn.com/w40/${fCode}.png" class="w-5 h-auto rounded-sm border border-gray-200 dark:border-slate-700"> <span class="font-medium">${user.country || defaultInfo.country}</span>`;
+    if (countryEl) countryEl.innerHTML = `<img src="https://flagcdn.com/w40/${fCode}.png" class="w-5 h-auto rounded-sm border border-gray-200 shadow-sm"> <span class="font-medium">${user.country || smartInfo.country}</span>`;
     
     const langsEl = document.getElementById('modal-user-langs');
-    if (langsEl) langsEl.innerText = user.languages || user.profileLangs || '';
+    if (langsEl) langsEl.innerText = user.languages || user.profileLangs || '-';
     
     const popEl = document.getElementById('modal-user-pop');
-    if (popEl) popEl.innerText = user.population || defaultInfo.pop;
+    if (popEl) popEl.innerText = smartInfo.pop;
     
     const seasEl = document.getElementById('modal-user-seas');
-    if (seasEl) seasEl.innerText = user.seas || defaultInfo.seas;
+    if (seasEl) seasEl.innerText = smartInfo.seas;
     
     const aboutEl = document.getElementById('modal-user-about');
-    if (aboutEl) aboutEl.innerText = user.about || defaultInfo.about;
+    if (aboutEl) {
+        let userAbout = user.cv ? user.cv.about : user.about;
+        aboutEl.innerText = userAbout || smartInfo.about;
+    }
 
-    // 2. Назначаем действия на Правой Панели (Кнопки)
+    // Назначаем действия на Правой Панели (Кнопки)
     const btnPrivChat = document.getElementById('btn-priv-chat');
     if (btnPrivChat) btnPrivChat.onclick = () => { window.closeUserProfile(); if(typeof window.switchWebChat === 'function') window.switchWebChat(userId); };
     
-    const btnVoiceMsg = document.getElementById('btn-voice-msg');
-    if (btnVoiceMsg) btnVoiceMsg.onclick = () => { alert('Voice Msg feature coming soon!'); };
-    
     const btnAppAudio = document.getElementById('btn-app-audio');
-    if (btnAppAudio) btnAppAudio.onclick = () => { window.closeUserProfile(); if(typeof window.startWebCall === 'function') window.startWebCall(userId, 'voice'); };
+    if (btnAppAudio) btnAppAudio.onclick = () => { window.closeUserProfile(); if(typeof window.openVoiceChat === 'function') window.openVoiceChat(); };
     
     const btnAppVideo = document.getElementById('btn-app-video');
     if (btnAppVideo) btnAppVideo.onclick = () => { window.closeUserProfile(); if(typeof window.openConference === 'function') window.openConference(); };
-    
-    const btnPhoneCall = document.getElementById('btn-phone-call');
-    if (btnPhoneCall) btnPhoneCall.onclick = () => { alert('Calling ' + (user.phone || 'Hidden') + ' via Phone'); };
 
-    // 3. Показываем панели и запускаем анимацию выезда
+    // Кнопка View Full CV -> Открывает нашу новую крутую модалку
+    const btnFullCv = document.getElementById('btn-full-cv');
+    if (btnFullCv) {
+        btnFullCv.onclick = () => { 
+            window.closeUserProfile(); 
+            setTimeout(() => { if(typeof window.openDetailedCV === 'function') window.openDetailedCV(userId); }, 300);
+        };
+    }
+
+    // Показываем панели и запускаем анимацию
     const overlay = document.getElementById('web-profile-overlay');
     const leftPanel = document.getElementById('profile-left-panel');
     const rightPanel = document.getElementById('profile-right-panel');
@@ -160,9 +157,27 @@ window.openUserProfile = function(userId) {
         overlay.classList.remove('hidden');
         overlay.classList.add('flex');
         
+        // Небольшая задержка для плавного выезда панелей с боков
         setTimeout(() => {
             leftPanel.classList.remove('-translate-x-full');
             rightPanel.classList.remove('translate-x-full');
         }, 50);
+    }
+};
+
+window.closeUserProfile = function() {
+    const overlay = document.getElementById('web-profile-overlay');
+    const leftPanel = document.getElementById('profile-left-panel');
+    const rightPanel = document.getElementById('profile-right-panel');
+    
+    if (overlay && leftPanel && rightPanel) {
+        leftPanel.classList.add('-translate-x-full');
+        rightPanel.classList.add('translate-x-full');
+        
+        // Ждем окончания CSS анимации, затем скрываем оверлей
+        setTimeout(() => {
+            overlay.classList.remove('flex');
+            overlay.classList.add('hidden');
+        }, 300); 
     }
 };
