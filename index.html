@@ -12,7 +12,7 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -31,6 +31,10 @@
         .marquee-content { animation: marquee 20s linear infinite; }
         @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         .popover-panel { transition: opacity 0.2s ease, transform 0.2s ease; }
+
+        /* Стеклянные панели (как на фото) */
+        .glass-panel { background: rgba(42, 45, 54, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .square-btn { aspect-ratio: 1 / 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; border-radius: 1.5rem; transition: all 0.2s; }
 
         /* СЕТКА КОНФЕРЕНЦИИ */
         .call-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; flex-direction: column; overflow: hidden; }
@@ -136,7 +140,9 @@
                 <button onclick="openSearchModal()" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors" title="Global Search">
                     <i class="fa-solid fa-magnifying-glass text-xl text-indigo-500"></i>
                 </button>
-                <button onclick="openEmailStore()" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors" title="Email"><i class="fa-solid fa-envelope text-xl"></i></button>
+                <button onclick="openEmailModal()" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors" title="Send Email">
+                    <i class="fa-solid fa-envelope text-xl text-indigo-500"></i>
+                </button>
                 
                 <button id="header-menu-btn" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"><i class="fa-solid fa-ellipsis-vertical text-xl"></i></button>
                 
@@ -305,6 +311,12 @@
                     <i class="fa-solid fa-address-book text-indigo-500"></i> <span data-i18n="nav_contacts">Contacts</span>
                 </h2>
             </div>
+            
+            <div class="relative w-full max-w-md mb-6">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="contacts-search-input" onkeyup="filterContacts(this.value)" placeholder="Search by name or phone..." data-i18n-placeholder="search_ph" class="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl outline-none focus:border-indigo-500 font-medium text-sm shadow-inner transition-colors text-gray-900 dark:text-white">
+            </div>
+            
             <div id="footer-contacts-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
             </div>
         </section>
@@ -374,31 +386,108 @@
 </div>
 
 <div id="search-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] opacity-0 transition-opacity duration-300 backdrop-blur-sm" onclick="if(event.target===this) closeSearchModal()">
-    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-2xl shadow-2xl transform scale-95 transition-transform duration-300 relative border border-gray-100 dark:border-slate-700 flex flex-col max-h-[85vh]" onclick="event.stopPropagation();">
-        <button onclick="closeSearchModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
-        <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white border-b border-gray-200 dark:border-slate-700 pb-3"><i class="fa-solid fa-globe text-indigo-500 mr-2"></i> Global Omni-Search</h2>
-        <div class="relative w-full shrink-0 mb-4">
-            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
-            <input type="text" id="global-search-input" onkeyup="performLiveSearch()" placeholder="Search people, places, services..." class="w-full pl-12 pr-12 py-3 border border-gray-300 dark:border-slate-600 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-slate-900 dark:text-white transition-colors text-lg">
-            <i class="fa-solid fa-circle-xmark absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hidden hover:text-gray-600 dark:hover:text-white transition text-xl" id="clear-search-btn" onclick="resetGlobalSearch()" title="Clear Search"></i>
+    <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 w-full max-w-xl shadow-2xl transform scale-95 transition-transform duration-300 relative border border-gray-100 dark:border-slate-700" onclick="event.stopPropagation();">
+        <button onclick="closeSearchModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+        
+        <h2 class="text-lg font-bold mb-5 text-gray-800 dark:text-white flex items-center gap-2"><i class="fa-solid fa-globe text-blue-500"></i> Global Omni-Search</h2>
+        
+        <div class="relative w-full mb-6">
+            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            <input type="text" id="global-search-input" onkeyup="performLiveSearch()" placeholder="Search people, places, services..." data-i18n-placeholder="search_ph" class="w-full pl-11 pr-10 py-3 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:border-blue-500 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white transition-colors">
+            <i class="fa-solid fa-circle-xmark absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hidden hover:text-red-500 transition text-xl" id="clear-search-btn" onclick="resetGlobalSearch()"></i>
         </div>
-        <div class="w-full shrink-0 mb-2 overflow-y-auto" id="search-suggestions" style="max-height: 40vh;">
-            <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mb-2 uppercase tracking-wider">🤝 People & Skills</p>
-            <div class="flex flex-wrap gap-2 mb-4">
-                <button onclick="handleSmartSearch('Engineer', 'text')" class="px-4 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-500 transition">💻 Engineer</button>
-                <button onclick="handleSmartSearch('Designer', 'text')" class="px-4 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-500 transition">🎨 Designer</button>
+
+        <div id="search-suggestions" class="space-y-5">
+            <div>
+                <p class="text-[10px] font-bold text-yellow-500 uppercase tracking-wider mb-2 flex items-center gap-1"><i class="fa-solid fa-shield-halved"></i> PEOPLE & SKILLS</p>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="handleSmartSearch('Engineer', 'text')" class="px-3 py-1.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-slate-600 transition flex items-center"><i class="fa-solid fa-laptop text-blue-400 mr-2"></i> Engineer</button>
+                    <button onclick="handleSmartSearch('Designer', 'text')" class="px-3 py-1.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-slate-600 transition flex items-center"><i class="fa-solid fa-palette text-red-400 mr-2"></i> Designer</button>
+                    <button onclick="handleSmartSearch('Marketing', 'text')" class="px-3 py-1.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-slate-600 transition flex items-center"><i class="fa-solid fa-chart-line text-purple-400 mr-2"></i> Marketing</button>
+                </div>
             </div>
-            <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mb-2 uppercase tracking-wider">💳 Services & Actions</p>
-            <div class="flex flex-wrap gap-2 mb-4">
-                <button onclick="handleSmartSearch('', 'transfer')" class="px-4 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg text-sm text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-800/40 transition">💸 Send Money</button>
-                <button onclick="handleSmartSearch('', 'email')" class="px-4 py-2 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg text-sm text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-800/40 transition">📧 Compose Email</button>
+
+            <div>
+                <p class="text-[10px] font-bold text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1"><i class="fa-solid fa-earth-americas"></i> PLACES & LANGUAGES</p>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="handleSmartSearch('Germany', 'text')" class="px-3 py-1.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-600 transition flex items-center"><span class="text-[10px] text-gray-400 font-bold mr-2">DE</span> Germany</button>
+                    <button onclick="handleSmartSearch('Italy', 'text')" class="px-3 py-1.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-600 transition flex items-center"><span class="text-[10px] text-gray-400 font-bold mr-2">IT</span> Italy</button>
+                    <button onclick="handleSmartSearch('English', 'text')" class="px-3 py-1.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-600 transition flex items-center"><i class="fa-solid fa-language text-indigo-500 mr-2"></i> English</button>
+                </div>
+            </div>
+
+            <div>
+                <p class="text-[10px] font-bold text-teal-500 uppercase tracking-wider mb-2 flex items-center gap-1"><i class="fa-solid fa-credit-card"></i> SERVICES & ACTIONS</p>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="handleSmartSearch('', 'transfer')" class="px-3 py-1.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-lg text-sm text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-800/80 transition flex items-center"><i class="fa-solid fa-money-bill-transfer text-green-500 mr-2"></i> Send Money</button>
+                    <button onclick="handleSmartSearch('', 'email')" class="px-3 py-1.5 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800/50 rounded-lg text-sm text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-800/80 transition flex items-center"><i class="fa-solid fa-envelope text-purple-500 mr-2"></i> Compose Email</button>
+                </div>
+            </div>
+
+            <div>
+                <p class="text-[10px] font-bold text-cyan-500 uppercase tracking-wider mb-2 flex items-center gap-1"><i class="fa-solid fa-globe"></i> WEB QUERIES</p>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="handleSmartSearch('Exchange Rates', 'web')" class="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-lg text-sm text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-800/80 transition flex items-center"><i class="fa-solid fa-rotate text-blue-400 mr-2"></i> Exchange Rates</button>
+                    <button onclick="handleSmartSearch('World News', 'web')" class="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-lg text-sm text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-800/80 transition flex items-center"><i class="fa-solid fa-newspaper text-blue-400 mr-2"></i> World News</button>
+                </div>
             </div>
         </div>
-        <div class="w-full flex-grow overflow-y-auto flex flex-col gap-2 pr-1 border-t border-gray-200 dark:border-slate-700 pt-4" id="search-results-area"></div>
-        <iframe id="search-result-frame" class="w-full h-[40vh] mt-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white hidden shrink-0" src="about:blank"></iframe>
-        <button onclick="doGoogleSearch()" class="mt-4 w-full bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 hover:bg-gray-200 dark:hover:bg-slate-600 py-3 rounded-lg font-semibold transition-colors flex justify-center items-center gap-2 shadow-sm">
-            <span class="text-gray-600 dark:text-gray-300">Search Web:</span>
+
+        <div id="search-results-area" class="w-full flex-col gap-2 mt-4 hidden overflow-y-auto max-h-[40vh] border-t border-gray-100 dark:border-slate-700 pt-4"></div>
+        <iframe id="search-result-frame" class="w-full h-[40vh] mt-4 rounded-xl border border-gray-200 dark:border-slate-700 hidden" src="about:blank"></iframe>
+
+        <button onclick="doGoogleSearch()" class="mt-6 w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800 py-3 rounded-xl text-sm font-semibold transition-colors flex justify-center items-center gap-2">
+            <span class="text-gray-500 dark:text-gray-400">Search Web:</span>
             <span class="font-bold text-blue-500">G</span><span class="font-bold text-red-500">o</span><span class="font-bold text-yellow-500">o</span><span class="font-bold text-blue-500">g</span><span class="font-bold text-green-500">l</span><span class="font-bold text-red-500">e</span>
+        </button>
+    </div>
+</div>
+
+<div id="web-profile-overlay" class="fixed inset-0 z-[10000] hidden items-center justify-center gap-6 md:gap-10 p-4 bg-black/80 transition-all duration-500 overflow-hidden" onclick="if(event.target===this) closeUserProfile()">
+    
+    <div id="profile-left-panel" class="bg-white dark:bg-slate-800 text-gray-900 dark:text-white w-full max-w-sm rounded-[2rem] p-8 shadow-2xl relative transform -translate-x-full transition-transform duration-500" onclick="event.stopPropagation()">
+        <button onclick="closeUserProfile()" class="absolute top-6 right-6 text-gray-400 hover:text-red-500 text-3xl transition-colors">&times;</button>
+        <div class="flex flex-col items-center mb-6">
+            <div class="w-28 h-28 rounded-full p-1 border-4 border-indigo-500 shadow-xl mb-4"><img id="modal-user-photo" src="" class="w-full h-full rounded-full object-cover"></div>
+            <h2 id="modal-user-name" class="text-2xl font-black tracking-tight">Name</h2>
+        </div>
+        <div class="space-y-4 text-sm font-bold">
+            <div class="flex items-center gap-4 py-2 border-b border-gray-100 dark:border-white/5"><i class="fa-solid fa-globe text-indigo-500 w-6 text-center text-xl"></i><span class="text-gray-400 w-24 uppercase text-[10px] tracking-widest" data-i18n="country">Country</span><span id="modal-user-country" class="flex items-center gap-2"></span></div>
+            <div class="flex items-center gap-4 py-2 border-b border-gray-100 dark:border-white/5"><i class="fa-solid fa-language text-indigo-500 w-6 text-center text-xl"></i><span class="text-gray-400 w-24 uppercase text-[10px] tracking-widest" data-i18n="languages">Languages</span><span id="modal-user-langs" class="truncate max-w-[150px]"></span></div>
+            <div class="flex items-center gap-4 py-2 border-b border-gray-100 dark:border-white/5"><i class="fa-solid fa-users text-indigo-500 w-6 text-center text-xl"></i><span class="text-gray-400 w-24 uppercase text-[10px] tracking-widest" data-i18n="population">Population</span><span id="modal-user-pop"></span></div>
+            <div class="flex items-center gap-4 py-2"><i class="fa-solid fa-water text-indigo-500 w-6 text-center text-xl"></i><span class="text-gray-400 w-24 uppercase text-[10px] tracking-widest" data-i18n="seas">Seas</span><span id="modal-user-seas" class="truncate max-w-[150px]"></span></div>
+        </div>
+        <div class="mt-6 pt-4 border-t border-gray-100 dark:border-white/5"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2" data-i18n="about_me">About</p><p id="modal-user-about" class="text-xs leading-relaxed text-gray-500 italic"></p></div>
+    </div>
+
+    <div id="profile-right-panel" class="w-full max-w-sm flex flex-col gap-3 transform translate-x-full transition-transform duration-500" onclick="event.stopPropagation()">
+        
+        <div class="grid grid-cols-2 gap-3">
+            <button id="btn-priv-chat" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
+                <i class="fa-solid fa-lock text-green-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]"></i>
+                <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_chat">Private Chat</span>
+            </button>
+            <button id="btn-voice-msg" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
+                <i class="fa-solid fa-microphone text-blue-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]"></i>
+                <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_voice">Voice Msg</span>
+            </button>
+            <button id="btn-app-audio" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
+                <i class="fa-solid fa-headset text-purple-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]"></i>
+                <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_app_audio">App Audio</span>
+            </button>
+            <button id="btn-app-video" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
+                <i class="fa-solid fa-video text-pink-500 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]"></i>
+                <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_video">App Video</span>
+            </button>
+        </div>
+        
+        <button id="btn-ext-call" class="glass-panel rounded-2xl py-4 flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer shadow-lg mt-1">
+            <span class="text-white font-bold text-base tracking-wide" data-i18n="action_cellular">Phone Call</span>
+        </button>
+
+        <button id="btn-full-cv" class="bg-[#10b981]/10 border border-[#10b981]/40 backdrop-blur-md rounded-2xl p-4 flex items-center justify-center gap-3 hover:bg-[#10b981]/20 transition-all cursor-pointer shadow-lg mt-1 group">
+            <i class="fa-solid fa-user-tie text-emerald-400 text-xl group-hover:scale-110 transition"></i>
+            <span class="text-emerald-400 font-bold text-sm tracking-wide uppercase" data-i18n="view_cv">View Full CV</span>
         </button>
     </div>
 </div>
@@ -430,48 +519,6 @@
             <button onclick="setPersonalLang('az')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇦🇿 Azərbaycanca</button>
         </div>
         <button onclick="closePersonalLangModal()" class="w-full mt-5 py-3 bg-gray-100 dark:bg-slate-600 rounded-xl font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-500 transition-colors" data-i18n="cancel">Cancel</button>
-    </div>
-</div>
-
-<div id="web-profile-overlay" class="fixed inset-0 z-[10000] hidden items-center justify-center gap-12 p-4 md:p-20 bg-black/85 overflow-hidden" onclick="if(event.target===this) closeUserProfile()">
-    <div id="profile-left-panel" class="bg-[#f0f0f0] text-gray-800 w-full max-w-sm rounded-2xl p-6 shadow-2xl relative transform -translate-x-full transition-transform duration-300" onclick="event.stopPropagation();">
-        <button onclick="closeUserProfile()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl"><i class="fa-solid fa-xmark"></i></button>
-        <div class="flex flex-col items-center mt-2">
-            <div class="w-32 h-32 rounded-full p-1 border-2 border-gray-300 mb-4 shadow-sm relative">
-                 <img id="modal-user-photo" src="" class="w-full h-full rounded-full object-cover">
-            </div>
-            <h2 id="modal-user-name" class="text-2xl font-bold mb-6 text-gray-800">Name</h2>
-        </div>
-        <div class="space-y-4 text-sm text-gray-600 font-medium pl-2">
-            <div class="flex items-center gap-4"><i class="fa-solid fa-globe text-indigo-400 w-5 text-center text-lg"></i><span class="w-24">Country:</span><span id="modal-user-country" class="flex items-center gap-2 font-bold text-gray-800"></span></div>
-            <div class="flex items-center gap-4"><i class="fa-solid fa-language text-indigo-400 w-5 text-center text-lg"></i><span class="w-24">Languages:</span><span id="modal-user-langs" class="font-bold text-gray-800 truncate"></span></div>
-            <div class="flex items-center gap-4"><i class="fa-solid fa-users text-indigo-400 w-5 text-center text-lg"></i><span class="w-24">Population:</span><span id="modal-user-pop" class="font-bold text-gray-800"></span></div>
-            <div class="flex items-center gap-4"><i class="fa-solid fa-water text-indigo-400 w-5 text-center text-lg"></i><span class="w-24">Seas:</span><span id="modal-user-seas" class="font-bold text-gray-800 truncate"></span></div>
-        </div>
-        <div class="mt-8 border-t border-gray-300 pt-4 pl-2">
-            <p class="text-xs text-gray-500 mb-2">About:</p>
-            <p id="modal-user-about" class="text-sm text-gray-700 leading-relaxed"></p>
-        </div>
-    </div>
-
-    <div id="profile-right-panel" class="w-full max-w-sm grid grid-cols-2 gap-4 transform translate-x-full transition-transform duration-300" onclick="event.stopPropagation();">
-        <button id="btn-priv-chat" class="bg-white/10 border border-white/10 backdrop-blur-md rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:bg-white/20 transition shadow-lg group">
-            <i class="fa-solid fa-lock text-green-400 text-3xl drop-shadow-[0_0_8px_rgba(74,222,128,0.5)] group-hover:scale-110 transition"></i>
-            <span class="text-white font-bold text-sm drop-shadow-md">Private Chat</span>
-        </button>
-        <button id="btn-app-audio" class="bg-white/10 border border-white/10 backdrop-blur-md rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:bg-white/20 transition shadow-lg group">
-            <i class="fa-solid fa-headset text-purple-400 text-3xl drop-shadow-[0_0_8px_rgba(192,132,252,0.5)] group-hover:scale-110 transition"></i>
-            <span class="text-white font-bold text-sm drop-shadow-md">App Audio</span>
-        </button>
-        <button id="btn-app-video" class="bg-white/10 border border-white/10 backdrop-blur-md rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:bg-white/20 transition shadow-lg group">
-            <i class="fa-solid fa-video text-pink-500 text-3xl drop-shadow-[0_0_8px_rgba(236,72,153,0.5)] group-hover:scale-110 transition"></i>
-            <span class="text-white font-bold text-sm drop-shadow-md">App Video</span>
-        </button>
-        <button id="btn-full-cv" class="col-span-2 bg-emerald-500/10 border border-emerald-500/30 backdrop-blur-md rounded-2xl p-4 flex flex-col items-center justify-center hover:bg-emerald-500/20 transition shadow-lg mt-2 group">
-            <span class="text-emerald-400 font-bold text-base tracking-widest drop-shadow-md group-hover:scale-105 transition">
-                <i class="fa-solid fa-user-tie mr-2"></i>View Full CV
-            </span>
-        </button>
     </div>
 </div>
 
