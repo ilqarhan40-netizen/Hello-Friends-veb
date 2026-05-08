@@ -1,5 +1,5 @@
 // ==========================================
-// Файл: webjs/web-ui.js
+// Файл: web-ui.js
 // Назначение: Меню, Вкладки, Базовые модальные окна, Тема, Главный Профиль, Поиск (Лупа), Кошелек, Почта, Аватар
 // ==========================================
 
@@ -166,7 +166,7 @@ window.openMyProfile = function() {
     }
 
     modal.innerHTML = `
-        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden relative flex flex-col border border-gray-200 dark:border-slate-700 animate-fade-in" onclick="event.stopPropagation()">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden relative flex flex-col border border-gray-200 dark:border-slate-700 animate-fade-in transition-colors" onclick="event.stopPropagation()">
             <button onclick="document.getElementById('profile-modal-container').remove()" class="absolute top-4 right-4 w-8 h-8 bg-gray-100 dark:bg-slate-700 hover:bg-red-500 hover:text-white text-gray-500 dark:text-gray-300 rounded-full flex items-center justify-center transition-colors z-50 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
 
             <div class="pt-8 pb-2 flex flex-col items-center justify-center relative">
@@ -175,7 +175,7 @@ window.openMyProfile = function() {
                 
                 <div class="relative w-24 h-24 rounded-full p-1 border-2 border-[#10b981] mb-2 cursor-pointer group" onclick="document.getElementById('attachment-input')?.click()">
                     <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full rounded-full object-cover">
-                    <div class="absolute bottom-0 right-0 w-7 h-7 bg-[#10b981] rounded-full border-2 border-white dark:border-slate-800 flex items-center justify-center text-white text-xs"><i class="fa-solid fa-camera"></i></div>
+                    <div class="absolute bottom-0 right-0 w-7 h-7 bg-[#10b981] rounded-full border-2 border-white dark:border-slate-800 flex items-center justify-center text-white text-xs transition-colors"><i class="fa-solid fa-camera"></i></div>
                 </div>
             </div>
 
@@ -184,11 +184,11 @@ window.openMyProfile = function() {
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1" data-i18n="full_name">Full Name</label>
-                        <input type="text" id="prof-name" value="${user.name || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] font-medium">
+                        <input type="text" id="prof-name" value="${user.name || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] font-medium transition-colors">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1" data-i18n="profession">Profession</label>
-                        <input type="text" id="prof-role" value="${cv.profession || cv.role || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] font-medium">
+                        <input type="text" id="prof-role" value="${cv.profession || cv.role || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] font-medium transition-colors">
                     </div>
                 </div>
 
@@ -197,7 +197,7 @@ window.openMyProfile = function() {
                         <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1" data-i18n="country">Country</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm" id="prof-flag-display">${user.flag || '🌍'}</span>
-                            <select id="prof-country-select" onchange="window.updateProfileGeo(this)" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl pl-9 pr-3 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] appearance-none cursor-pointer text-sm font-medium">
+                            <select id="prof-country-select" onchange="window.updateProfileGeo(this)" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl pl-9 pr-3 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] appearance-none cursor-pointer text-sm font-medium transition-colors">
                                 ${optionsHtml}
                             </select>
                             <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
@@ -205,33 +205,33 @@ window.openMyProfile = function() {
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1" data-i18n="phone">Phone Number</label>
-                        <input type="text" id="prof-phone" value="${user.phone || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] font-medium">
+                        <input type="text" id="prof-phone" value="${user.phone || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] font-medium transition-colors">
                     </div>
                 </div>
 
-                <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-4 border border-indigo-100 dark:border-indigo-800/30">
-                    <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2"><i class="fa-solid fa-robot"></i> Smart Geo Data</p>
+                <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-4 border border-indigo-100 dark:border-indigo-800/30 transition-colors">
+                    <p class="text-[10px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mb-2"><i class="fa-solid fa-robot"></i> Smart Geo Data</p>
                     <div class="space-y-1 text-xs text-gray-600 dark:text-gray-300">
                         <p><b data-i18n="population">Population:</b> <span id="smart-pop">${startGeo.pop}</span></p>
                         <p><b data-i18n="seas">Seas:</b> <span id="smart-seas">${startGeo.seas}</span></p>
-                        <p class="mt-2 text-[10px] italic text-gray-500" id="smart-about">${startGeo.about}</p>
+                        <p class="mt-2 text-[10px] italic text-gray-500 dark:text-gray-400" id="smart-about">${startGeo.about}</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1" data-i18n="email">Email</label>
-                        <input type="email" id="prof-email" value="${user.email || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] font-medium">
+                        <input type="email" id="prof-email" value="${user.email || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] font-medium transition-colors">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1" data-i18n="languages">Languages</label>
-                        <input type="text" id="prof-langs" value="${user.profileLangs || cv.languages || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] font-medium">
+                        <input type="text" id="prof-langs" value="${user.profileLangs || cv.languages || ''}" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] font-medium transition-colors">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-[10px] font-bold text-[#10b981] uppercase mb-1" data-i18n="about_me">About Me</label>
-                    <textarea id="prof-about" rows="3" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] resize-none font-medium text-sm">${cv.about || user.about || ''}</textarea>
+                    <textarea id="prof-about" rows="3" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white outline-none focus:border-[#10b981] resize-none font-medium text-sm transition-colors">${cv.about || user.about || ''}</textarea>
                 </div>
                 
                 <button onclick="saveProfileData(this)" class="mt-2 w-full bg-[#10b981] hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all cursor-pointer uppercase text-xs tracking-wider" data-i18n="save_profile">Save Profile</button>
@@ -288,7 +288,7 @@ window.saveProfileData = function(btn) {
         window.myProfileInfo.cv.profession = profession;
         
         document.getElementById('profile-modal-container').remove();
-        if(typeof window.renderMainScreenAvatars === 'function') window.renderMainScreenAvatars(window.appUsers);
+        if(typeof window.renderContactsList === 'function') window.renderContactsList();
         if(typeof window.renderProfessionSection === 'function') window.renderProfessionSection(window.appUsers);
     }).catch(err => {
         alert("Error: " + err.message);
@@ -411,24 +411,24 @@ window.openEmailModal = function() {
     document.body.appendChild(modal);
 
     modal.innerHTML = `
-        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-3xl shadow-2xl p-6 md:p-8 relative border border-gray-200 dark:border-slate-700 pointer-events-auto" onclick="event.stopPropagation()">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-3xl shadow-2xl p-6 md:p-8 relative border border-gray-200 dark:border-slate-700 pointer-events-auto transition-colors" onclick="event.stopPropagation()">
             <button onclick="document.getElementById('email-compose-modal').remove()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl z-50 cursor-pointer outline-none">&times;</button>
             
             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                <i class="fa-solid fa-envelope-open-text text-indigo-500"></i> Compose Email
+                <i class="fa-solid fa-envelope-open-text text-indigo-500 dark:text-indigo-400"></i> Compose Email
             </h3>
             
             <div class="space-y-4">
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 tracking-wider">To</label>
+                    <label class="block text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1 tracking-wider">To</label>
                     <input type="email" id="email-to-input" placeholder="recipient@example.com" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500 transition-colors shadow-inner">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 tracking-wider">Subject</label>
+                    <label class="block text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1 tracking-wider">Subject</label>
                     <input type="text" id="email-subject-input" placeholder="Enter subject..." class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500 transition-colors shadow-inner">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 tracking-wider">Message</label>
+                    <label class="block text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mb-1 tracking-wider">Message</label>
                     <textarea id="email-body-input" rows="4" placeholder="Write your message here..." class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-indigo-500 resize-none transition-colors shadow-inner"></textarea>
                 </div>
                 
@@ -473,17 +473,17 @@ window.openEmailStore = function() {
 
     modal.innerHTML = `
         <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl shadow-2xl p-8 relative border border-gray-200 dark:border-slate-700 transition-colors duration-300" onclick="event.stopPropagation()">
-            <button onclick="closeEmailStore()" class="absolute top-4 right-4 w-8 h-8 bg-gray-100 dark:bg-slate-700 rounded-full flex justify-center items-center text-gray-500 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="closeEmailStore()" class="absolute top-4 right-4 w-8 h-8 bg-gray-100 dark:bg-slate-700 rounded-full flex justify-center items-center text-gray-500 dark:text-gray-400 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
             
             <div class="flex flex-col items-center mb-6 text-center">
-                <div class="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-4"><i class="fa-solid fa-store text-3xl text-indigo-500"></i></div>
+                <div class="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-4"><i class="fa-solid fa-store text-3xl text-indigo-500 dark:text-indigo-400"></i></div>
                 <h2 class="text-xl font-bold text-gray-900 dark:text-white" data-i18n="email_store">Corporate Email</h2>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Stand out with a professional email address.</p>
             </div>
             
             <div class="flex items-center bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl overflow-hidden mb-6 shadow-inner focus-within:border-indigo-500 dark:focus-within:border-indigo-500 transition-colors">
                 <input type="text" placeholder="ceo, sales..." class="w-full bg-transparent px-4 py-3 outline-none text-gray-900 dark:text-white text-sm">
-                <span class="text-gray-500 dark:text-gray-400 text-sm pr-4 pl-3 py-3 bg-gray-100 dark:bg-slate-800 border-l border-gray-200 dark:border-slate-700 font-medium">@hellofriends.app</span>
+                <span class="text-gray-500 dark:text-gray-400 text-sm pr-4 pl-3 py-3 bg-gray-100 dark:bg-slate-800 border-l border-gray-200 dark:border-slate-700 font-medium transition-colors">@hellofriends.app</span>
             </div>
             
             <div class="flex justify-between items-center p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800/50 mb-6 transition-colors">
@@ -652,7 +652,7 @@ window.doGoogleSearch = function() {
 };
 
 // ==========================================
-// МОДАЛКА ЛУПЫ (Из поиска: 5 полей инфо, 3 кнопки внизу)
+// МОДАЛКА ЛУПЫ (Из поиска: 5 полей инфо, 3 кнопки внизу) - Адаптировано под Тёмную тему
 // ==========================================
 window.openLupeCV = function(uid) {
     if(typeof window.closeDropdown === 'function') window.closeDropdown();
@@ -688,51 +688,51 @@ window.openLupeCV = function(uid) {
     }
 
     modalContainer.innerHTML = `
-        <div class="bg-[#f8f9fa] w-full max-w-[340px] rounded-3xl shadow-2xl relative p-6 flex flex-col items-center pointer-events-auto" onclick="event.stopPropagation()">
-            <button onclick="document.getElementById('lupe-cv-modal').remove()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl z-50 cursor-pointer p-2 outline-none">&times;</button>
+        <div class="bg-white dark:bg-slate-800 w-full max-w-[340px] rounded-3xl shadow-2xl relative p-6 flex flex-col items-center pointer-events-auto border border-gray-200 dark:border-slate-700 transition-colors duration-300" onclick="event.stopPropagation()">
+            <button onclick="document.getElementById('lupe-cv-modal').remove()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:hover:text-white text-xl z-50 cursor-pointer p-2 outline-none transition-colors">&times;</button>
 
-            <div class="w-20 h-20 rounded-full p-1 bg-white border border-gray-200 shadow-sm mb-3">
+            <div class="w-20 h-20 rounded-full p-1 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 shadow-sm mb-3">
                 <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-full h-full rounded-full object-cover">
             </div>
-            <h2 class="text-xl font-bold text-gray-900 mb-6">${user.name.split(' ')[0]}</h2>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-6">${user.name.split(' ')[0]}</h2>
 
-            <div class="w-full space-y-3 text-sm text-gray-600 font-medium mb-6 px-2">
+            <div class="w-full space-y-3 text-sm text-gray-600 dark:text-gray-300 font-medium mb-6 px-2">
                 <div class="flex items-center">
-                    <i class="fa-solid fa-globe text-indigo-400 w-6 text-center text-lg"></i>
-                    <span class="w-24 text-gray-400 ml-2" data-i18n="country">Country:</span>
-                    <span class="flex items-center gap-2 text-gray-800 font-bold truncate"><img src="https://flagcdn.com/w20/${fCode}.png" class="w-4 rounded-sm shadow-sm"> ${autoFacts.country}</span>
+                    <i class="fa-solid fa-globe text-indigo-500 dark:text-indigo-400 w-6 text-center text-lg"></i>
+                    <span class="w-24 text-gray-400 dark:text-gray-500 ml-2" data-i18n="country">Country:</span>
+                    <span class="flex items-center gap-2 text-gray-900 dark:text-white font-bold truncate"><img src="https://flagcdn.com/w20/${fCode}.png" class="w-4 rounded-sm shadow-sm"> ${autoFacts.country}</span>
                 </div>
                 <div class="flex items-center">
-                    <i class="fa-solid fa-briefcase text-indigo-400 w-6 text-center text-lg"></i>
-                    <span class="w-24 text-gray-400 ml-2" data-i18n="profession">Profession:</span>
-                    <span class="text-gray-800 font-bold truncate">${cv.profession || cv.role || 'Member'}</span>
+                    <i class="fa-solid fa-briefcase text-indigo-500 dark:text-indigo-400 w-6 text-center text-lg"></i>
+                    <span class="w-24 text-gray-400 dark:text-gray-500 ml-2" data-i18n="profession">Profession:</span>
+                    <span class="text-gray-900 dark:text-white font-bold truncate">${cv.profession || cv.role || 'Member'}</span>
                 </div>
                 <div class="flex items-center">
-                    <i class="fa-solid fa-language text-indigo-400 w-6 text-center text-lg"></i>
-                    <span class="w-24 text-gray-400 ml-2" data-i18n="languages">Languages:</span>
-                    <span class="text-gray-800 font-bold truncate">${cv.languages || user.profileLangs || '-'}</span>
+                    <i class="fa-solid fa-language text-indigo-500 dark:text-indigo-400 w-6 text-center text-lg"></i>
+                    <span class="w-24 text-gray-400 dark:text-gray-500 ml-2" data-i18n="languages">Languages:</span>
+                    <span class="text-gray-900 dark:text-white font-bold truncate">${cv.languages || user.profileLangs || '-'}</span>
                 </div>
                 <div class="flex items-center">
-                    <i class="fa-solid fa-users text-indigo-400 w-6 text-center text-lg"></i>
-                    <span class="w-24 text-gray-400 ml-2" data-i18n="population">Population:</span>
-                    <span class="text-gray-800 font-bold">${autoFacts.pop}</span>
+                    <i class="fa-solid fa-users text-indigo-500 dark:text-indigo-400 w-6 text-center text-lg"></i>
+                    <span class="w-24 text-gray-400 dark:text-gray-500 ml-2" data-i18n="population">Population:</span>
+                    <span class="text-gray-900 dark:text-white font-bold">${autoFacts.pop}</span>
                 </div>
                 <div class="flex items-center">
-                    <i class="fa-solid fa-water text-indigo-400 w-6 text-center text-lg"></i>
-                    <span class="w-24 text-gray-400 ml-2" data-i18n="seas">Seas:</span>
-                    <span class="text-gray-800 font-bold truncate">${autoFacts.seas}</span>
+                    <i class="fa-solid fa-water text-indigo-500 dark:text-indigo-400 w-6 text-center text-lg"></i>
+                    <span class="w-24 text-gray-400 dark:text-gray-500 ml-2" data-i18n="seas">Seas:</span>
+                    <span class="text-gray-900 dark:text-white font-bold truncate">${autoFacts.seas}</span>
                 </div>
             </div>
 
-            <div class="w-full text-left mb-6 border-t border-gray-200 pt-3 px-2">
-                <p class="text-xs text-gray-400 mb-1" data-i18n="about_me">About:</p>
-                <p class="text-xs text-gray-600 leading-relaxed">${cv.about || user.about || autoFacts.about}</p>
+            <div class="w-full text-left mb-6 border-t border-gray-200 dark:border-slate-700 pt-3 px-2">
+                <p class="text-xs text-gray-400 dark:text-gray-500 mb-1" data-i18n="about_me">About:</p>
+                <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">${cv.about || user.about || autoFacts.about}</p>
             </div>
 
             <div class="w-full flex justify-between gap-2 mt-auto">
-                <button onclick="document.getElementById('lupe-cv-modal').remove(); if(typeof window.switchWebChat === 'function') { window.switchWebChat('${uid}'); document.querySelector('.nav-link[data-target=\\'chat\\']')?.click(); }" class="flex-1 bg-[#3b82f6] hover:bg-blue-600 text-white text-[11px] font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"><i class="fa-solid fa-comment pointer-events-none"></i> <span class="pointer-events-none" data-i18n="chat">Chat</span></button>
-                <button onclick="if('${user.phone}') { document.getElementById('lupe-cv-modal').remove(); window.location.href='sms:${user.phone}'; } else alert('No phone number');" class="flex-1 bg-[#10b981] hover:bg-green-600 text-white text-[11px] font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"><i class="fa-solid fa-comment-sms pointer-events-none"></i> <span class="pointer-events-none" data-i18n="sms">SMS</span></button>
-                <button onclick="if('${user.email}') { document.getElementById('lupe-cv-modal').remove(); window.location.href='mailto:${user.email}'; } else alert('No email address');" class="flex-1 bg-[#6366f1] hover:bg-indigo-600 text-white text-[11px] font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"><i class="fa-solid fa-envelope pointer-events-none"></i> <span class="pointer-events-none" data-i18n="email_btn">Email</span></button>
+                <button onclick="document.getElementById('lupe-cv-modal').remove(); if(typeof window.switchWebChat === 'function') { window.switchWebChat('${uid}'); document.querySelector('.nav-link[data-target=\\'chat\\']')?.click(); }" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-[11px] font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"><i class="fa-solid fa-comment pointer-events-none"></i> <span class="pointer-events-none" data-i18n="chat">Chat</span></button>
+                <button onclick="if('${user.phone}') { document.getElementById('lupe-cv-modal').remove(); window.location.href='sms:${user.phone}'; } else alert('No phone number');" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"><i class="fa-solid fa-comment-sms pointer-events-none"></i> <span class="pointer-events-none" data-i18n="sms">SMS</span></button>
+                <button onclick="if('${user.email}') { document.getElementById('lupe-cv-modal').remove(); window.location.href='mailto:${user.email}'; } else alert('No email address');" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white text-[11px] font-bold py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"><i class="fa-solid fa-envelope pointer-events-none"></i> <span class="pointer-events-none" data-i18n="email_btn">Email</span></button>
             </div>
         </div>
     `;
@@ -740,7 +740,7 @@ window.openLupeCV = function(uid) {
 };
 
 // ==========================================
-// МОДАЛКА АВАТАРА (Сдвоенная панель профиля, Без локации, 5 кнопок)
+// МОДАЛКА АВАТАРА (Сдвоенная панель профиля, Адаптировано под Тёмную тему)
 // ==========================================
 window.openAvatarModal = function(uid) {
     if(typeof window.closeDropdown === 'function') window.closeDropdown();
@@ -768,47 +768,47 @@ window.openAvatarModal = function(uid) {
     }
 
     modalContainer.innerHTML = `
-        <div class="bg-white dark:bg-[#1e293b] w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative flex flex-col md:flex-row pointer-events-auto border border-gray-200 dark:border-slate-700" onclick="event.stopPropagation()">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative flex flex-col md:flex-row pointer-events-auto border border-gray-200 dark:border-slate-700 transition-colors duration-300" onclick="event.stopPropagation()">
             
-            <button onclick="document.getElementById('combined-avatar-modal').remove()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 z-[9999] text-3xl outline-none cursor-pointer p-2">&times;</button>
+            <button onclick="document.getElementById('combined-avatar-modal').remove()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 z-[9999] text-3xl outline-none cursor-pointer p-2 transition-colors">&times;</button>
             
-            <div class="w-full md:w-1/2 p-8 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700 relative z-10">
+            <div class="w-full md:w-1/2 p-8 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700 relative z-10 transition-colors">
                 <div class="flex flex-col items-center mb-6">
-                    <img src="${uData.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-24 h-24 rounded-full object-cover border-4 border-indigo-500 shadow-md mb-4">
+                    <img src="${uData.photo || 'https://ui-avatars.com/api/?name=U'}" class="w-24 h-24 rounded-full object-cover border-4 border-indigo-500 shadow-md mb-4 bg-white dark:bg-slate-800">
                     <h3 class="text-2xl font-bold text-gray-900 dark:text-white">${uData.name.replace(' (You)', '')}</h3>
                 </div>
                 <div class="space-y-4 text-sm mt-4 text-gray-800 dark:text-gray-200">
-                    <p class="flex items-center gap-2"><i class="fa-solid fa-globe text-indigo-400 w-4"></i> <b class="text-gray-500" data-i18n="country">Country:</b> <img src="https://flagcdn.com/w20/${fCode}.png" class="w-4 rounded-sm shadow-sm"> ${smartInfo.country}</p>
-                    <p class="flex items-center gap-2"><i class="fa-solid fa-briefcase text-indigo-400 w-4"></i> <b class="text-gray-500" data-i18n="profession">Profession:</b> <span class="font-semibold">${cv.profession || cv.role || '-'}</span></p>
-                    <p class="flex items-center gap-2"><i class="fa-solid fa-language text-indigo-400 w-4"></i> <b class="text-gray-500" data-i18n="languages">Languages:</b> <span class="truncate font-semibold">${uData.profileLangs || cv.languages || '-'}</span></p>
-                    <p class="flex items-center gap-2"><i class="fa-solid fa-users text-indigo-400 w-4"></i> <b class="text-gray-500" data-i18n="population">Population:</b> <span class="font-semibold">${smartInfo.pop}</span></p>
-                    <p class="flex items-center gap-2"><i class="fa-solid fa-water text-indigo-400 w-4"></i> <b class="text-gray-500" data-i18n="seas">Seas:</b> <span class="truncate font-semibold">${smartInfo.seas}</span></p>
+                    <p class="flex items-center gap-2"><i class="fa-solid fa-globe text-indigo-500 dark:text-indigo-400 w-4"></i> <b class="text-gray-500 dark:text-gray-400" data-i18n="country">Country:</b> <img src="https://flagcdn.com/w20/${fCode}.png" class="w-4 rounded-sm shadow-sm"> ${smartInfo.country}</p>
+                    <p class="flex items-center gap-2"><i class="fa-solid fa-briefcase text-indigo-500 dark:text-indigo-400 w-4"></i> <b class="text-gray-500 dark:text-gray-400" data-i18n="profession">Profession:</b> <span class="font-semibold">${cv.profession || cv.role || '-'}</span></p>
+                    <p class="flex items-center gap-2"><i class="fa-solid fa-language text-indigo-500 dark:text-indigo-400 w-4"></i> <b class="text-gray-500 dark:text-gray-400" data-i18n="languages">Languages:</b> <span class="truncate font-semibold">${uData.profileLangs || cv.languages || '-'}</span></p>
+                    <p class="flex items-center gap-2"><i class="fa-solid fa-users text-indigo-500 dark:text-indigo-400 w-4"></i> <b class="text-gray-500 dark:text-gray-400" data-i18n="population">Population:</b> <span class="font-semibold">${smartInfo.pop}</span></p>
+                    <p class="flex items-center gap-2"><i class="fa-solid fa-water text-indigo-500 dark:text-indigo-400 w-4"></i> <b class="text-gray-500 dark:text-gray-400" data-i18n="seas">Seas:</b> <span class="truncate font-semibold">${smartInfo.seas}</span></p>
                 </div>
                 <div class="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
-                    <p class="text-xs text-gray-500 mb-1" data-i18n="about_me">About:</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1" data-i18n="about_me">About:</p>
                     <p class="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">${cv.about || uData.about || smartInfo.about}</p>
                 </div>
             </div>
             
-            <div class="w-full md:w-1/2 p-8 flex flex-col justify-center bg-[#1e293b] text-white relative z-10">
+            <div class="w-full md:w-1/2 p-8 flex flex-col justify-center bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white relative z-10 transition-colors">
                 <div class="grid grid-cols-2 gap-3 w-full">
-                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.switchWebChat === 'function') window.switchWebChat('${uid}'); document.querySelector('.nav-link[data-target=\\'chat\\']')?.click();" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer group">
-                        <i class="fa-solid fa-message text-xl mb-2 text-indigo-500 group-hover:scale-110 transition pointer-events-none"></i>
+                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.switchWebChat === 'function') window.switchWebChat('${uid}'); document.querySelector('.nav-link[data-target=\\'chat\\']')?.click();" class="flex flex-col items-center justify-center p-3.5 bg-white dark:bg-slate-700 rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors border border-gray-200 dark:border-slate-600 cursor-pointer shadow-sm group">
+                        <i class="fa-solid fa-message text-xl mb-2 text-indigo-500 dark:text-indigo-400 group-hover:scale-110 transition pointer-events-none"></i>
                         <span class="text-xs font-bold pointer-events-none" data-i18n="action_chat">Private Chat</span>
                     </button>
-                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.openVoiceChat === 'function') window.openVoiceChat();" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer group">
-                        <i class="fa-solid fa-phone text-xl mb-2 text-green-500 group-hover:scale-110 transition pointer-events-none"></i>
+                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.openVoiceChat === 'function') window.openVoiceChat();" class="flex flex-col items-center justify-center p-3.5 bg-white dark:bg-slate-700 rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors border border-gray-200 dark:border-slate-600 cursor-pointer shadow-sm group">
+                        <i class="fa-solid fa-phone text-xl mb-2 text-green-500 dark:text-green-400 group-hover:scale-110 transition pointer-events-none"></i>
                         <span class="text-xs font-bold pointer-events-none" data-i18n="action_voice">Voice Room</span>
                     </button>
-                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.openConference === 'function') window.openConference();" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer group">
-                        <i class="fa-solid fa-video text-xl mb-2 text-blue-500 group-hover:scale-110 transition pointer-events-none"></i>
+                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.openConference === 'function') window.openConference();" class="flex flex-col items-center justify-center p-3.5 bg-white dark:bg-slate-700 rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors border border-gray-200 dark:border-slate-600 cursor-pointer shadow-sm group">
+                        <i class="fa-solid fa-video text-xl mb-2 text-blue-500 dark:text-blue-400 group-hover:scale-110 transition pointer-events-none"></i>
                         <span class="text-xs font-bold pointer-events-none" data-i18n="action_video">Video Conf</span>
                     </button>
-                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.openEmailModal === 'function') { window.openEmailModal(); setTimeout(() => { const el = document.getElementById('email-to-input'); if(el) el.value = '${uData.email || ''}'; }, 100); } else window.location.href='mailto:${uData.email || ''}';" class="flex flex-col items-center justify-center p-3.5 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors border border-slate-700 cursor-pointer group">
-                        <i class="fa-solid fa-envelope text-xl mb-2 text-red-500 group-hover:scale-110 transition pointer-events-none"></i>
+                    <button onclick="document.getElementById('combined-avatar-modal').remove(); if(typeof window.openEmailModal === 'function') { window.openEmailModal(); setTimeout(() => { const el = document.getElementById('email-to-input'); if(el) el.value = '${uData.email || ''}'; }, 100); } else window.location.href='mailto:${uData.email || ''}';" class="flex flex-col items-center justify-center p-3.5 bg-white dark:bg-slate-700 rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors border border-gray-200 dark:border-slate-600 cursor-pointer shadow-sm group">
+                        <i class="fa-solid fa-envelope text-xl mb-2 text-red-500 dark:text-red-400 group-hover:scale-110 transition pointer-events-none"></i>
                         <span class="text-xs font-bold pointer-events-none" data-i18n="action_email">Send Email</span>
                     </button>
-                    <button onclick="if('${uData.phone}') { document.getElementById('combined-avatar-modal').remove(); window.location.href='tel:${uData.phone}'; } else alert('No phone number');" class="col-span-2 flex items-center justify-center gap-3 p-4 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-colors shadow-md mt-1 cursor-pointer group">
+                    <button onclick="if('${uData.phone}') { document.getElementById('combined-avatar-modal').remove(); window.location.href='tel:${uData.phone}'; } else alert('No phone number');" class="col-span-2 flex items-center justify-center gap-3 p-4 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white rounded-2xl transition-colors shadow-md mt-1 cursor-pointer group">
                         <i class="fa-solid fa-mobile-screen-button text-lg pointer-events-none group-hover:scale-110 transition"></i>
                         <span class="text-sm font-bold tracking-wide pointer-events-none" data-i18n="action_cellular">Cellular Call</span>
                     </button>
