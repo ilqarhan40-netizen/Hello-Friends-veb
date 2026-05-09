@@ -607,21 +607,28 @@
     <div class="bg-slate-800 w-[280px] rounded-[30px] shadow-2xl flex flex-col gap-2 p-4 border border-slate-700">
         <button onclick="startVoiceCall()" class="flex items-center gap-4 bg-slate-700/50 hover:bg-slate-700 p-4 rounded-2xl text-white transition"><i class="fa-solid fa-phone text-cyan-400 text-xl w-6 text-center"></i><span class="font-bold text-[13px]">Anrufen</span></button>
         <button onclick="alert('Запись ИИ Голоса...')" class="flex items-center gap-4 bg-slate-700/50 hover:bg-slate-700 p-4 rounded-2xl text-white transition"><i class="fa-solid fa-robot text-purple-400 text-xl w-6 text-center"></i><span class="font-bold text-[13px]">Sprachnachricht (AI)</span></button>
-        <button onclick="alert('Диктовка текста...')" class="flex items-center gap-4 bg-slate-700/50 hover:bg-slate-700 p-4 rounded-2xl text-white transition"><i class="fa-solid fa-microphone text-green-400 text-xl w-6 text-center"></i><span class="font-bold text-[13px]">Sprachtext</span></button>
+        <button onclick="startDictation()" class="flex items-center gap-4 bg-slate-700/50 hover:bg-slate-700 p-4 rounded-2xl text-white transition"><i class="fa-solid fa-microphone text-green-400 text-xl w-6 text-center"></i><span class="font-bold text-[13px]">Sprachtext</span></button>
         <button onclick="closeModal('mic-menu-modal')" class="mt-2 text-slate-400 hover:text-white text-xs py-2 font-bold transition">Abbrechen / Cancel</button>
     </div>
 </div>
 
 <div id="lang-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[500]">
-    <div class="bg-white dark:bg-slate-800 w-[300px] rounded-[30px] shadow-2xl p-6 relative">
+    <div class="bg-white dark:bg-slate-800 w-[340px] rounded-[30px] shadow-2xl p-6 relative">
         <button onclick="closeModal('lang-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
-        <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4"><i class="fa-solid fa-language text-blue-500 mr-2"></i> Mic Language</h3>
-        <div class="flex flex-col gap-2">
-            <button onclick="alert('Mic language set to English'); closeModal('lang-modal')" class="p-3 bg-gray-50 hover:bg-gray-100 rounded-xl text-left text-sm font-bold border border-gray-100">🇺🇸 English</button>
-            <button onclick="alert('Mic language set to Russian'); closeModal('lang-modal')" class="p-3 bg-gray-50 hover:bg-gray-100 rounded-xl text-left text-sm font-bold border border-gray-100">🇷🇺 Русский</button>
-            <button onclick="alert('Mic language set to Italian'); closeModal('lang-modal')" class="p-3 bg-gray-50 hover:bg-gray-100 rounded-xl text-left text-sm font-bold border border-gray-100">🇮🇹 Italiano</button>
-            <button onclick="alert('Mic language set to German'); closeModal('lang-modal')" class="p-3 bg-gray-50 hover:bg-gray-100 rounded-xl text-left text-sm font-bold border border-gray-100">🇩🇪 Deutsch</button>
-            <button onclick="alert('Mic language set to Azerbaijani'); closeModal('lang-modal')" class="p-3 bg-gray-50 hover:bg-gray-100 rounded-xl text-left text-sm font-bold border border-gray-100">🇦🇿 Azərbaycan</button>
+        <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4"><i class="fa-solid fa-language text-blue-500 mr-2"></i> Mic Language (12)</h3>
+        <div class="grid grid-cols-2 gap-2">
+            <button onclick="setMicLang('en-US')" class="p-2 bg-gray-50 hover:bg-gray-100 rounded-xl text-left text-[11px] font-bold border border-gray-100">🇬🇧 English</button>
+            <button onclick="setMicLang('ru-RU')" class="p-2 bg-gray-50 hover:bg-gray-100 rounded-xl text-left text-[11px] font-bold border border-gray-100">🇷🇺 Русский</button>
+            <button onclick="setMicLang('az-AZ')" class="p-2 bg-gray-50 hover:bg-gray-100 rounded-xl text-left text-[11px] font-bold border border-gray-100">🇦🇿 Azərbaycanca</button>
+            <button onclick="setMicLang('de-DE')" class="p-2 bg-gray-50 hover:bg-gray-100 rounded-xl text-left text-[11px] font-bold border border-gray-100">🇩🇪 Deutsch</button>
+            <button onclick="setMicLang('tr-TR')" class="p-2 bg-gray-50 hover:bg-gray-100 rounded-xl text-left text-[11px] font-bold border border-gray-100">🇹🇷 Türkçe</button>
+            <button onclick="setMicLang('ar-SA')" class="p-2 bg-gray-50 hover:bg-gray-100 rounded-xl text-left text-[11px] font-bold border border-gray-100">🇦🇪 العربية</button>
+            <button onclick="setMicLang('it-IT')" class="p-2 bg-gray-50 hover:bg-gray-100 rounded-xl text-left text-[11px] font-bold border border-gray-100">🇮🇹 Italiano</button>
+            <button onclick="setMicLang('es-ES')" class="p-2 bg-gray-50 hover:bg-gray-100 rounded-xl text-left text-[11px] font-bold border border-gray-100">🇪🇸 Español</button>
+            <button onclick="setMicLang('fr-FR')" class="p-2 bg-gray-50 hover:bg-gray-100 rounded-xl text-left text-[11px] font-bold border border-gray-100">🇫🇷 Français</button>
+            <button onclick="setMicLang('pt-PT')" class="p-2 bg-gray-50 hover:bg-gray-100 rounded-xl text-left text-[11px] font-bold border border-gray-100">🇵🇹 Português</button>
+            <button onclick="setMicLang('ja-JP')" class="p-2 bg-gray-50 hover:bg-gray-100 rounded-xl text-left text-[11px] font-bold border border-gray-100">🇯🇵 日本語</button>
+            <button onclick="setMicLang('zh-CN')" class="p-2 bg-gray-50 hover:bg-gray-100 rounded-xl text-left text-[11px] font-bold border border-gray-100">🇨🇳 中文</button>
         </div>
     </div>
 </div>
