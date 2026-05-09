@@ -780,6 +780,41 @@ window.closeVoiceRoom = function() {
     if (vr) { vr.classList.add('hidden'); vr.classList.remove('flex'); }
 };
 // ==========================================
+// ЛОГИКА МЕНЮ СКРЕПКИ (DATEI ANHÄNGEN)
+// ==========================================
+window.openAttachmentModal = function() {
+    if (typeof window.closeDropdown === 'function') window.closeDropdown();
+    const m = document.getElementById('attachment-modal');
+    if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
+};
+
+window.triggerPhotoUpload = function() {
+    window.closeModal('attachment-modal');
+    const input = document.getElementById('attachment-input');
+    if (input) {
+        input.accept = "image/*"; // Фильтр только для картинок
+        input.click();
+    }
+};
+
+window.triggerDocUpload = function() {
+    window.closeModal('attachment-modal');
+    const input = document.getElementById('attachment-input');
+    if (input) {
+        input.accept = ".pdf, .doc, .docx, .txt, application/pdf"; // Фильтр для документов
+        input.click();
+    }
+};
+
+window.openLocationFromAttachment = function() {
+    window.closeModal('attachment-modal');
+    if (typeof window.openLocationModal === 'function') {
+        window.openLocationModal(); // Вызывает твою готовую модалку локации
+    } else {
+        alert("Модалка локации не найдена.");
+    }
+};
+// ==========================================
 // 7. СТАРТ ПРИЛОЖЕНИЯ
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
