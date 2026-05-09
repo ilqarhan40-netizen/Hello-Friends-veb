@@ -1,6 +1,6 @@
 // ==========================================
 // ФАЙЛ: web-chat.js
-// Назначение: Ядро чата для ВЕБ-версии (Отправка, Отрисовка, Глобальный Веер Переводов, Корзина, Архив)
+// Назначение: Ядро чата (Отправка, Отрисовка, Переводы, Корзина, Firebase Архив, Меню)
 // ==========================================
 
 window.currentRoomId = 'global';
@@ -8,7 +8,9 @@ window.currentTargetUser = null;
 window.isGeminiWaiting = false;
 window.activeChatListener = null;
 
-// 1. ПЕРЕКЛЮЧЕНИЕ КОМНАТ ВЕБ-ЧАТА (Исправляет ID: undefined)
+// ==========================================
+// 1. ПЕРЕКЛЮЧЕНИЕ КОМНАТ (С КНОПКОЙ GLOBAL CHAT)
+// ==========================================
 window.switchWebChat = function(targetId) {
     if (window.activeChatListener) {
         firebase.database().ref(window.currentRoomId).off("child_added", window.activeChatListener);
@@ -62,6 +64,28 @@ window.switchWebChat = function(targetId) {
         }
     }
 
+    // ЛОГИКА ДОБАВЛЕНИЯ КНОПКИ "GLOBAL CHAT" В ШАПКУ ПРИВАТА
+    if (hName) {
+        const headerFlex = hName.closest('.flex.items-center.justify-between');
+        if (headerFlex) {
+            let btnContainer = document.getElementById('global-btn-container');
+            if (!btnContainer) {
+                btnContainer = document.createElement('div');
+                btnContainer.id = 'global-btn-container';
+                headerFlex.appendChild(btnContainer);
+            }
+            if (targetId === 'global') {
+                btnContainer.innerHTML = ''; // Скрываем в общем чате
+            } else {
+                btnContainer.innerHTML = `
+                    <button onclick="window.switchWebChat('global')" class="bg-indigo-100 dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-slate-600 px-4 py-2 rounded-xl text-[11px] font-bold transition flex items-center gap-2 shadow-sm border border-indigo-200 dark:border-slate-600">
+                        <i class="fa-solid fa-earth-americas text-sm"></i> Global Chat
+                    </button>
+                `;
+            }
+        }
+    }
+
     const mText = document.getElementById('top-chat-marquee');
     if(mText) {
         if(window.currentRoomId === 'global') mText.innerText = "🌍 Global Chat • AI Translation System Active...";
@@ -71,7 +95,9 @@ window.switchWebChat = function(targetId) {
     window.activeChatListener = firebase.database().ref(window.currentRoomId).on("child_added", window.handleNewMessage);
 };
 
+// ==========================================
 // 2. ОТПРАВКА СООБЩЕНИЯ (FIREBASE + GEMINI)
+// ==========================================
 window.sendFirebaseMsg = async function() {
     const inputField = document.getElementById('chat-input') || document.getElementById('web-chat-input');
     if (!inputField) return;
@@ -143,7 +169,9 @@ window.sendFirebaseMsg = async function() {
     }
 };
 
-// 3. ПРИЕМ И ОТРИСОВКА (ВЕБ-ДИЗАЙН БАББЛОВ И ВЕЕР ПЕРЕВОДОВ)
+// ==========================================
+// 3. ПРИЕМ И ОТРИСОВКА (БАББЛЫ)
+// ==========================================
 window.handleNewMessage = async function(snapshot) {
     const data = snapshot.val(); 
     if(!data) return; 
@@ -171,7 +199,6 @@ window.handleNewMessage = async function(snapshot) {
     let myReadLang = window.appLang === 'auto' ? window.getSmartLang(window.myProfileInfo) : window.appLang;
     let senderLang = data.langCode || 'auto'; 
 
-    // ПЕРЕВОД ПРИВАТНОГО ЧАТА (ОБРАТНЫЙ)
     if (data.originalText && window.currentRoomId !== 'global') {
         if (!isMe && !isAI && senderLang.substring(0,2) !== myReadLang.substring(0,2)) {
             try {
@@ -197,7 +224,6 @@ window.handleNewMessage = async function(snapshot) {
         </div>
     `;
 
-    // ГЛОБАЛЬНЫЙ ЧАТ: ВЕЕР ПЕРЕВОДОВ
     if (window.currentRoomId === 'global' && !isAI) {
          let targetUsers = []; 
          let neededLangs = new Set(); 
@@ -249,128 +275,131 @@ window.handleNewMessage = async function(snapshot) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 };
 
-// 4. ПРИВЯЗКИ И ВОЛШЕБНАЯ ПАЛОЧКА
-window.applyAiMagic = function() {
-    const wandBtn = document.getElementById('magic-wand-btn');
-    const chatInput = document.getElementById('chat-input') || document.getElementById('web-chat-input');
-    if(!chatInput) return;
-    
-    const text = chatInput.value.trim();
-    if(!text) return alert("Please type some text first for the AI to improve!");
-    
-    if(wandBtn) wandBtn.classList.add('animate-spin');
-    chatInput.disabled = true;
-    chatInput.value = "✨ AI is rewriting your message...";
-    
-    setTimeout(() => {
-        if(wandBtn) wandBtn.classList.remove('animate-spin');
-        chatInput.disabled = false;
-        chatInput.value = "Good afternoon! Could you please provide an update on the project? Thank you!";
-        chatInput.focus();
-    }, 1500);
-};
-
-
 // ==========================================
-// ЛОГИКА КОРЗИНЫ (SMART TRASH)
+// 4. КОРЗИНА И УМНАЯ АРХИВАЦИЯ В FIREBASE
 // ==========================================
 window.openTrashModal = function() {
     if (typeof window.closeDropdown === 'function') window.closeDropdown();
     const tm = document.getElementById('trash-modal');
-    if (tm) {
-        tm.classList.remove('hidden');
-        tm.classList.add('flex'); 
-    }
+    if (tm) { tm.classList.remove('hidden'); tm.classList.add('flex'); }
 };
 
 window.closeTrashModal = function() { 
     const tm = document.getElementById('trash-modal');
-    if (tm) {
-        tm.classList.add('hidden'); 
-        tm.classList.remove('flex');
-    }
+    if (tm) { tm.classList.add('hidden'); tm.classList.remove('flex'); }
 };
 
 window.smartArchive = function() {
-    if (window.currentRoomId === 'global') {
+    if (!window.currentRoomId || window.currentRoomId === 'global') {
         alert("Global Chat cannot be archived.");
         return;
     }
-    // Вызываем модалку архива вместо простого тоста
-    window.closeTrashModal();
-    window.openArchiveModal();
+
+    let myId = window.myProfileInfo ? window.myProfileInfo.id : 'guest';
+    let targetArchiveRef = firebase.database().ref('user_archives/' + myId + '/docs');
+
+    firebase.database().ref(window.currentRoomId).once('value').then(snapshot => {
+        let msgs = snapshot.val();
+        if (!msgs) {
+            alert("Chat is empty!");
+            window.closeTrashModal();
+            return;
+        }
+
+        let chatContent = "CHAT EXPORT:\n------------------------\n\n";
+        Object.values(msgs).forEach(m => {
+            let timeStr = m.timestamp ? new Date(m.timestamp).toLocaleTimeString() : "";
+            chatContent += `[${timeStr}] ${m.name}: ${m.originalText || m.text}\n`;
+        });
+
+        let docMeta = {
+            sender: window.currentTargetUser ? window.currentTargetUser.name : 'System',
+            email: 'encrypted-chat@local',
+            time: new Date().toLocaleDateString(),
+            title: "Chat Backup: " + (window.currentTargetUser ? window.currentTargetUser.name : 'User'),
+            body: chatContent,
+            icon: 'fa-file-lines',
+            color: 'text-blue-500'
+        };
+
+        targetArchiveRef.push(docMeta).then(() => {
+            firebase.database().ref(window.currentRoomId).remove();
+            window.closeTrashModal();
+            window.openArchiveModal(); 
+        });
+    });
 };
 
 window.actionClearHistory = function() {
-    if (window.currentRoomId === 'global') {
-        alert("You cannot clear the Global Chat.");
-        return;
-    }
     if(confirm("Clear all messages in this chat?")) {
         const chatMsgs = document.getElementById('chat-messages'); 
         if(chatMsgs) chatMsgs.innerHTML = ''; 
-        
-        if(window.currentRoomId) { 
-            firebase.database().ref(window.currentRoomId).remove().catch(e => console.error(e)); 
-        }
-        
-        if (typeof window.showToast === 'function') window.showToast("Chat Cleared", "Message history deleted", "", "");
+        if(window.currentRoomId) firebase.database().ref(window.currentRoomId).remove().catch(e => console.error(e)); 
         window.closeTrashModal();
     }
 };
 
 window.actionDeleteForever = function() {
-    if (window.currentRoomId === 'global') {
-        alert("You cannot delete the Global Chat.");
-        return;
-    }
     if(confirm("WARNING: Delete this chat forever? This cannot be undone.")) {
         const chatMsgs = document.getElementById('chat-messages'); 
         if(chatMsgs) chatMsgs.innerHTML = '';
-        
-        if(window.currentRoomId) { 
-            firebase.database().ref(window.currentRoomId).remove().catch(e => console.error(e)); 
-        }
-        
-        if (typeof window.showToast === 'function') window.showToast("Deleted Forever", "Room destroyed", "", "");
+        if(window.currentRoomId) firebase.database().ref(window.currentRoomId).remove().catch(e => console.error(e)); 
         window.closeTrashModal();
-        
-        if (typeof window.switchWebChat === 'function') { 
-            window.switchWebChat('global'); 
-        }
+        if (typeof window.switchWebChat === 'function') window.switchWebChat('global'); 
     }
 };
 
 // ==========================================
-// ЛОГИКА АРХИВА (CLOUD-SPEICHER)
+// 5. ЖИВОЙ АРХИВ (ИНТЕГРАЦИЯ С FIREBASE)
 // ==========================================
+window.archiveData = { mail: [], docs: [], media: [] };
+window.currentArchiveTab = 'mail';
+
+window.loadFirebaseArchive = function(callback) {
+    let myId = window.myProfileInfo ? window.myProfileInfo.id : 'guest';
+    
+    firebase.database().ref('user_archives/' + myId).once('value').then(snapshot => {
+        let dbData = snapshot.val() || {};
+        
+        window.archiveData.mail = dbData.mail ? Object.keys(dbData.mail).map(k => ({...dbData.mail[k], id: k})) : [];
+        window.archiveData.docs = dbData.docs ? Object.keys(dbData.docs).map(k => ({...dbData.docs[k], id: k})) : [];
+        window.archiveData.media = dbData.media ? Object.keys(dbData.media).map(k => ({...dbData.media[k], id: k})) : [];
+        
+        if (window.archiveData.mail.length === 0) {
+            window.archiveData.mail.push({
+                id: 'sys_msg_1', sender: 'SYSTEM SETUP', email: 'cloud@firebase.app', time: 'Now',
+                title: "Firebase Archive Active", body: "Ваш облачный архив успешно подключен к базе данных. Сюда будут поступать ваши системные письма и бэкапы чатов.", icon: 'fa-server', color: 'text-green-500'
+            });
+        }
+        
+        if (callback) callback();
+    });
+};
+
 window.openArchiveModal = function() {
     if (typeof window.closeDropdown === 'function') window.closeDropdown();
     const am = document.getElementById('archive-modal');
     if (am) {
-        am.classList.remove('hidden');
-        am.classList.add('flex');
-        window.switchArchiveTab('mail'); // Сразу открываем вкладку почты
+        window.loadFirebaseArchive(() => {
+            am.classList.remove('hidden');
+            am.classList.add('flex');
+            window.switchArchiveTab(window.currentArchiveTab); 
+        });
     }
 };
 
 window.closeArchiveModal = function() {
     const am = document.getElementById('archive-modal');
-    if (am) {
-        am.classList.add('hidden');
-        am.classList.remove('flex');
-    }
+    if (am) { am.classList.add('hidden'); am.classList.remove('flex'); }
 };
 
 window.switchArchiveTab = function(tabName) {
+    window.currentArchiveTab = tabName;
     const tabs = ['docs', 'media', 'mail'];
-    
-    // Переключаем стили кнопок
     tabs.forEach(t => {
         const btn = document.getElementById('tab-' + t);
         if (!btn) return;
         const icon = btn.querySelector('i');
-
         if (t === tabName) {
             btn.className = `flex-1 flex flex-col items-center justify-center py-3 bg-white dark:bg-slate-800 rounded-2xl text-green-500 dark:text-green-400 font-bold text-xs transition border border-green-500 shadow-[0_0_10px_rgba(34,197,94,0.2)]`;
             icon.classList.remove('text-gray-300', 'dark:text-gray-500');
@@ -379,70 +408,183 @@ window.switchArchiveTab = function(tabName) {
             icon.classList.add('text-gray-300', 'dark:text-gray-500');
         }
     });
+    window.renderArchiveList(); 
+};
 
-    // Отрисовываем контент внутри
+window.renderArchiveList = function() {
     const contentBox = document.getElementById('archive-content');
     if (!contentBox) return;
 
-    if (tabName === 'mail') {
+    const items = window.archiveData[window.currentArchiveTab];
+    if (!items || items.length === 0) {
+        let emptyIcon = window.currentArchiveTab === 'docs' ? 'fa-folder-open' : 'fa-photo-film';
+        if(window.currentArchiveTab === 'mail') emptyIcon = 'fa-envelope-open';
         contentBox.innerHTML = `
-            <!-- Письмо 1 -->
-            <div class="flex items-center justify-between p-3 rounded-2xl border border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 cursor-pointer transition" onclick="alert('Открытие письма...')">
+            <div class="flex flex-col items-center justify-center h-40 text-gray-400 animate-fade-in">
+                <i class="fa-solid ${emptyIcon} text-3xl mb-2 opacity-50"></i>
+                <p class="text-xs font-bold uppercase tracking-wider">No items yet</p>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    [...items].reverse().forEach(item => {
+        html += `
+            <div class="relative flex items-center justify-between p-3 rounded-2xl border border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 cursor-pointer transition animate-fade-in" onclick="window.readArchiveItem('${item.id}')">
                 <div class="flex items-center gap-3 overflow-hidden w-full">
                     <div class="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 border border-green-500/50 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(34,197,94,0.1)]">
-                        <i class="fa-solid fa-envelope text-green-500 dark:text-green-400 text-xl"></i>
+                        <i class="fa-solid ${item.icon || 'fa-file'} ${item.color || 'text-green-500'} text-xl"></i>
                     </div>
                     <div class="flex-1 overflow-hidden">
                         <div class="flex justify-between items-center w-full">
-                            <span class="text-[11px] font-bold text-green-600 dark:text-green-400">GOOGLE GEMINI</span>
-                            <span class="text-[9px] text-gray-400 shrink-0 ml-2">08:51 AM</span>
+                            <span class="text-[11px] font-bold text-green-600 dark:text-green-400">${item.sender || 'Unknown'}</span>
+                            <span class="text-[9px] text-gray-400 shrink-0 ml-2">${item.time || ''}</span>
                         </div>
-                        <p class="text-xs text-gray-600 dark:text-gray-300 mt-1 truncate">You're now using Gemini on web</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-300 mt-1 truncate">${item.title || 'No Subject'}</p>
                     </div>
                 </div>
-                <button onclick="event.stopPropagation(); alert('Меню 3 точки')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white px-2 h-full flex items-center shrink-0">
+                <button onclick="event.stopPropagation(); window.toggleArchiveMenu('${item.id}')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white px-2 h-full flex items-center shrink-0 relative z-10">
                     <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
                 </button>
-            </div>
-            
-            <!-- Письмо 2 -->
-            <div class="flex items-center justify-between p-3 rounded-2xl border border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 cursor-pointer transition" onclick="alert('Открытие письма...')">
-                <div class="flex items-center gap-3 overflow-hidden w-full">
-                    <div class="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 border border-green-500/50 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(34,197,94,0.1)]">
-                        <i class="fa-solid fa-envelope text-green-500 dark:text-green-400 text-xl"></i>
-                    </div>
-                    <div class="flex-1 overflow-hidden">
-                        <div class="flex justify-between items-center w-full">
-                            <span class="text-[11px] font-bold text-green-600 dark:text-green-400">GOOGLE ONE</span>
-                            <span class="text-[9px] text-gray-400 shrink-0 ml-2">07:54 AM</span>
-                        </div>
-                        <p class="text-xs text-gray-600 dark:text-gray-300 mt-1 truncate">hello, поздравляем с переходом...</p>
-                    </div>
+                <div id="menu-${item.id}" class="absolute right-8 top-10 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-xl rounded-xl w-32 hidden flex-col z-20 overflow-hidden">
+                    <button onclick="event.stopPropagation(); window.archiveAction('copy', '${item.id}')" class="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition"><i class="fa-solid fa-copy text-blue-500 w-4"></i> Copy Text</button>
+                    <button onclick="event.stopPropagation(); window.archiveAction('delete', '${item.id}')" class="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition"><i class="fa-solid fa-trash w-4"></i> Delete</button>
                 </div>
-                <button onclick="event.stopPropagation(); alert('Меню 3 точки')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white px-2 h-full flex items-center shrink-0">
+            </div>
+        `;
+    });
+    contentBox.innerHTML = html;
+};
+
+window.toggleArchiveMenu = function(id) {
+    document.querySelectorAll('[id^="menu-"]').forEach(el => el.classList.add('hidden')); 
+    const menu = document.getElementById('menu-' + id);
+    if (menu) menu.classList.toggle('hidden');
+};
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('[id^="menu-"]') && !e.target.closest('.fa-ellipsis-vertical')) {
+        document.querySelectorAll('[id^="menu-"]').forEach(el => el.classList.add('hidden'));
+    }
+});
+
+window.archiveAction = function(action, id) {
+    window.toggleArchiveMenu(id); 
+    const items = window.archiveData[window.currentArchiveTab];
+    const itemIndex = items.findIndex(i => i.id === id);
+    if (itemIndex === -1) return;
+    
+    if (action === 'delete') {
+        if(confirm("Удалить из облака навсегда?")) {
+            let myId = window.myProfileInfo ? window.myProfileInfo.id : 'guest';
+            if (id !== 'sys_msg_1') {
+                firebase.database().ref('user_archives/' + myId + '/' + window.currentArchiveTab + '/' + id).remove();
+            }
+            items.splice(itemIndex, 1);
+            window.renderArchiveList(); 
+        }
+    } else if (action === 'copy') {
+        navigator.clipboard.writeText(items[itemIndex].body).then(() => alert("Текст скопирован!"));
+    }
+};
+
+window.readArchiveItem = function(id) {
+    const items = window.archiveData[window.currentArchiveTab];
+    const item = items.find(i => i.id === id);
+    if(!item) return;
+
+    const contentBox = document.getElementById('archive-content');
+    contentBox.innerHTML = `
+        <div class="flex flex-col h-full animate-fade-in">
+            <button onclick="window.renderArchiveList()" class="self-start flex items-center gap-2 text-green-500 font-bold text-xs mb-4 hover:text-green-600 transition">
+                <i class="fa-solid fa-arrow-left"></i> Назад
+            </button>
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-sm font-bold text-gray-800 dark:text-white leading-tight pr-4">${item.title}</h3>
+                <button onclick="event.stopPropagation(); window.toggleArchiveMenu('read-${item.id}')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white relative">
                     <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
                 </button>
+                <div id="menu-read-${item.id}" class="absolute right-5 top-12 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-xl rounded-xl w-32 hidden flex-col z-20 overflow-hidden">
+                    <button onclick="window.archiveAction('copy', '${item.id}')" class="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700"><i class="fa-solid fa-copy text-blue-500 w-4"></i> Copy Text</button>
+                    <button onclick="window.archiveAction('delete', '${item.id}'); window.renderArchiveList();" class="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><i class="fa-solid fa-trash w-4"></i> Delete</button>
+                </div>
             </div>
-        `;
-    } else if (tabName === 'docs') {
-        contentBox.innerHTML = `
-            <div class="flex flex-col items-center justify-center h-40 text-gray-400">
-                <i class="fa-solid fa-folder-open text-3xl mb-2 opacity-50"></i>
-                <p class="text-xs font-bold uppercase tracking-wider">No documents yet</p>
+            <div class="flex justify-between items-center mb-6 border-b border-gray-100 dark:border-slate-700 pb-3">
+                <div class="flex flex-col"><span class="text-[11px] text-gray-500 dark:text-gray-400">${item.sender || 'System'} &lt;${item.email || ''}&gt;</span></div>
+                <span class="text-[9px] text-gray-400">${item.time || ''}</span>
             </div>
-        `;
-    } else {
-        contentBox.innerHTML = `
-            <div class="flex flex-col items-center justify-center h-40 text-gray-400">
-                <i class="fa-solid fa-photo-film text-3xl mb-2 opacity-50"></i>
-                <p class="text-xs font-bold uppercase tracking-wider">No media files yet</p>
+            <div class="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap leading-relaxed overflow-y-auto pb-4 font-mono text-[11px] bg-gray-50 dark:bg-slate-800/50 p-3 rounded-xl border border-gray-100 dark:border-slate-700">
+                ${item.body}
             </div>
-        `;
+        </div>
+    `;
+};
+
+// ==========================================
+// 6. ОСТАЛЬНЫЕ МЕНЮ И ВОЛШЕБНАЯ ПАЛОЧКА
+// ==========================================
+window.applyAiMagic = function() {
+    const chatInput = document.getElementById('chat-input') || document.getElementById('web-chat-input');
+    if(!chatInput) return;
+    const text = chatInput.value.trim();
+    if(!text) return alert("Type some text first for the AI!");
+    chatInput.disabled = true;
+    chatInput.value = "✨ AI is rewriting...";
+    setTimeout(() => {
+        chatInput.disabled = false;
+        chatInput.value = "Good afternoon! Could you please provide an update? Thank you!";
+        chatInput.focus();
+    }, 1500);
+};
+
+window.closeModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+};
+
+window.openQrModal = function() {
+    if (typeof window.closeDropdown === 'function') window.closeDropdown();
+    const m = document.getElementById('qr-modal');
+    if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
+};
+
+window.openGuideModal = function() {
+    if (typeof window.closeDropdown === 'function') window.closeDropdown();
+    const m = document.getElementById('guide-modal');
+    if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
+};
+
+window.openSecurityModal = function() {
+    if (typeof window.closeDropdown === 'function') window.closeDropdown();
+    const m = document.getElementById('security-modal');
+    if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
+};
+
+window.openBlacklistModal = function() {
+    if (typeof window.closeDropdown === 'function') window.closeDropdown();
+    const m = document.getElementById('blacklist-modal');
+    if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
+};
+
+window.unblockUser = function(elementId) {
+    const el = document.getElementById(elementId);
+    if (el) el.remove(); 
+    alert("User Unblocked!");
+};
+
+window.blockUser = function() {
+    if (window.currentRoomId === 'global' || window.currentRoomId === 'private_ai_bot') {
+        alert("You can only block users in a private chat.");
+        return;
+    }
+    if (confirm("Block this user? They will be added to your Blacklist.")) {
+        window.openBlacklistModal(); 
     }
 };
 
 // ==========================================
-// СТАРТ ПРИЛОЖЕНИЯ (ЭТО ДОЛЖНО БЫТЬ В САМОМ НИЗУ, ОДИН РАЗ)
+// 7. СТАРТ ПРИЛОЖЕНИЯ (ОДИН РАЗ В САМОМ НИЗУ)
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
     const sendBtn = document.getElementById('chat-send-btn');
@@ -455,6 +597,5 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Запускаем глобальную комнату при старте
     setTimeout(() => { window.switchWebChat('global'); }, 2000);
 });
