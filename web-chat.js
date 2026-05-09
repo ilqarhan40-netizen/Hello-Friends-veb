@@ -633,7 +633,34 @@ window.blockUser = function() {
 // 8. ГОЛОСОВАЯ КОМНАТА И МИКРОФОН (SPRACHRAUM)
 // ==========================================
 
-// Открыть меню выбора микрофона
+window.currentMicLang = 'auto'; // Умное автоопределение по умолчанию
+
+// Функция автоопределения нужного языка из 12 доступных
+window.getSmartMicLang = function() {
+    if (window.currentMicLang !== 'auto') return window.currentMicLang; 
+
+    let detectLang = window.appLang || 'auto';
+    if (detectLang === 'auto' && window.myProfileInfo) {
+        detectLang = typeof window.getSmartLang === 'function' ? window.getSmartLang(window.myProfileInfo) : (window.myProfileInfo.langCode || 'en');
+    }
+    detectLang = detectLang.toLowerCase().substring(0, 2);
+
+    const map12 = {
+        'en': 'en-US', 'ru': 'ru-RU', 'az': 'az-AZ', 'de': 'de-DE',
+        'tr': 'tr-TR', 'ar': 'ar-SA', 'it': 'it-IT', 'es': 'es-ES',
+        'fr': 'fr-FR', 'pt': 'pt-PT', 'ja': 'ja-JP', 'zh': 'zh-CN'
+    };
+
+    return map12[detectLang] || 'en-US'; 
+};
+
+// Установка языка вручную из модалки "Mic Lang"
+window.setMicLang = function(langCode) {
+    window.currentMicLang = langCode;
+    window.closeModal('lang-modal');
+};
+
+// Открыть меню выбора действий микрофона (в чате)
 window.openMicMenu = function() {
     if (window.currentRoomId === 'global') {
         alert("В Global Chat звонки отключены. Перейдите в приватный чат.");
@@ -643,7 +670,47 @@ window.openMicMenu = function() {
     if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
 };
 
-// Запуск Голосовой комнаты (Anrufen)
+// Диктовка текста (Sprachtext) - Переводит голос в текст в поле ввода
+window.startDictation = function() {
+    window.closeModal('mic-menu-modal');
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return alert("Ваш браузер не поддерживает голосовой ввод.");
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = window.getSmartMicLang(); 
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    const chatInput = document.getElementById('chat-input') || document.getElementById('web-chat-input');
+
+    recognition.onstart = function() {
+        if (chatInput) {
+            chatInput.placeholder = `🎤 Listening (${recognition.lang})...`;
+            chatInput.classList.add('bg-red-50', 'dark:bg-red-900/20');
+        }
+    };
+
+    recognition.onresult = function(event) {
+        const speechResult = event.results[0][0].transcript;
+        if (chatInput) {
+            chatInput.value = speechResult;
+            chatInput.placeholder = "Type message or click mic...";
+            chatInput.classList.remove('bg-red-50', 'dark:bg-red-900/20');
+            chatInput.focus();
+        }
+    };
+
+    recognition.onerror = recognition.onend = function() {
+        if (chatInput) {
+            chatInput.placeholder = "Type message or click mic...";
+            chatInput.classList.remove('bg-red-50', 'dark:bg-red-900/20');
+        }
+    };
+
+    recognition.start();
+};
+
+// Запуск Голосовой комнаты (через меню микрофона - Anrufen)
 window.startVoiceCall = function() {
     window.closeModal('mic-menu-modal'); 
     
@@ -676,12 +743,42 @@ window.startVoiceCall = function() {
     vr.classList.add('flex');
 };
 
+// Прямой вход в голосовую комнату (из верхнего меню навигации Voice Chat)
+window.openVoiceRoomDirectly = function() {
+    const vr = document.getElementById('voice-room-modal');
+    if (!vr) return;
+
+    let myName = window.myUsername || "Me";
+    let myPhoto = window.myProfileInfo ? window.myProfileInfo.photo : 'https://ui-avatars.com/api/?name=Me';
+    let myFlagCode = window.myProfileInfo ? (window.myProfileInfo.flagCode || 'un').toLowerCase() : 'un';
+    
+    document.getElementById('voice-me-name').innerText = myName;
+    document.getElementById('voice-me-avatar').src = myPhoto;
+    document.getElementById('voice-me-flag').src = `https://flagcdn.com/w20/${myFlagCode}.png`;
+
+    let partnerName = window.currentTargetUser ? window.currentTargetUser.name.split(' ')[0] : "Waiting...";
+    let partnerPhoto = window.currentTargetUser ? window.currentTargetUser.photo : 'https://ui-avatars.com/api/?name=Waiting';
+    let partnerFlagCode = window.currentTargetUser ? (window.currentTargetUser.flagCode || 'un').toLowerCase() : 'un';
+
+    if (window.currentRoomId === 'global') {
+        partnerName = "Global Room";
+        partnerPhoto = "https://ui-avatars.com/api/?name=Global&background=4f46e5&color=fff";
+        partnerFlagCode = "un";
+    }
+
+    document.getElementById('voice-partner-name').innerText = partnerName;
+    document.getElementById('voice-partner-avatar').src = partnerPhoto;
+    document.getElementById('voice-partner-flag').src = `https://flagcdn.com/w20/${partnerFlagCode}.png`;
+
+    vr.classList.remove('hidden');
+    vr.classList.add('flex');
+};
+
 // Закрыть голосовую комнату
 window.closeVoiceRoom = function() {
     const vr = document.getElementById('voice-room-modal');
     if (vr) { vr.classList.add('hidden'); vr.classList.remove('flex'); }
 };
-
 // ==========================================
 // 7. СТАРТ ПРИЛОЖЕНИЯ
 // ==========================================
