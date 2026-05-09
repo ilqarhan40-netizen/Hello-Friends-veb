@@ -537,6 +537,48 @@
     </div>
 </div>
 
+     <!-- УМНЫЙ АРХИВ (CLOUD-SPEICHER) -->
+<div id="archive-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[200]">
+    <div class="bg-white dark:bg-slate-900 w-[360px] h-[600px] rounded-[30px] shadow-2xl relative border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden text-gray-800 dark:text-white">
+
+        <!-- Шапка Архива -->
+        <div class="p-5 flex justify-between items-center border-b border-gray-100 dark:border-slate-800">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-server text-blue-500 dark:text-blue-400 text-xl"></i>
+                <h2 class="text-lg font-extrabold tracking-wide">Cloud-Speicher</h2>
+            </div>
+            <div class="bg-gray-100 dark:bg-slate-800 px-3 py-1 rounded-full text-[10px] font-bold text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700">
+                1.2 GB / 15 GB
+            </div>
+            <button onclick="closeArchiveModal()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-600 dark:hover:text-white transition">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Вкладки (Tabs) -->
+        <div class="flex justify-between gap-2 p-4">
+            <button onclick="switchArchiveTab('docs')" id="tab-docs" class="flex-1 flex flex-col items-center justify-center py-3 bg-gray-50 dark:bg-slate-800 rounded-2xl text-gray-400 font-bold text-xs transition border border-transparent hover:bg-gray-100 dark:hover:bg-slate-700">
+                <i class="fa-solid fa-file-lines text-lg mb-1 text-gray-300 dark:text-gray-500"></i> DOCS
+            </button>
+            <button onclick="switchArchiveTab('media')" id="tab-media" class="flex-1 flex flex-col items-center justify-center py-3 bg-gray-50 dark:bg-slate-800 rounded-2xl text-gray-400 font-bold text-xs transition border border-transparent hover:bg-gray-100 dark:hover:bg-slate-700">
+                <i class="fa-solid fa-image text-lg mb-1 text-gray-300 dark:text-gray-500"></i> MEDIA
+            </button>
+            <button onclick="switchArchiveTab('mail')" id="tab-mail" class="flex-1 flex flex-col items-center justify-center py-3 bg-white dark:bg-slate-800 rounded-2xl text-green-500 dark:text-green-400 font-bold text-xs transition border border-green-500 shadow-[0_0_10px_rgba(34,197,94,0.2)]">
+                <i class="fa-solid fa-envelope text-lg mb-1"></i> MAIL
+            </button>
+        </div>
+
+        <div class="px-5 pb-2 text-[10px] font-bold text-green-500 uppercase tracking-wider">
+            Corporate Mailbox
+        </div>
+
+        <!-- Контент Архива (Список) -->
+        <div id="archive-content" class="flex-1 overflow-y-auto px-4 pb-4 flex flex-col gap-3">
+            <!-- Сюда с помощью JS будут падать письма и файлы -->
+        </div>
+    </div>
+</div>           
+
 <div id="location-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] opacity-0 transition-opacity duration-300 backdrop-blur-sm" onclick="if(event.target===this) closeLocationModal()">
     <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-lg h-[60vh] flex flex-col shadow-2xl transform scale-95 transition-transform duration-300 relative border border-gray-100 dark:border-slate-700 mx-4" onclick="event.stopPropagation();">
         <button onclick="closeLocationModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors z-50"><i class="fa-solid fa-xmark text-xl"></i></button>
