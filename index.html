@@ -501,13 +501,39 @@
     </div>
 </div>
 
-<div id="trash-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] opacity-0 transition-opacity duration-300 backdrop-blur-sm" onclick="if(event.target===this) closeTrashModal()">
-    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-xs shadow-2xl transform scale-95 transition-transform duration-300 relative border border-gray-100 dark:border-slate-700 mx-4" onclick="event.stopPropagation();">
-        <button onclick="closeTrashModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
-        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-6 text-center"><i class="fa-solid fa-trash-can text-red-500 mr-2"></i> Smart Trash</h3>
-        <button onclick="smartAction('archive')" class="smart-trash-btn bg-blue-100 hover:bg-blue-200 text-blue-700 dark:bg-blue-900/50 dark:hover:bg-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700"><i class="fa-solid fa-box-archive text-lg w-6 text-center"></i> Send to Archive</button>
-        <button onclick="smartAction('clear')" class="smart-trash-btn bg-yellow-100 hover:bg-yellow-200 text-yellow-700 dark:bg-yellow-900/50 dark:hover:bg-yellow-800 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-700"><i class="fa-solid fa-broom text-lg w-6 text-center"></i> Clear Chat</button>
-        <button onclick="smartAction('delete')" class="smart-trash-btn bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-900/50 dark:hover:bg-red-800 dark:text-red-300 border border-red-200 dark:border-red-700"><i class="fa-solid fa-fire text-lg w-6 text-center"></i> Delete Completely</button>
+<!-- МОДАЛЬНОЕ ОКНО КОРЗИНЫ (SMART TRASH) -->
+<div id="trash-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200]">
+    <div class="bg-white dark:bg-slate-800 w-[320px] rounded-[30px] shadow-2xl p-6 relative border border-gray-100 dark:border-slate-700">
+        
+        <!-- Кнопка закрытия (Крестик) -->
+        <button onclick="closeTrashModal()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-600 transition">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+        
+        <!-- Заголовок -->
+        <div class="flex items-center justify-center gap-2 mb-6 mt-1">
+            <i class="fa-regular fa-trash-can text-red-400 text-xl"></i>
+            <h3 class="text-lg font-bold text-gray-800 dark:text-white">Smart Trash</h3>
+        </div>
+        
+        <!-- Кнопки -->
+        <div class="flex flex-col gap-3">
+            <!-- Send to Archive -->
+            <button onclick="smartArchive(); closeTrashModal();" class="w-full flex items-center justify-start gap-4 py-3.5 px-5 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 text-blue-500 rounded-2xl text-[13px] font-semibold transition-colors">
+                <i class="fa-solid fa-box-archive text-lg w-5 text-center"></i> Send to Archive
+            </button>
+            
+            <!-- Clear Chat -->
+            <button onclick="actionClearHistory()" class="w-full flex items-center justify-start gap-4 py-3.5 px-5 bg-yellow-50 dark:bg-yellow-500/10 hover:bg-yellow-100 text-yellow-600 rounded-2xl text-[13px] font-semibold transition-colors">
+                <i class="fa-solid fa-broom text-lg w-5 text-center"></i> Clear Chat
+            </button>
+            
+            <!-- Delete Completely -->
+            <button onclick="actionDeleteForever()" class="w-full flex items-center justify-start gap-4 py-3.5 px-5 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 text-red-500 rounded-2xl text-[13px] font-semibold transition-colors">
+                <i class="fa-solid fa-fire text-lg w-5 text-center"></i> Delete Completely
+            </button>
+        </div>
+        
     </div>
 </div>
 
