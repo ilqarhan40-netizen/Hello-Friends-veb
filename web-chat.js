@@ -596,6 +596,62 @@ window.blockUser = function() {
 };
 
 // ==========================================
+// 8. ГОЛОСОВАЯ КОМНАТА И МИКРОФОН (SPRACHRAUM)
+// ==========================================
+
+// Открыть меню выбора микрофона
+window.openMicMenu = function() {
+    if (window.currentRoomId === 'global') {
+        alert("В Global Chat звонки отключены. Перейдите в приватный чат.");
+        return;
+    }
+    const m = document.getElementById('mic-menu-modal');
+    if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
+};
+
+// Запуск Голосовой комнаты (Anrufen)
+window.startVoiceCall = function() {
+    window.closeModal('mic-menu-modal'); // Закрываем меню микрофона
+    
+    const vr = document.getElementById('voice-room-modal');
+    if (!vr) return;
+
+    // Подтягиваем данные текущего пользователя
+    let myName = window.myUsername || "Me";
+    let myPhoto = window.myProfileInfo ? window.myProfileInfo.photo : 'https://ui-avatars.com/api/?name=Me';
+    let myFlagCode = window.myProfileInfo ? window.myProfileInfo.flagCode : 'un';
+    
+    document.getElementById('voice-me-name').innerText = myName;
+    document.getElementById('voice-me-avatar').src = myPhoto;
+    document.getElementById('voice-me-flag').innerText = myFlagCode.toUpperCase();
+
+    // Подтягиваем данные собеседника
+    let partnerName = window.currentTargetUser ? window.currentTargetUser.name.split(' ')[0] : "Partner";
+    let partnerPhoto = window.currentTargetUser ? window.currentTargetUser.photo : 'https://ui-avatars.com/api/?name=U';
+    let partnerFlagCode = window.currentTargetUser ? window.currentTargetUser.flagCode : 'un';
+
+    if (window.currentRoomId === 'private_ai_bot') {
+        partnerName = "Gemini AI";
+        partnerPhoto = "https://ui-avatars.com/api/?name=AI&background=6b21a8&color=fff";
+        partnerFlagCode = "US";
+    }
+
+    document.getElementById('voice-partner-name').innerText = partnerName;
+    document.getElementById('voice-partner-avatar').src = partnerPhoto;
+    document.getElementById('voice-partner-flag').innerText = partnerFlagCode.toUpperCase();
+
+    // Показываем комнату
+    vr.classList.remove('hidden');
+    vr.classList.add('flex');
+};
+
+// Закрыть голосовую комнату
+window.closeVoiceRoom = function() {
+    const vr = document.getElementById('voice-room-modal');
+    if (vr) { vr.classList.add('hidden'); vr.classList.remove('flex'); }
+};
+
+// ==========================================
 // 7. СТАРТ ПРИЛОЖЕНИЯ
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
