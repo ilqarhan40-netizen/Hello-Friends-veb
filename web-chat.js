@@ -294,8 +294,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // ==========================================
-// ЛОГИКА КОРЗИНЫ (Удаление сообщений)
+// ==========================================
+// ЛОГИКА КОРЗИНЫ (SMART TRASH)
 // ==========================================
 
 window.openTrashModal = function() {
@@ -303,7 +303,7 @@ window.openTrashModal = function() {
     const tm = document.getElementById('trash-modal');
     if (tm) {
         tm.classList.remove('hidden');
-        tm.classList.add('flex'); // Показываем модалку
+        tm.classList.add('flex'); 
     }
 };
 
@@ -315,19 +315,33 @@ window.closeTrashModal = function() {
     }
 };
 
-// Очистка истории (Clear Chat)
+// 1. Отправить в архив (Send to Archive)
+window.smartArchive = function() {
+    if (window.currentRoomId === 'global') {
+        alert("Global Chat cannot be archived.");
+        return;
+    }
+    // Пока базовая функция-уведомление (сам Архив соберем позже на ЭТАПЕ 4)
+    if (typeof window.showToast === 'function') {
+        window.showToast("Archived", "Chat saved to Cloud Storage", "", "");
+    } else {
+        alert("Chat sent to Archive!");
+    }
+    window.closeTrashModal();
+};
+
+// 2. Очистить историю (Clear Chat)
 window.actionClearHistory = function() {
     if (window.currentRoomId === 'global') {
-        alert("Глобальный чат нельзя очистить! Сообщения в нем остаются навсегда.");
+        alert("You cannot clear the Global Chat.");
         return;
     }
     if(confirm("Clear all messages in this chat?")) {
         const chatMsgs = document.getElementById('chat-messages'); 
-        if(chatMsgs) chatMsgs.innerHTML = ''; // Очищаем экран
+        if(chatMsgs) chatMsgs.innerHTML = ''; 
         
-        // Удаляем из базы Firebase
         if(window.currentRoomId) { 
-            firebase.database().ref(window.currentRoomId).remove().catch(e => console.log("Cleared locally")); 
+            firebase.database().ref(window.currentRoomId).remove().catch(e => console.error(e)); 
         }
         
         if (typeof window.showToast === 'function') window.showToast("Chat Cleared", "Message history deleted", "", "");
@@ -335,7 +349,7 @@ window.actionClearHistory = function() {
     }
 };
 
-// Удаление комнаты навсегда (Delete Forever)
+// 3. Удалить навсегда (Delete Completely)
 window.actionDeleteForever = function() {
     if (window.currentRoomId === 'global') {
         alert("You cannot delete the Global Chat.");
@@ -345,20 +359,33 @@ window.actionDeleteForever = function() {
         const chatMsgs = document.getElementById('chat-messages'); 
         if(chatMsgs) chatMsgs.innerHTML = '';
         
-        // Удаляем из базы Firebase
         if(window.currentRoomId) { 
-            firebase.database().ref(window.currentRoomId).remove(); 
+            firebase.database().ref(window.currentRoomId).remove().catch(e => console.error(e)); 
         }
         
-        if (typeof window.showToast === 'function') window.showToast("Deleted Forever", "Room and history destroyed", "", "");
+        if (typeof window.showToast === 'function') window.showToast("Deleted Forever", "Room destroyed", "", "");
         window.closeTrashModal();
         
-        // Выкидываем пользователя обратно в глобальный чат
         if (typeof window.switchWebChat === 'function') { 
             window.switchWebChat('global'); 
         }
     }
 };
+
+// ==========================================
+// СТАРТ ПРИЛОЖЕНИЯ (ЭТО ДОЛЖНО БЫТЬ В САМОМ НИЗУ)
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+    const sendBtn = document.getElementById('chat-send-btn');
+    if (sendBtn) sendBtn.addEventListener('click', window.sendFirebaseMsg);
+
+    const chatInput = document.getElementById('chat-input') || document.getElementById('web-chat-input');
+    if (chatInput) {
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); window.sendFirebaseMsg(); }
+        });
+    }
+
     // Запускаем глобальную комнату при старте
     setTimeout(() => { window.switchWebChat('global'); }, 2000);
 });
