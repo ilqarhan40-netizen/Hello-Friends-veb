@@ -1,6 +1,5 @@
 // ==========================================
 // ФАЙЛ: web-chat.js
-// Назначение: Ядро чата (Отправка, Отрисовка, Переводы, Корзина, Firebase Архив, Меню)
 // ==========================================
 
 window.currentRoomId = 'global';
@@ -9,7 +8,7 @@ window.isGeminiWaiting = false;
 window.activeChatListener = null;
 
 // ==========================================
-// 1. ПЕРЕКЛЮЧЕНИЕ КОМНАТ (С КНОПКОЙ GLOBAL CHAT)
+// 1. ПЕРЕКЛЮЧЕНИЕ КОМНАТ 
 // ==========================================
 window.switchWebChat = function(targetId) {
     if (window.activeChatListener) {
@@ -64,7 +63,6 @@ window.switchWebChat = function(targetId) {
         }
     }
 
-    // ЛОГИКА ДОБАВЛЕНИЯ КНОПКИ "GLOBAL CHAT" В ШАПКУ ПРИВАТА
     if (hName) {
         const headerFlex = hName.closest('.flex.items-center.justify-between');
         if (headerFlex) {
@@ -75,7 +73,7 @@ window.switchWebChat = function(targetId) {
                 headerFlex.appendChild(btnContainer);
             }
             if (targetId === 'global') {
-                btnContainer.innerHTML = ''; // Скрываем в общем чате
+                btnContainer.innerHTML = ''; 
             } else {
                 btnContainer.innerHTML = `
                     <button onclick="window.switchWebChat('global')" class="bg-indigo-100 dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-slate-600 px-4 py-2 rounded-xl text-[11px] font-bold transition flex items-center gap-2 shadow-sm border border-indigo-200 dark:border-slate-600">
@@ -96,7 +94,7 @@ window.switchWebChat = function(targetId) {
 };
 
 // ==========================================
-// 2. ОТПРАВКА СООБЩЕНИЯ (FIREBASE + GEMINI)
+// 2. ОТПРАВКА СООБЩЕНИЯ 
 // ==========================================
 window.sendFirebaseMsg = async function() {
     const inputField = document.getElementById('chat-input') || document.getElementById('web-chat-input');
@@ -121,7 +119,6 @@ window.sendFirebaseMsg = async function() {
 
     let myBaseText = rawText;
     
-    // УМНЫЙ ПРЕ-ПЕРЕВОД (SMART TYPING)
     try {
         const res1 = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${myActiveLang.substring(0,2)}&dt=t&q=${encodeURIComponent(rawText)}`);
         const data1 = await res1.json();
@@ -170,7 +167,7 @@ window.sendFirebaseMsg = async function() {
 };
 
 // ==========================================
-// 3. ПРИЕМ И ОТРИСОВКА (БАББЛЫ)
+// 3. ПРИЕМ И ОТРИСОВКА (ИСПРАВЛЕНЫ ДВОЙНЫЕ ПУЗЫРИ)
 // ==========================================
 window.handleNewMessage = async function(snapshot) {
     const data = snapshot.val(); 
@@ -199,15 +196,30 @@ window.handleNewMessage = async function(snapshot) {
     let myReadLang = window.appLang === 'auto' ? window.getSmartLang(window.myProfileInfo) : window.appLang;
     let senderLang = data.langCode || 'auto'; 
 
-    if (data.originalText && window.currentRoomId !== 'global') {
-        if (!isMe && !isAI && senderLang.substring(0,2) !== myReadLang.substring(0,2)) {
-            try {
-                const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${senderLang.substring(0,2)}&tl=${myReadLang.substring(0,2)}&dt=t&q=${encodeURIComponent(data.originalText)}`);
-                const resData = await res.json();
-                let finalTrans = (resData && resData[0] && resData[0][0]) ? resData[0][0][0] : data.originalText;
-                
-                bubbleContent = `<div>${data.originalText}</div><div class="mt-2 pt-2 border-t border-opacity-20 ${isMe ? 'border-white' : 'border-gray-300 dark:border-slate-500'} text-[0.8rem] ${isMe ? 'text-indigo-100' : 'text-indigo-500 dark:text-indigo-400'} font-bold">➔ ${finalTrans}</div>`;
-            } catch(e) {}
+    // === ИСПРАВЛЕНИЕ: ТОЧНАЯ ЛОГИКА ДВОЙНЫХ ПУЗЫРЕЙ ===
+    if (window.currentRoomId !== 'global' && !isAI) {
+        let orig = data.originalText || data.text; 
+        let trans = data.text; 
+        
+        if (orig !== trans) {
+            let mainText, subText;
+            if (isMe) {
+                mainText = orig;
+                subText = trans;
+            } else {
+                mainText = trans;
+                subText = orig;
+            }
+
+            let dividerColor = isMe ? 'border-white/30 text-indigo-200' : 'border-gray-300 dark:border-slate-500 text-indigo-500 dark:text-indigo-400';
+            bubbleContent = `
+                <div class="text-[0.95rem] leading-relaxed">${mainText}</div>
+                <div class="mt-1.5 pt-1.5 border-t ${dividerColor} text-[0.75rem] font-bold tracking-wide opacity-90">
+                    ➔ ${subText}
+                </div>
+            `;
+        } else {
+            bubbleContent = `<div class="text-[0.95rem] leading-relaxed">${orig}</div>`;
         }
     }
 
@@ -276,7 +288,7 @@ window.handleNewMessage = async function(snapshot) {
 };
 
 // ==========================================
-// 4. КОРЗИНА И УМНАЯ АРХИВАЦИЯ В FIREBASE
+// 4. КОРЗИНА И FIREBASE АРХИВ
 // ==========================================
 window.openTrashModal = function() {
     if (typeof window.closeDropdown === 'function') window.closeDropdown();
@@ -350,7 +362,7 @@ window.actionDeleteForever = function() {
 };
 
 // ==========================================
-// 5. ЖИВОЙ АРХИВ (ИНТЕГРАЦИЯ С FIREBASE)
+// 5. ЖИВОЙ АРХИВ
 // ==========================================
 window.archiveData = { mail: [], docs: [], media: [] };
 window.currentArchiveTab = 'mail';
@@ -522,7 +534,7 @@ window.readArchiveItem = function(id) {
 };
 
 // ==========================================
-// 6. ОСТАЛЬНЫЕ МЕНЮ И ВОЛШЕБНАЯ ПАЛОЧКА
+// 6. ОСТАЛЬНЫЕ МЕНЮ 
 // ==========================================
 window.applyAiMagic = function() {
     const chatInput = document.getElementById('chat-input') || document.getElementById('web-chat-input');
@@ -584,7 +596,7 @@ window.blockUser = function() {
 };
 
 // ==========================================
-// 7. СТАРТ ПРИЛОЖЕНИЯ (ОДИН РАЗ В САМОМ НИЗУ)
+// 7. СТАРТ ПРИЛОЖЕНИЯ
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
     const sendBtn = document.getElementById('chat-send-btn');
