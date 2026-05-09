@@ -6,6 +6,23 @@ window.currentRoomId = 'global';
 window.currentTargetUser = null;
 window.isGeminiWaiting = false;
 window.activeChatListener = null;
+window.isMarqueeActive = true; // Статус бегущей строки
+
+// 0. ФУНКЦИЯ ВКЛ/ВЫКЛ БЕГУЩЕЙ СТРОКИ
+window.toggleMarquee = function() {
+    window.isMarqueeActive = !window.isMarqueeActive;
+    const mContainer = document.getElementById('marquee-container');
+    if (mContainer) {
+        mContainer.style.display = window.isMarqueeActive ? 'flex' : 'none';
+    }
+};
+
+window.toggleVrCC = function() {
+    const vrMarquee = document.getElementById('vr-marquee');
+    if (vrMarquee && vrMarquee.parentElement) {
+        vrMarquee.parentElement.style.display = vrMarquee.parentElement.style.display === 'none' ? 'flex' : 'none';
+    }
+};
 
 // ==========================================
 // 1. ПЕРЕКЛЮЧЕНИЕ КОМНАТ 
@@ -63,31 +80,25 @@ window.switchWebChat = function(targetId) {
         }
     }
 
-    if (hName) {
-        const headerFlex = hName.closest('.flex.items-center.justify-between');
-        if (headerFlex) {
-            let btnContainer = document.getElementById('global-btn-container');
-            if (!btnContainer) {
-                btnContainer = document.createElement('div');
-                btnContainer.id = 'global-btn-container';
-                headerFlex.appendChild(btnContainer);
-            }
-            if (targetId === 'global') {
-                btnContainer.innerHTML = ''; 
-            } else {
-                btnContainer.innerHTML = `
-                    <button onclick="window.switchWebChat('global')" class="bg-indigo-100 dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-slate-600 px-4 py-2 rounded-xl text-[11px] font-bold transition flex items-center gap-2 shadow-sm border border-indigo-200 dark:border-slate-600">
-                        <i class="fa-solid fa-earth-americas text-sm"></i> Global Chat
-                    </button>
-                `;
-            }
+    // ЛОГИКА ДОБАВЛЕНИЯ КНОПКИ "GLOBAL CHAT" В ШАПКУ ПРИВАТА (СПРАВА)
+    const btnContainer = document.getElementById('header-buttons-container');
+    if (btnContainer) {
+        const oldBtn = document.getElementById('dyn-global-btn');
+        if (oldBtn) oldBtn.remove();
+        
+        if (targetId !== 'global') {
+            const gBtn = document.createElement('button');
+            gBtn.id = 'dyn-global-btn';
+            gBtn.onclick = () => window.switchWebChat('global');
+            gBtn.className = "bg-indigo-100 dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-slate-600 px-3 py-1.5 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 shadow-sm ml-2";
+            gBtn.innerHTML = `<i class="fa-solid fa-earth-americas text-xs"></i> Global`;
+            btnContainer.appendChild(gBtn);
         }
     }
 
     const mText = document.getElementById('top-chat-marquee');
     if(mText) {
-        if(window.currentRoomId === 'global') mText.innerText = "🌍 Global Chat • AI Translation System Active...";
-        else mText.innerText = `🔒 Secure Room • AI Translation Active...`;
+        mText.innerHTML = (window.currentRoomId === 'global') ? "🌍 Global Chat • Waiting for messages..." : "🔒 Secure Room • Waiting for messages...";
     }
     
     window.activeChatListener = firebase.database().ref(window.currentRoomId).on("child_added", window.handleNewMessage);
@@ -160,14 +171,14 @@ window.sendFirebaseMsg = async function() {
             firebase.database().ref(targetDbRoom).push({ 
                 name: "AI Assistant", text: replyText, sessionId: "ai-bot-session", 
                 timestamp: firebase.database.ServerValue.TIMESTAMP, userId: 'ai', 
-                langCode: 'en', flag: '🤖', photo: 'https://ui-avatars.com/api/?name=AI&background=6b21a8&color=fff' 
+                langCode: 'en', flag: '🤖', flagCode: 'us', photo: 'https://ui-avatars.com/api/?name=AI&background=6b21a8&color=fff' 
             }); 
         }).finally(() => { setTimeout(() => { window.isGeminiWaiting = false; }, 2000); });
     }
 };
 
 // ==========================================
-// 3. ПРИЕМ И ОТРИСОВКА (ИСПРАВЛЕНЫ ДВОЙНЫЕ ПУЗЫРИ)
+// 3. ПРИЕМ И ОТРИСОВКА (ИСПРАВЛЕНЫ ДВОЙНЫЕ ПУЗЫРИ И PNG ФЛАГИ)
 // ==========================================
 window.handleNewMessage = async function(snapshot) {
     const data = snapshot.val(); 
@@ -178,9 +189,25 @@ window.handleNewMessage = async function(snapshot) {
 
     const isMe = data.sessionId === window.mySessionId || data.userId === (window.myProfileInfo ? window.myProfileInfo.id : 'guest');
     const isAI = data.userId === "ai" || data.sessionId === "ai-bot-session";
-    let p = isMe ? window.myProfileInfo : (isAI ? { id: 'ai', name: 'AI Assistant', photo: 'https://ui-avatars.com/api/?name=AI&background=6b21a8&color=fff', flag: '🤖' } : (window.participants.find(part => part.id === data.userId) || { id: data.userId, photo: data.photo || 'https://ui-avatars.com/api/?name=U', langCode: data.langCode || 'en', flag: data.flag || '🌐', name: data.name || 'User' }));
+    let p = isMe ? window.myProfileInfo : (isAI ? { id: 'ai', name: 'AI Assistant', photo: 'https://ui-avatars.com/api/?name=AI&background=6b21a8&color=fff', flagCode: 'us' } : (window.participants.find(part => part.id === data.userId) || { id: data.userId, photo: data.photo || 'https://ui-avatars.com/api/?name=U', langCode: data.langCode || 'en', flag: data.flag || '🌐', flagCode: data.flagCode || 'un', name: data.name || 'User' }));
     
     let senderDisplayName = isMe ? window.myUsername || "Me" : (p.name || 'User').split(' ')[0];
+    let safeFlagCode = p.flagCode ? p.flagCode.toLowerCase() : 'un';
+    let flagImgHtml = `<img src="https://flagcdn.com/w20/${safeFlagCode}.png" class="inline-block w-4 h-3 rounded-[2px] ml-1 shadow-sm object-cover">`;
+
+    // ОБНОВЛЯЕМ БЕГУЩУЮ СТРОКУ (С PNG ФЛАГОМ И ИМЕНЕМ)
+    const mText = document.getElementById('top-chat-marquee');
+    if (mText && data.text) {
+        let cleanText = (data.originalText || data.text).substring(0, 50);
+        let spanMsg = `<span class="mx-4 text-indigo-600 font-bold">${flagImgHtml} ${senderDisplayName}: <span class="text-gray-700 font-medium">${cleanText}</span></span>`;
+        mText.innerHTML = spanMsg + mText.innerHTML.replace('🌍 Global Chat • Waiting for messages...', '').replace('🔒 Secure Room • Waiting for messages...', '');
+    }
+    // ОБНОВЛЯЕМ БЕГУЩУЮ СТРОКУ В ГОЛОСОВОЙ КОМНАТЕ
+    const vrMarquee = document.getElementById('vr-marquee');
+    if(vrMarquee && data.text) {
+        let cleanText = data.text.substring(0, 50);
+        vrMarquee.innerHTML = `<span class="mx-4 text-indigo-600 font-bold">${flagImgHtml} ${senderDisplayName}: <span class="text-gray-700">${cleanText}</span></span>` + vrMarquee.innerHTML;
+    }
 
     const messageGroup = document.createElement('div'); 
     messageGroup.className = "flex flex-col w-full mt-4 mb-2";
@@ -196,7 +223,7 @@ window.handleNewMessage = async function(snapshot) {
     let myReadLang = window.appLang === 'auto' ? window.getSmartLang(window.myProfileInfo) : window.appLang;
     let senderLang = data.langCode || 'auto'; 
 
-    // === ИСПРАВЛЕНИЕ: ТОЧНАЯ ЛОГИКА ДВОЙНЫХ ПУЗЫРЕЙ ===
+    // === ТОЧНАЯ ЛОГИКА ДВОЙНЫХ ПУЗЫРЕЙ ===
     if (window.currentRoomId !== 'global' && !isAI) {
         let orig = data.originalText || data.text; 
         let trans = data.text; 
@@ -227,7 +254,7 @@ window.handleNewMessage = async function(snapshot) {
         <div class="flex w-full ${alignment} gap-2">
             ${!isMe ? avatarHtml : ''}
             <div class="flex flex-col max-w-[70%]">
-                <span class="text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-1 ${isMe ? 'text-right' : 'text-left'}">${senderDisplayName} ${p.flag || '🌐'}</span>
+                <span class="text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-1 flex items-center ${isMe ? 'justify-end' : 'justify-start'}">${senderDisplayName} ${flagImgHtml}</span>
                 <div class="p-3 shadow-sm text-sm ${bubbleStyle}">
                     ${bubbleContent}
                 </div>
@@ -241,14 +268,14 @@ window.handleNewMessage = async function(snapshot) {
          let neededLangs = new Set(); 
          
          if (myReadLang && myReadLang !== 'un' && myReadLang.substring(0,2) !== senderLang.substring(0,2)) {
-             targetUsers.push({ code: myReadLang.substring(0,2), flag: (window.myProfileInfo ? window.myProfileInfo.flag : '🌐'), photo: (window.myProfileInfo ? window.myProfileInfo.photo : '') });
+             targetUsers.push({ code: myReadLang.substring(0,2), flagCode: (window.myProfileInfo ? window.myProfileInfo.flagCode : 'un'), photo: (window.myProfileInfo ? window.myProfileInfo.photo : '') });
              neededLangs.add(myReadLang.substring(0,2));
          }
 
          window.participants.filter(part => part.id !== 'ai').forEach(member => {
              let memberLang = window.getSmartLang(member);
              if (memberLang && memberLang !== 'un' && memberLang.substring(0,2) !== senderLang.substring(0,2)) {
-                 targetUsers.push({ code: memberLang.substring(0,2), flag: member.flag, photo: member.photo });
+                 targetUsers.push({ code: memberLang.substring(0,2), flagCode: member.flagCode, photo: member.photo });
                  neededLangs.add(memberLang.substring(0,2));
              }
          });
@@ -272,8 +299,9 @@ window.handleNewMessage = async function(snapshot) {
                      let translatedText = transCache[u.code] || data.originalText || data.text;
                      const rowClass = isMe ? 'flex-row-reverse' : 'flex-row'; 
                      const radiusClass = isMe ? 'rounded-tr-sm rounded-l-2xl rounded-br-2xl' : 'rounded-tl-sm rounded-r-2xl rounded-bl-2xl';
+                     let uFlag = `<img src="https://flagcdn.com/w20/${(u.flagCode || 'un').toLowerCase()}.png" class="absolute -bottom-1 -right-1 w-3 h-2 rounded-[1px] shadow-sm object-cover">`;
                      transContainer.innerHTML += `<div class="flex items-end gap-2 max-w-[85%] ${rowClass}">
-                        <div class="relative shrink-0"><img src="${u.photo}" class="w-5 h-5 rounded-full object-cover border border-gray-300"><span class="absolute -bottom-1 -right-1 text-[8px] bg-white rounded-full leading-none shadow-sm">${u.flag}</span></div>
+                        <div class="relative shrink-0"><img src="${u.photo}" class="w-5 h-5 rounded-full object-cover border border-gray-300">${uFlag}</div>
                         <div class="bg-indigo-50 border border-indigo-100 dark:bg-slate-800 dark:border-slate-700 text-gray-800 dark:text-gray-200 ${radiusClass} px-3 py-1.5 text-[11px] font-medium shadow-sm">${translatedText}</div>
                      </div>`;
                  });
@@ -579,6 +607,12 @@ window.openBlacklistModal = function() {
     if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
 };
 
+window.openLangModal = function() {
+    if (typeof window.closeDropdown === 'function') window.closeDropdown();
+    const m = document.getElementById('lang-modal');
+    if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
+};
+
 window.unblockUser = function(elementId) {
     const el = document.getElementById(elementId);
     if (el) el.remove(); 
@@ -611,36 +645,33 @@ window.openMicMenu = function() {
 
 // Запуск Голосовой комнаты (Anrufen)
 window.startVoiceCall = function() {
-    window.closeModal('mic-menu-modal'); // Закрываем меню микрофона
+    window.closeModal('mic-menu-modal'); 
     
     const vr = document.getElementById('voice-room-modal');
     if (!vr) return;
 
-    // Подтягиваем данные текущего пользователя
     let myName = window.myUsername || "Me";
     let myPhoto = window.myProfileInfo ? window.myProfileInfo.photo : 'https://ui-avatars.com/api/?name=Me';
-    let myFlagCode = window.myProfileInfo ? window.myProfileInfo.flagCode : 'un';
+    let myFlagCode = window.myProfileInfo ? (window.myProfileInfo.flagCode || 'un').toLowerCase() : 'un';
     
     document.getElementById('voice-me-name').innerText = myName;
     document.getElementById('voice-me-avatar').src = myPhoto;
-    document.getElementById('voice-me-flag').innerText = myFlagCode.toUpperCase();
+    document.getElementById('voice-me-flag').src = `https://flagcdn.com/w20/${myFlagCode}.png`;
 
-    // Подтягиваем данные собеседника
     let partnerName = window.currentTargetUser ? window.currentTargetUser.name.split(' ')[0] : "Partner";
     let partnerPhoto = window.currentTargetUser ? window.currentTargetUser.photo : 'https://ui-avatars.com/api/?name=U';
-    let partnerFlagCode = window.currentTargetUser ? window.currentTargetUser.flagCode : 'un';
+    let partnerFlagCode = window.currentTargetUser ? (window.currentTargetUser.flagCode || 'un').toLowerCase() : 'un';
 
     if (window.currentRoomId === 'private_ai_bot') {
         partnerName = "Gemini AI";
         partnerPhoto = "https://ui-avatars.com/api/?name=AI&background=6b21a8&color=fff";
-        partnerFlagCode = "US";
+        partnerFlagCode = "us";
     }
 
     document.getElementById('voice-partner-name').innerText = partnerName;
     document.getElementById('voice-partner-avatar').src = partnerPhoto;
-    document.getElementById('voice-partner-flag').innerText = partnerFlagCode.toUpperCase();
+    document.getElementById('voice-partner-flag').src = `https://flagcdn.com/w20/${partnerFlagCode}.png`;
 
-    // Показываем комнату
     vr.classList.remove('hidden');
     vr.classList.add('flex');
 };
