@@ -78,9 +78,10 @@ window.switchWebChat = function(targetId) {
             hAvatar.innerHTML = "🌍";
             hAvatar.className = `w-12 h-12 rounded-full flex items-center justify-center text-white shadow-md cursor-pointer hover:scale-105 transition-transform text-2xl bg-gradient-to-r from-blue-500 to-purple-500 shrink-0`;
         }
+        // ДОБАВЛЕН ВЫЗОВ МОДАЛКИ ЯЗЫКА ПРИ КЛИКЕ НА АВАТАРКУ
+        hAvatar.onclick = window.openChatLangModal;
     }
 
-    // ЛОГИКА ДОБАВЛЕНИЯ КНОПКИ "GLOBAL CHAT" В ШАПКУ ПРИВАТА (СПРАВА)
     const btnContainer = document.getElementById('header-buttons-container');
     if (btnContainer) {
         const oldBtn = document.getElementById('dyn-global-btn');
@@ -119,8 +120,9 @@ window.sendFirebaseMsg = async function() {
     inputField.value = '';
 
     let targetDbRoom = window.currentRoomId || 'global';
-    let myActiveLang = window.appLang || 'en';
-    if (myActiveLang === 'auto') myActiveLang = window.getSmartLang(window.myProfileInfo);
+    
+    // ИЗМЕНЕНО: Используем chatLang вместо appLang
+    let myActiveLang = window.chatLang === 'auto' ? (window.appLang === 'auto' ? window.getSmartLang(window.myProfileInfo) : window.appLang) : window.chatLang;
 
     let safeId = window.myProfileInfo ? window.myProfileInfo.id : 'guest';
     let safeName = window.myUsername || 'User';
@@ -195,8 +197,8 @@ window.handleNewMessage = async function(snapshot) {
     let safeFlagCode = p.flagCode ? p.flagCode.toLowerCase() : 'un';
     let flagImgHtml = `<img src="https://flagcdn.com/w20/${safeFlagCode}.png" class="inline-block w-4 h-3 rounded-[2px] ml-1 shadow-sm object-cover" style="vertical-align: middle;">`;
 
-    // 🌟 УМНЫЙ ПЕРЕВОД ДЛЯ БЕГУЩЕЙ СТРОКИ
-    let myReadLang = window.appLang === 'auto' ? window.getSmartLang(window.myProfileInfo) : window.appLang;
+    // 🌟 УМНЫЙ ПЕРЕВОД ДЛЯ БЕГУЩЕЙ СТРОКИ (Используем chatLang)
+    let myReadLang = window.chatLang === 'auto' ? (window.appLang === 'auto' ? window.getSmartLang(window.myProfileInfo) : window.appLang) : window.chatLang;
     let myLangCode = myReadLang ? myReadLang.substring(0, 2) : 'en';
     let textForMarquee = data.originalText || data.text;
     
@@ -317,6 +319,7 @@ window.handleNewMessage = async function(snapshot) {
     chatMessages.appendChild(messageGroup); 
     chatMessages.scrollTop = chatMessages.scrollHeight;
 };
+
 // ==========================================
 // 4. КОРЗИНА И FIREBASE АРХИВ
 // ==========================================
@@ -781,6 +784,7 @@ window.closeVoiceRoom = function() {
     const vr = document.getElementById('voice-room-modal');
     if (vr) { vr.classList.add('hidden'); vr.classList.remove('flex'); }
 };
+
 // ==========================================
 // ЛОГИКА МЕНЮ СКРЕПКИ (DATEI ANHÄNGEN)
 // ==========================================
@@ -794,7 +798,7 @@ window.triggerPhotoUpload = function() {
     window.closeModal('attachment-modal');
     const input = document.getElementById('attachment-input');
     if (input) {
-        input.accept = "image/*"; // Фильтр только для картинок
+        input.accept = "image/*"; 
         input.click();
     }
 };
@@ -803,7 +807,7 @@ window.triggerDocUpload = function() {
     window.closeModal('attachment-modal');
     const input = document.getElementById('attachment-input');
     if (input) {
-        input.accept = ".pdf, .doc, .docx, .txt, application/pdf"; // Фильтр для документов
+        input.accept = ".pdf, .doc, .docx, .txt, application/pdf"; 
         input.click();
     }
 };
@@ -811,11 +815,12 @@ window.triggerDocUpload = function() {
 window.openLocationFromAttachment = function() {
     window.closeModal('attachment-modal');
     if (typeof window.openLocationModal === 'function') {
-        window.openLocationModal(); // Вызывает твою готовую модалку локации
+        window.openLocationModal(); 
     } else {
         alert("Модалка локации не найдена.");
     }
 };
+
 // ==========================================
 // ЛОГИКА ПОИСКА (ГЛОБАЛЬНАЯ ЛУПА OMNI-SEARCH)
 // ==========================================
@@ -850,7 +855,6 @@ window.performLiveSearch = function() {
         
         let html = `<div class="p-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-200">🔍 Поиск: "${input}"...</div>`;
         
-        // Поиск по контактам
         const foundUsers = window.participants ? window.participants.filter(u => u.name && u.name.toLowerCase().includes(input)) : [];
         if (foundUsers.length > 0) {
             html += `<div class="mt-3 text-[10px] font-bold text-blue-500 uppercase tracking-wider mb-2">Найдено в контактах:</div>`;
@@ -906,6 +910,7 @@ window.doGoogleSearch = function() {
     if (!query) return alert("Введите текст для поиска");
     window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
 };
+
 // ==========================================
 // 7. СТАРТ ПРИЛОЖЕНИЯ
 // ==========================================
