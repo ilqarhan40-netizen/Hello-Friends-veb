@@ -207,8 +207,9 @@ window.openEditCVModal = function() {
     const cv = user.cv || {};
     const wrapper = document.getElementById('cv-modals-wrapper') || document.body;
 
-    const countries = [
+  const countries = [
         { code: 'az', flag: '🇦🇿', name: 'Azerbaijan', dial: '+994' },
+        { code: 'kz', flag: '🇰🇿', name: 'Kazakhstan', dial: '+7' }, // <-- ДОБАВИЛИ КАЗАХСТАН
         { code: 'ru', flag: '🇷🇺', name: 'Russia', dial: '+7' },
         { code: 'de', flag: '🇩🇪', name: 'Germany', dial: '+49' },
         { code: 'it', flag: '🇮🇹', name: 'Italy', dial: '+39' },
