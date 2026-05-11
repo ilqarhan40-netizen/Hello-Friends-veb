@@ -140,20 +140,20 @@ window.openMyProfile = function() {
     const cv = user.cv || {}; 
 
     // СПИСОК ВСЕХ 13 СТРАН С PNG ФЛАГАМИ (FLAGCDN)
-    const countries = [
-        { code: 'az', flag: 'https://flagcdn.com/w20/az.png', name: 'Azerbaijan', dial: '+994' },
-        { code: 'kz', flag: 'https://flagcdn.com/w20/kz.png', name: 'Kazakhstan', dial: '+7' },
-        { code: 'ru', flag: 'https://flagcdn.com/w20/ru.png', name: 'Russia', dial: '+7' },
-        { code: 'de', flag: 'https://flagcdn.com/w20/de.png', name: 'Germany', dial: '+49' },
-        { code: 'it', flag: 'https://flagcdn.com/w20/it.png', name: 'Italy', dial: '+39' },
-        { code: 'gb', flag: 'https://flagcdn.com/w20/gb.png', name: 'United Kingdom', dial: '+44' },
-        { code: 'tr', flag: 'https://flagcdn.com/w20/tr.png', name: 'Turkey', dial: '+90' },
-        { code: 'es', flag: 'https://flagcdn.com/w20/es.png', name: 'Spain', dial: '+34' },
-        { code: 'fr', flag: 'https://flagcdn.com/w20/fr.png', name: 'France', dial: '+33' },
-        { code: 'us', flag: 'https://flagcdn.com/w20/us.png', name: 'USA', dial: '+1' },
-        { code: 'ae', flag: 'https://flagcdn.com/w20/ae.png', name: 'UAE', dial: '+971' },
-        { code: 'cn', flag: 'https://flagcdn.com/w20/cn.png', name: 'China', dial: '+86' },
-        { code: 'jp', flag: 'https://flagcdn.com/w20/jp.png', name: 'Japan', dial: '+81' }
+  const countries = [
+        { code: 'az', flag: '🇦🇿', name: 'Azerbaijan', dial: '+994' },
+        { code: 'kz', flag: '🇰🇿', name: 'Kazakhstan', dial: '+7' },
+        { code: 'ru', flag: '🇷🇺', name: 'Russia', dial: '+7' },
+        { code: 'de', flag: '🇩🇪', name: 'Germany', dial: '+49' },
+        { code: 'it', flag: '🇮🇹', name: 'Italy', dial: '+39' },
+        { code: 'gb', flag: '🇬🇧', name: 'United Kingdom', dial: '+44' },
+        { code: 'tr', flag: '🇹🇷', name: 'Turkey', dial: '+90' },
+        { code: 'es', flag: '🇪🇸', name: 'Spain', dial: '+34' },
+        { code: 'fr', flag: '🇫🇷', name: 'France', dial: '+33' },
+        { code: 'us', flag: '🇺🇸', name: 'USA', dial: '+1' },
+        { code: 'ae', flag: '🇦🇪', name: 'UAE', dial: '+971' },
+        { code: 'cn', flag: '🇨🇳', name: 'China', dial: '+86' },
+        { code: 'jp', flag: '🇯🇵', name: 'Japan', dial: '+81' }
     ];
     let currentCode = user.flagCode || 'gb';
     let optionsHtml = countries.map(c => `<option value="${c.code}" data-dial="${c.dial}" data-flag="${c.flag}" ${currentCode === c.code ? 'selected' : ''}>${c.flag} ${c.name}</option>`).join('');
