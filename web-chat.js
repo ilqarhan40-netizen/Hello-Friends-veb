@@ -223,19 +223,28 @@ window.handleNewMessage = async function(snapshot) {
             if (tData && tData[0] && tData[0][0][0]) textForMarquee = tData[0][0][0];
         } catch(e){}
     }
-
-    // 🌟 БЕГУЩАЯ СТРОКА: пускаем только свежие сообщения
+// 🌟 БЕГУЩАЯ СТРОКА: пускаем только свежие сообщения
     let isNewMessage = (data.timestamp || 0) > (window.joinedRoomTime - 5000); 
     if (isNewMessage) {
         let spanMsg = `<span class="mx-4 inline-flex items-center gap-1"><span class="text-indigo-600 dark:text-indigo-400 font-black tracking-wide">${flagImgHtml} ${senderDisplayName}:</span> <span class="text-gray-800 dark:text-gray-200 font-semibold ml-1">${textForMarquee.substring(0, 80)}</span></span>`;
+        
+        // 1. Обновление в основном чате
         const mText = document.getElementById('top-chat-marquee');
         if (mText) {
             let currentText = mText.innerHTML.replace('🌍 Global Chat • Waiting for messages...', '').replace('🔒 Secure Room • Waiting for messages...', '');
             mText.innerHTML = spanMsg + currentText;
         }
+
+        // 2. Обновление в Голосовой комнате (VR)
         const vrMarquee = document.getElementById('vr-marquee');
         if(vrMarquee) {
             vrMarquee.innerHTML = spanMsg + vrMarquee.innerHTML;
+        }
+
+        // 3. Обновление в Видеоконференции (Conf)
+        const confMarquee = document.getElementById('conf-marquee');
+        if(confMarquee) {
+            confMarquee.innerHTML = spanMsg + confMarquee.innerHTML;
         }
     }
 
@@ -974,61 +983,74 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => { window.switchWebChat('global'); }, 2000);
 });
 // ==========================================
-// ЛОГИКА КНОПОК ВИДЕОКОНФЕРЕНЦИИ
+// ЛОГИКА КНОПОК ВИДЕОКОНФЕРЕНЦИИ (ИСПРАВЛЕНО)
 // ==========================================
+
+// Отправка сообщения из Видеоконференции
+window.sendConfMessage = function() {
+    const confInput = document.getElementById('conf-text-input');
+    if (!confInput || !confInput.value.trim()) return;
+
+    // Дублируем текст в невидимый основной инпут, чтобы сработал основной метод отправки
+    const mainChatInput = document.getElementById('chat-input') || document.getElementById('web-chat-input');
+    if (mainChatInput) {
+        mainChatInput.value = confInput.value;
+        window.sendFirebaseMsg(); 
+    }
+    confInput.value = ''; 
+};
 
 // Закрытие комнаты
 window.closeConferenceRoom = function() {
     const confModal = document.getElementById('conference-overlay');
-    if (confModal) {
-        confModal.style.display = 'none';
-        // Если есть логика отключения потоков WebRTC из web-calls.js, она должна срабатывать тут
-    }
+    if (confModal) confModal.style.display = 'none';
 };
 
-// Вкл/Выкл Микрофона в Конференции
+// Вкл/Выкл Микрофона
 window.toggleConfMic = function(btn) {
     const icon = btn.querySelector('i');
     if (icon.classList.contains('fa-microphone')) {
-        // Выключаем
         icon.classList.replace('fa-microphone', 'fa-microphone-slash');
         btn.classList.replace('bg-gray-200', 'bg-red-500');
-        btn.classList.replace('dark:bg-gray-700', 'dark:bg-red-600');
-        btn.classList.replace('text-gray-700', 'text-white');
+        btn.classList.add('text-white');
     } else {
-        // Включаем
         icon.classList.replace('fa-microphone-slash', 'fa-microphone');
         btn.classList.replace('bg-red-500', 'bg-gray-200');
-        btn.classList.replace('dark:bg-red-600', 'dark:bg-gray-700');
-        btn.classList.replace('text-white', 'text-gray-700');
+        btn.classList.remove('text-white');
     }
 };
 
-// Вкл/Выкл Камеры в Конференции
+// Вкл/Выкл Камеры
 window.toggleConfCam = function(btn) {
     const icon = btn.querySelector('i');
     if (icon.classList.contains('fa-video')) {
-        // Выключаем
         icon.classList.replace('fa-video', 'fa-video-slash');
-        btn.classList.remove('bg-indigo-600', 'dark:bg-[#00C4CC]', 'dark:text-black');
-        btn.classList.add('bg-red-500', 'dark:bg-red-600', 'text-white');
+        btn.classList.remove('bg-indigo-600', 'dark:bg-[#00C4CC]');
+        btn.classList.add('bg-red-500');
     } else {
-        // Включаем
         icon.classList.replace('fa-video-slash', 'fa-video');
-        btn.classList.remove('bg-red-500', 'dark:bg-red-600', 'text-white');
-        btn.classList.add('bg-indigo-600', 'dark:bg-[#00C4CC]', 'dark:text-black');
+        btn.classList.remove('bg-red-500');
+        btn.classList.add('bg-indigo-600', 'dark:bg-[#00C4CC]');
     }
 };
 
-// Вкл/Выкл CC (Перевода бегущей строки)
+// Вкл/Выкл CC (Бегущая строка перевода)
 window.toggleConfCC = function(btn) {
-    if (btn.classList.contains('bg-indigo-600') || btn.classList.contains('dark:bg-[#00C4CC]')) {
-        // Пауза CC
+    const marqueeContainer = document.getElementById('conf-marquee-container');
+    const isActive = btn.classList.contains('bg-indigo-600') || btn.classList.contains('dark:bg-[#00C4CC]');
+
+    if (isActive) {
+        // ВЫКЛЮЧАЕМ
         btn.classList.remove('bg-indigo-600', 'dark:bg-[#00C4CC]', 'dark:text-black');
-        btn.classList.add('bg-gray-400', 'dark:bg-gray-600', 'text-white');
+        btn.classList.add('bg-gray-400', 'text-white');
+        if (marqueeContainer) marqueeContainer.classList.add('hidden');
     } else {
-        // Старт CC
-        btn.classList.remove('bg-gray-400', 'dark:bg-gray-600', 'text-white');
+        // ВКЛЮЧАЕМ
+        btn.classList.remove('bg-gray-400', 'text-white');
         btn.classList.add('bg-indigo-600', 'dark:bg-[#00C4CC]', 'dark:text-black');
+        if (marqueeContainer) {
+            marqueeContainer.classList.remove('hidden');
+            marqueeContainer.classList.add('flex');
+        }
     }
 };
