@@ -4,6 +4,8 @@ window.i18n = {
     de: { nav_chat: "Chat", nav_voice: "Sprachchat", nav_conf: "Konferenz", nav_prof: "Berufe", nav_contacts: "Kontakte", nav_archive: "Archiv", search_ph: "Suchen...", global_chat: "Globaler Chat", welcome_title: "Willkommen bei Hello Friends!", global_network: "Globales Smart-Netzwerk", creator_badge: "Hello Friends Schöpfer", menu: "Einstellungen", profile: "Profil", my_profile: "Mein Profil", complete_reg: "Registrierung abschließen", full_name: "Vollständiger Name", wallet: "Brieftasche", email_store: "E-Mail-Shop", theme: "Thema ändern", logout: "Abmelden", action_chat: "Privater Chat", action_voice: "Sprachraum", action_video: "Videokonferenz", action_email: "E-Mail senden", action_cellular: "Handyanruf", cv_prof: "Beruf", cv_langs: "SPRACHEN", country: "Land", cv_country: "Land", phone: "Telefonnummer", cv_phone_header: "GESCHÄFTSTELEFON", email: "E-Mail", cv_email_header: "GESCHÄFTS-E-MAIL", cv_exp: "BERUFSERFAHRUNG", cv_edu: "BILDUNG", skills: "KOMPETENZEN", cv_about: "ÜBER MICH", edit_cv: "Lebenslauf bearbeiten", view_cv: "Lebenslauf ansehen", edit_pro_cv: "Professioneller Lebenslauf", cv_role: "Rolle", save_cv: "Speichern", save_profile: "Profil speichern", select_room_lang: "Raumsprache", cancel: "Abbrechen", population: "Bevölkerung", seas: "Meere", chat: "Chat", sms: "SMS", email_btn: "E-Mail", purchase: "Kaufen" }
 };
 
+window.chatLang = 'auto'; // Отдельная переменная ТОЛЬКО для переводов в чате
+
 window.getSmartLang = function(userProfile) {
     if (!userProfile) return navigator.language ? navigator.language.slice(0, 2) : 'en'; 
     let phone = (userProfile.phone || "").replace(/\s+/g, '');
@@ -58,6 +60,54 @@ window.changeAppLanguage = function(langCode) {
     localStorage.setItem('hf_app_lang', langCode); 
     window.applySystemLanguage(); 
     if(typeof window.closeDropdown === 'function') window.closeDropdown(); 
+};
+
+// ==========================================
+// ЛОГИКА "ЯЗЫК ЧАТА" (ДИНАМИЧЕСКАЯ ГЕНЕРАЦИЯ)
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+    // Встраиваем окно Языка Чата программно, чтобы не засорять HTML
+    const chatLangModalHTML = `
+    <div id="chat-lang-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-[10000] backdrop-blur-sm transition-opacity" onclick="if(event.target===this) window.closeChatLangModal()">
+        <div class="bg-[#1a2235] w-[340px] rounded-3xl p-6 relative flex flex-col shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/5" onclick="event.stopPropagation()">
+            <button onclick="window.closeChatLangModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-white/10 rounded-full text-gray-400 hover:text-white transition"><i class="fa-solid fa-xmark text-sm"></i></button>
+            <div class="text-center mb-6">
+                <h3 class="text-white font-bold text-xl flex justify-center items-center gap-2"><i class="fa-solid fa-language text-green-400"></i> Язык Чата</h3>
+                <p class="text-green-500 text-[10px] font-black tracking-widest uppercase mt-2">Settings strictly for:</p>
+                <p id="chat-lang-room-name" class="text-white font-bold text-sm flex justify-center items-center gap-2 mt-1"><i class="fa-regular fa-file-lines"></i> Room</p>
+            </div>
+            <div class="flex flex-col gap-2 overflow-y-auto max-h-[50vh] pr-1 custom-scrollbar">
+                <button onclick="window.setChatLang('auto')" class="w-full py-3.5 px-4 bg-transparent border border-green-500 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5"><i class="fa-solid fa-globe text-blue-400 text-lg w-6 text-center"></i><span class="text-white">Auto (Profile)</span></button>
+                <button onclick="window.setChatLang('en')" class="w-full py-3.5 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">GB</span> English</button>
+                <button onclick="window.setChatLang('ru')" class="w-full py-3.5 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">RU</span> Русский</button>
+                <button onclick="window.setChatLang('az')" class="w-full py-3.5 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">AZ</span> Azərbaycanca</button>
+                <button onclick="window.setChatLang('de')" class="w-full py-3.5 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">DE</span> Deutsch</button>
+                <button onclick="window.setChatLang('tr')" class="w-full py-3.5 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">TR</span> Türkçe</button>
+            </div>
+        </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', chatLangModalHTML);
+});
+
+window.openChatLangModal = function() {
+    if (typeof window.closeDropdown === 'function') window.closeDropdown();
+    const m = document.getElementById('chat-lang-modal');
+    if (m) {
+        const roomNameEl = document.getElementById('chat-lang-room-name');
+        const headerName = document.getElementById('chat-header-name');
+        if(roomNameEl && headerName) roomNameEl.innerHTML = `<i class="fa-regular fa-file-lines"></i> ${headerName.innerText.toUpperCase()}`;
+        m.classList.remove('hidden'); m.classList.add('flex');
+    }
+};
+
+window.closeChatLangModal = function() {
+    const m = document.getElementById('chat-lang-modal');
+    if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
+};
+
+window.setChatLang = function(langCode) {
+    window.chatLang = langCode;
+    window.closeChatLangModal();
 };
 
 const domObserver = new MutationObserver((mutations) => {
