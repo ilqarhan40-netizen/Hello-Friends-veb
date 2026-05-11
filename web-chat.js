@@ -5,7 +5,7 @@
 window.chatLang = 'auto';
 window.currentRoomId = 'global';
 window.currentTargetUser = null;
-window.isGeminiWaiting = false;и
+window.isGeminiWaiting = false;
 window.activeChatListener = null;
 window.isMarqueeActive = true; // Статус бегущей строки
 
