@@ -191,7 +191,7 @@
 
    <nav id="main-nav" class="bg-white dark:bg-slate-800 md:rounded-xl shadow-md hidden md:flex flex-wrap justify-center gap-2 mb-4 p-2 transition-colors duration-300">
         <a href="#" data-target="chat" class="nav-link active px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_chat">Chat</a>
-        <a href="#" onclick="alert('Для звонка нажмите микрофон в чате'); return false;" class="px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_voice">Voice Chat</a>
+        <a href="#" onclick="openVoiceRoomDirectly(); return false;" class="px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_voice">Voice Chat</a>
         <a href="#" onclick="openConference(); return false;" class="px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_conf">Conference</a>
         <a href="#" data-target="profession" class="nav-link px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_prof">Profession</a>
         <a href="#" data-target="contacts" class="nav-link px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_contacts">Contacts</a>
@@ -334,22 +334,15 @@
     </div>
     <div id="conference-grid" class="grid-conf overflow-y-auto flex-grow p-4 md:p-8"></div>
     <div class="w-full shrink-0 mt-auto pb-8 pt-4 flex justify-center z-50 bg-gradient-to-t from-gray-100 dark:from-[#0f172a] to-transparent">
-        <div class="flex items-center gap-4 bg-white/95 dark:bg-[#1a1e23]/95 backdrop-blur-md px-6 py-3 rounded-full border border-gray-300 dark:border-gray-700 shadow-2xl">
-            <input type="text" id="conf-text-input" placeholder="Message or mic..." class="bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white px-4 py-3 rounded-full outline-none w-48 transition-colors">
+        <div class="flex items-center gap-3 bg-white/95 dark:bg-[#1a1e23]/95 backdrop-blur-md px-6 py-3 rounded-full border border-gray-300 dark:border-gray-700 shadow-2xl">
+            <button onclick="openAttachmentModal()" class="text-gray-500 hover:text-blue-500 transition-colors px-2" title="Attach File"><i class="fa-solid fa-paperclip text-xl"></i></button>
+            <input type="text" id="conf-text-input" placeholder="Message..." class="bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white px-4 py-3 rounded-full outline-none w-40 transition-colors">
             <button id="conf-send-btn" class="text-indigo-600 dark:text-[#00C4CC] hover:scale-110 transition-transform"><i class="fa-solid fa-paper-plane text-xl"></i></button>
-            <div class="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-2"></div>
-            <button id="main-conf-mic-btn" class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-red-500 hover:text-white text-gray-700 dark:text-white transition-all shadow-md">
-                <i class="fa-solid fa-microphone text-lg"></i>
-            </button>
-            <button id="conf-cam-btn" class="w-12 h-12 rounded-full bg-indigo-600 dark:bg-[#00C4CC] flex items-center justify-center text-white dark:text-black transition-all shadow-md">
-                <i class="fa-solid fa-video text-lg"></i>
-            </button>
-            <button onclick="toggleConfCC()" id="conf-cc-btn" class="w-12 h-12 rounded-full bg-indigo-600 dark:bg-[#00C4CC] flex items-center justify-center text-white dark:text-black transition-all shadow-md">
-                <i class="fa-solid fa-closed-captioning text-lg"></i>
-            </button>
-            <button onclick="closeCalls()" class="w-14 h-14 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center text-white transition-all shadow-[0_0_15px_rgba(239,68,68,0.5)] hover:scale-105 ml-2">
-                <i class="fa-solid fa-phone-slash text-xl"></i>
-            </button>
+            <div class="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+            <button id="main-conf-mic-btn" onclick="toggleConfMic(this)" class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-red-500 hover:text-white text-gray-700 dark:text-white transition-all shadow-md flex items-center justify-center"><i class="fa-solid fa-microphone text-lg"></i></button>
+            <button id="conf-cam-btn" onclick="toggleConfCam(this)" class="w-12 h-12 rounded-full bg-indigo-600 dark:bg-[#00C4CC] flex items-center justify-center text-white dark:text-black transition-all shadow-md"><i class="fa-solid fa-video text-lg"></i></button>
+            <button onclick="toggleConfCC(this)" id="conf-cc-btn" class="w-12 h-12 rounded-full bg-indigo-600 dark:bg-[#00C4CC] flex items-center justify-center text-white dark:text-black transition-all shadow-md"><i class="fa-solid fa-closed-captioning text-lg"></i></button>
+            <button onclick="closeConferenceRoom()" class="w-14 h-14 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center text-white transition-all shadow-[0_0_15px_rgba(239,68,68,0.5)] hover:scale-105 ml-1"><i class="fa-solid fa-phone-slash text-xl"></i></button>
         </div>
     </div>
 </div>
@@ -399,10 +392,19 @@
     <div class="p-4 bg-white border-t border-gray-200 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
         <div class="max-w-4xl mx-auto flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-4 py-2 shadow-inner">
             <button class="text-gray-400 hover:text-gray-600 transition"><i class="fa-regular fa-face-smile text-xl"></i></button>
-            <input type="text" placeholder="Type message or click mic..." class="flex-1 bg-transparent outline-none text-sm text-gray-700 px-2">
-            <button class="text-gray-400 hover:text-green-500 transition"><i class="fa-solid fa-microphone text-xl"></i></button>
-            <button class="bg-indigo-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-indigo-600 transition shadow-sm"><i class="fa-solid fa-paper-plane text-xs"></i></button>
-            <button class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-blue-600 transition shadow-sm"><span class="text-[9px] font-bold">CC</span></button>
+            
+            <button onclick="openAttachmentModal()" class="text-gray-400 hover:text-blue-500 transition px-1" title="Attach File">
+                <i class="fa-solid fa-paperclip text-xl"></i>
+            </button>
+
+            <input type="text" id="vr-chat-input" placeholder="Type message or click mic..." class="flex-1 bg-transparent outline-none text-sm text-gray-700 px-2" onkeypress="if(event.key === 'Enter') sendVrMessage()">
+            
+            <button id="vr-mic-btn" onclick="startVrDictation()" class="text-gray-400 hover:text-green-500 transition"><i class="fa-solid fa-microphone text-xl"></i></button>
+            
+            <button onclick="sendVrMessage()" class="bg-indigo-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-indigo-600 transition shadow-sm"><i class="fa-solid fa-paper-plane text-xs"></i></button>
+            
+            <button onclick="toggleVrCC()" class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-blue-600 transition shadow-sm"><span class="text-[9px] font-bold">CC</span></button>
+            
             <button onclick="closeVoiceRoom()" class="bg-red-500 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-600 shadow-md ml-2 transition hover:scale-105"><i class="fa-solid fa-phone-slash text-sm"></i></button>
         </div>
     </div>
