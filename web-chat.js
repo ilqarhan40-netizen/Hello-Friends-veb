@@ -1,13 +1,14 @@
 // ==========================================
-// ФАЙЛ: web-chat.js
+// ФАЙЛ: web-chat.js (ОБНОВЛЕННЫЙ И ИСПРАВЛЕННЫЙ)
 // ==========================================
 
-window.chatLang = 'auto';
+window.chatLang = window.chatLang || 'auto';
 window.currentRoomId = 'global';
 window.currentTargetUser = null;
 window.isGeminiWaiting = false;
 window.activeChatListener = null;
-window.isMarqueeActive = true; // Статус бегущей строки
+window.isMarqueeActive = true; 
+window.joinedRoomTime = Date.now(); // Фиксатор времени для бегущей строки
 
 // 0. ФУНКЦИЯ ВКЛ/ВЫКЛ БЕГУЩЕЙ СТРОКИ
 window.toggleMarquee = function() {
@@ -37,6 +38,7 @@ window.switchWebChat = function(targetId) {
     if (chatMessages) chatMessages.innerHTML = '';
     
     window.currentTargetUser = null; 
+    window.joinedRoomTime = Date.now(); // Обновляем время при входе в новую комнату
     let headerName = "Group Chat"; 
     let headerStatus = "🌍 All members";
     let avatarImg = "";
@@ -79,8 +81,13 @@ window.switchWebChat = function(targetId) {
             hAvatar.innerHTML = "🌍";
             hAvatar.className = `w-12 h-12 rounded-full flex items-center justify-center text-white shadow-md cursor-pointer hover:scale-105 transition-transform text-2xl bg-gradient-to-r from-blue-500 to-purple-500 shrink-0`;
         }
-        // ДОБАВЛЕН ВЫЗОВ МОДАЛКИ ЯЗЫКА ПРИ КЛИКЕ НА АВАТАРКУ
-        hAvatar.onclick = window.openChatLangModal;
+        // ВЕРНУЛИ КЛИК ПРОФИЛЯ НА ВЕРХНЮЮ АВАТАРКУ
+        hAvatar.onclick = function(e) {
+            e.stopPropagation();
+            if (window.currentTargetUser && typeof window.openUserProfile === 'function') {
+                window.openUserProfile(window.currentTargetUser.id);
+            }
+        };
     }
 
     const btnContainer = document.getElementById('header-buttons-container');
@@ -122,8 +129,10 @@ window.sendFirebaseMsg = async function() {
 
     let targetDbRoom = window.currentRoomId || 'global';
     
-    // ИЗМЕНЕНО: Используем chatLang вместо appLang
-    let myActiveLang = window.chatLang === 'auto' ? (window.appLang === 'auto' ? window.getSmartLang(window.myProfileInfo) : window.appLang) : window.chatLang;
+    // ПОЛНОСТЬЮ ОТВЯЗАНО ОТ appLang (МЕНЮ +)
+    let cL = window.chatLang || 'auto';
+    let myActiveLang = cL === 'auto' ? (window.myProfileInfo ? window.getSmartLang(window.myProfileInfo) : 'en') : cL;
+    if (!myActiveLang || typeof myActiveLang !== 'string') myActiveLang = 'en';
 
     let safeId = window.myProfileInfo ? window.myProfileInfo.id : 'guest';
     let safeName = window.myUsername || 'User';
@@ -132,9 +141,10 @@ window.sendFirebaseMsg = async function() {
     let activeFlagCode = window.myProfileInfo ? window.myProfileInfo.flagCode : 'un';
 
     let myBaseText = rawText;
+    let safeLangCode = myActiveLang.substring(0, 2);
     
     try {
-        const res1 = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${myActiveLang.substring(0,2)}&dt=t&q=${encodeURIComponent(rawText)}`);
+        const res1 = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${safeLangCode}&dt=t&q=${encodeURIComponent(rawText)}`);
         const data1 = await res1.json();
         if (data1 && data1[0] && data1[0][0][0]) {
             myBaseText = data1[0][0][0]; 
@@ -146,7 +156,7 @@ window.sendFirebaseMsg = async function() {
 
     if (targetSendLang !== myActiveLang && targetDbRoom !== 'global' && targetDbRoom !== 'private_ai_bot') {
         try {
-            const res2 = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${myActiveLang.substring(0,2)}&tl=${targetSendLang.substring(0,2)}&dt=t&q=${encodeURIComponent(myBaseText)}`);
+            const res2 = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${safeLangCode}&tl=${targetSendLang.substring(0,2)}&dt=t&q=${encodeURIComponent(myBaseText)}`);
             const data2 = await res2.json();
             if (data2 && data2[0] && data2[0][0][0]) textToShip = data2[0][0][0];
         } catch (e) {}
@@ -198,9 +208,12 @@ window.handleNewMessage = async function(snapshot) {
     let safeFlagCode = p.flagCode ? p.flagCode.toLowerCase() : 'un';
     let flagImgHtml = `<img src="https://flagcdn.com/w20/${safeFlagCode}.png" class="inline-block w-4 h-3 rounded-[2px] ml-1 shadow-sm object-cover" style="vertical-align: middle;">`;
 
-    // 🌟 УМНЫЙ ПЕРЕВОД ДЛЯ БЕГУЩЕЙ СТРОКИ (Используем chatLang)
-    let myReadLang = window.chatLang === 'auto' ? (window.appLang === 'auto' ? window.getSmartLang(window.myProfileInfo) : window.appLang) : window.chatLang;
-    let myLangCode = myReadLang ? myReadLang.substring(0, 2) : 'en';
+    // ПОЛНОСТЬЮ ОТВЯЗАНО ОТ appLang (МЕНЮ +)
+    let cL = window.chatLang || 'auto';
+    let myReadLang = cL === 'auto' ? (window.myProfileInfo ? window.getSmartLang(window.myProfileInfo) : 'en') : cL;
+    if (!myReadLang || typeof myReadLang !== 'string') myReadLang = 'en';
+    let myLangCode = myReadLang.substring(0, 2);
+    
     let textForMarquee = data.originalText || data.text;
     
     if (!isMe && myLangCode !== (data.langCode || '').substring(0,2)) {
@@ -211,16 +224,19 @@ window.handleNewMessage = async function(snapshot) {
         } catch(e){}
     }
 
-    // 🌟 ОБНОВЛЕНИЕ БЕГУЩЕЙ СТРОКИ (Флаг + Имя + Переведенный текст)
-    let spanMsg = `<span class="mx-4 inline-flex items-center gap-1"><span class="text-indigo-600 dark:text-indigo-400 font-black tracking-wide">${flagImgHtml} ${senderDisplayName}:</span> <span class="text-gray-800 dark:text-gray-200 font-semibold ml-1">${textForMarquee.substring(0, 80)}</span></span>`;
-    
-    const mText = document.getElementById('top-chat-marquee');
-    if (mText) {
-        mText.innerHTML = spanMsg + mText.innerHTML.replace('🌍 Global Chat • AI Translation System Active...', '').replace('🔒 Secure Room • Waiting for messages...', '');
-    }
-    const vrMarquee = document.getElementById('vr-marquee');
-    if(vrMarquee) {
-        vrMarquee.innerHTML = spanMsg + vrMarquee.innerHTML;
+    // 🌟 БЕГУЩАЯ СТРОКА: пускаем только свежие сообщения
+    let isNewMessage = (data.timestamp || 0) > (window.joinedRoomTime - 5000); 
+    if (isNewMessage) {
+        let spanMsg = `<span class="mx-4 inline-flex items-center gap-1"><span class="text-indigo-600 dark:text-indigo-400 font-black tracking-wide">${flagImgHtml} ${senderDisplayName}:</span> <span class="text-gray-800 dark:text-gray-200 font-semibold ml-1">${textForMarquee.substring(0, 80)}</span></span>`;
+        const mText = document.getElementById('top-chat-marquee');
+        if (mText) {
+            let currentText = mText.innerHTML.replace('🌍 Global Chat • Waiting for messages...', '').replace('🔒 Secure Room • Waiting for messages...', '');
+            mText.innerHTML = spanMsg + currentText;
+        }
+        const vrMarquee = document.getElementById('vr-marquee');
+        if(vrMarquee) {
+            vrMarquee.innerHTML = spanMsg + vrMarquee.innerHTML;
+        }
     }
 
     // --- Дальше идет стандартная логика пузырей чата ---
@@ -232,7 +248,7 @@ window.handleNewMessage = async function(snapshot) {
         : "bg-white dark:bg-slate-800 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-r-2xl rounded-tl-2xl";
     
     let alignment = isMe ? "justify-end" : "justify-start";
-   let avatarHtml = `<img src="${p.photo || data.photo}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-slate-600 shadow-sm shrink-0 cursor-pointer hover:scale-105 transition" onclick="event.stopPropagation(); window.openChatLangModal('${senderDisplayName}')">`;
+    let avatarHtml = `<img src="${p.photo || data.photo}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-slate-600 shadow-sm shrink-0 cursor-pointer hover:scale-105 transition" onclick="event.stopPropagation(); if(typeof window.openChatLangModal === 'function') window.openChatLangModal('${senderDisplayName}')">`;
     let bubbleContent = data.text;
     let senderLang = data.langCode || 'auto'; 
 
@@ -567,7 +583,7 @@ window.readArchiveItem = function(id) {
 };
 
 // ==========================================
-// 6. ОСТАЛЬНЫЕ МЕНЮ 
+// 6. ОСТАЛЬНЫЕ МЕНЮ И КОНФЕРЕНЦИЯ
 // ==========================================
 window.applyAiMagic = function() {
     const chatInput = document.getElementById('chat-input') || document.getElementById('web-chat-input');
@@ -631,6 +647,16 @@ window.blockUser = function() {
     }
     if (confirm("Block this user? They will be added to your Blacklist.")) {
         window.openBlacklistModal(); 
+    }
+};
+
+window.openConference = function() {
+    if (typeof window.closeDropdown === 'function') window.closeDropdown();
+    const confModal = document.getElementById('conference-overlay');
+    if (confModal) {
+        confModal.style.display = 'flex';
+    } else {
+        alert("Модалка видеоконференции не найдена!");
     }
 };
 
@@ -741,7 +767,17 @@ window.startVoiceCall = function() {
     }
 
     document.getElementById('voice-partner-name').innerText = partnerName;
-    document.getElementById('voice-partner-avatar').src = partnerPhoto;
+    
+    const vPartnerAvatar = document.getElementById('voice-partner-avatar');
+    if (vPartnerAvatar) {
+        vPartnerAvatar.src = partnerPhoto;
+        vPartnerAvatar.style.cursor = "pointer";
+        vPartnerAvatar.onclick = function(e) {
+            e.stopPropagation();
+            if(typeof window.openChatLangModal === 'function') window.openChatLangModal(partnerName);
+        };
+    }
+    
     document.getElementById('voice-partner-flag').src = `https://flagcdn.com/w20/${partnerFlagCode}.png`;
 
     vr.classList.remove('hidden');
@@ -772,7 +808,17 @@ window.openVoiceRoomDirectly = function() {
     }
 
     document.getElementById('voice-partner-name').innerText = partnerName;
-    document.getElementById('voice-partner-avatar').src = partnerPhoto;
+    
+    const vPartnerAvatar = document.getElementById('voice-partner-avatar');
+    if (vPartnerAvatar) {
+        vPartnerAvatar.src = partnerPhoto;
+        vPartnerAvatar.style.cursor = "pointer";
+        vPartnerAvatar.onclick = function(e) {
+            e.stopPropagation();
+            if(typeof window.openChatLangModal === 'function') window.openChatLangModal(partnerName);
+        };
+    }
+
     document.getElementById('voice-partner-flag').src = `https://flagcdn.com/w20/${partnerFlagCode}.png`;
 
     vr.classList.remove('hidden');
