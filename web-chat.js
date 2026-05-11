@@ -675,7 +675,7 @@ window.openConference = function() {
 
 window.currentMicLang = 'auto'; // Умное автоопределение по умолчанию
 
-// Функция автоопределения нужного языка из 12 доступных
+// Функция автоопределения нужного языка
 window.getSmartMicLang = function() {
     if (window.currentMicLang !== 'auto') return window.currentMicLang; 
 
@@ -685,13 +685,14 @@ window.getSmartMicLang = function() {
     }
     detectLang = detectLang.toLowerCase().substring(0, 2);
 
-    const map12 = {
+    const mapLocales = {
         'en': 'en-US', 'ru': 'ru-RU', 'az': 'az-AZ', 'de': 'de-DE',
         'tr': 'tr-TR', 'ar': 'ar-SA', 'it': 'it-IT', 'es': 'es-ES',
-        'fr': 'fr-FR', 'pt': 'pt-PT', 'ja': 'ja-JP', 'zh': 'zh-CN'
+        'fr': 'fr-FR', 'pt': 'pt-PT', 'ja': 'ja-JP', 'zh': 'zh-CN',
+        'kk': 'kk-KZ' // <-- ДОБАВЛЕН КАЗАХСКИЙ
     };
 
-    return map12[detectLang] || 'en-US'; 
+    return mapLocales[detectLang] || 'en-US'; 
 };
 
 // Установка языка вручную из модалки "Mic Lang"
