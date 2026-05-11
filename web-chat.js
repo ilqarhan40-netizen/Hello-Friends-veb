@@ -815,6 +815,96 @@ window.openLocationFromAttachment = function() {
     }
 };
 // ==========================================
+// ЛОГИКА ПОИСКА (ГЛОБАЛЬНАЯ ЛУПА OMNI-SEARCH)
+// ==========================================
+window.openSearchModal = function() {
+    if (typeof window.closeDropdown === 'function') window.closeDropdown();
+    const sm = document.getElementById('search-modal');
+    if (sm) { 
+        sm.classList.remove('hidden'); 
+        sm.classList.add('flex'); 
+        setTimeout(() => sm.classList.remove('opacity-0'), 10); 
+    }
+};
+
+window.closeSearchModal = function() {
+    const sm = document.getElementById('search-modal');
+    if (sm) { 
+        sm.classList.add('opacity-0'); 
+        setTimeout(() => { sm.classList.add('hidden'); sm.classList.remove('flex'); }, 300); 
+    }
+};
+
+window.performLiveSearch = function() {
+    const input = document.getElementById('global-search-input').value.toLowerCase();
+    const clearBtn = document.getElementById('clear-search-btn');
+    const suggestions = document.getElementById('search-suggestions');
+    const resultsArea = document.getElementById('search-results-area');
+
+    if (input.length > 0) {
+        if(clearBtn) clearBtn.classList.remove('hidden');
+        if(suggestions) suggestions.classList.add('hidden');
+        if(resultsArea) resultsArea.classList.remove('hidden');
+        
+        let html = `<div class="p-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-200">🔍 Поиск: "${input}"...</div>`;
+        
+        // Поиск по контактам
+        const foundUsers = window.participants ? window.participants.filter(u => u.name && u.name.toLowerCase().includes(input)) : [];
+        if (foundUsers.length > 0) {
+            html += `<div class="mt-3 text-[10px] font-bold text-blue-500 uppercase tracking-wider mb-2">Найдено в контактах:</div>`;
+            foundUsers.forEach(u => {
+                let safeFlagCode = u.flagCode ? u.flagCode.toLowerCase() : 'un';
+                html += `
+                <div onclick="window.closeSearchModal(); window.switchWebChat('${u.id}')" class="flex items-center gap-3 p-2 hover:bg-blue-50 dark:hover:bg-slate-600 rounded-xl cursor-pointer transition border border-transparent hover:border-blue-100">
+                    <div class="relative shrink-0">
+                        <img src="${u.photo}" class="w-10 h-10 rounded-full object-cover border border-gray-200">
+                        <img src="https://flagcdn.com/w20/${safeFlagCode}.png" class="absolute -bottom-1 -right-1 w-4 h-3 rounded-[2px] shadow-sm object-cover">
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold dark:text-white">${u.name}</div>
+                        <div class="text-[10px] text-gray-500">Нажмите, чтобы открыть чат</div>
+                    </div>
+                </div>`;
+            });
+        } else {
+            html += `<div class="mt-4 text-xs text-gray-500 text-center">В контактах совпадений не найдено.</div>`;
+        }
+        if(resultsArea) resultsArea.innerHTML = html;
+    } else {
+        if(clearBtn) clearBtn.classList.add('hidden');
+        if(suggestions) suggestions.classList.remove('hidden');
+        if(resultsArea) resultsArea.classList.add('hidden');
+    }
+};
+
+window.resetGlobalSearch = function() {
+    const input = document.getElementById('global-search-input');
+    if (input) input.value = '';
+    window.performLiveSearch();
+};
+
+window.handleSmartSearch = function(query, type) {
+    const input = document.getElementById('global-search-input');
+    if (type === 'transfer') {
+        window.closeSearchModal();
+        if(typeof window.openBankTransferModal === 'function') window.openBankTransferModal();
+        else alert("Открытие перевода денег...");
+    } else if (type === 'email') {
+        window.closeSearchModal();
+        if(typeof window.openEmailModal === 'function') window.openEmailModal();
+        else alert("Открытие почты...");
+    } else {
+        if (input) input.value = query;
+        window.performLiveSearch();
+    }
+};
+
+window.doGoogleSearch = function() {
+    const query = document.getElementById('global-search-input').value;
+    if (!query) return alert("Введите текст для поиска");
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+};
+// ==========================================
 // 7. СТАРТ ПРИЛОЖЕНИЯ
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
