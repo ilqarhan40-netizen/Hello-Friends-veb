@@ -178,7 +178,7 @@ window.sendFirebaseMsg = async function() {
 };
 
 // ==========================================
-// 3. ПРИЕМ И ОТРИСОВКА (ИСПРАВЛЕНЫ ДВОЙНЫЕ ПУЗЫРИ И PNG ФЛАГИ)
+// 3. ПРИЕМ И ОТРИСОВКА (С ПЕРЕВОДОМ В БЕГУЩЕЙ СТРОКЕ)
 // ==========================================
 window.handleNewMessage = async function(snapshot) {
     const data = snapshot.val(); 
@@ -193,22 +193,34 @@ window.handleNewMessage = async function(snapshot) {
     
     let senderDisplayName = isMe ? window.myUsername || "Me" : (p.name || 'User').split(' ')[0];
     let safeFlagCode = p.flagCode ? p.flagCode.toLowerCase() : 'un';
-    let flagImgHtml = `<img src="https://flagcdn.com/w20/${safeFlagCode}.png" class="inline-block w-4 h-3 rounded-[2px] ml-1 shadow-sm object-cover">`;
+    let flagImgHtml = `<img src="https://flagcdn.com/w20/${safeFlagCode}.png" class="inline-block w-4 h-3 rounded-[2px] ml-1 shadow-sm object-cover" style="vertical-align: middle;">`;
 
-    // ОБНОВЛЯЕМ БЕГУЩУЮ СТРОКУ (С PNG ФЛАГОМ И ИМЕНЕМ)
+    // 🌟 УМНЫЙ ПЕРЕВОД ДЛЯ БЕГУЩЕЙ СТРОКИ
+    let myReadLang = window.appLang === 'auto' ? window.getSmartLang(window.myProfileInfo) : window.appLang;
+    let myLangCode = myReadLang ? myReadLang.substring(0, 2) : 'en';
+    let textForMarquee = data.originalText || data.text;
+    
+    if (!isMe && myLangCode !== (data.langCode || '').substring(0,2)) {
+        try {
+            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${myLangCode}&dt=t&q=${encodeURIComponent(textForMarquee)}`);
+            const tData = await res.json();
+            if (tData && tData[0] && tData[0][0][0]) textForMarquee = tData[0][0][0];
+        } catch(e){}
+    }
+
+    // 🌟 ОБНОВЛЕНИЕ БЕГУЩЕЙ СТРОКИ (Флаг + Имя + Переведенный текст)
+    let spanMsg = `<span class="mx-4 inline-flex items-center gap-1"><span class="text-indigo-600 dark:text-indigo-400 font-black tracking-wide">${flagImgHtml} ${senderDisplayName}:</span> <span class="text-gray-800 dark:text-gray-200 font-semibold ml-1">${textForMarquee.substring(0, 80)}</span></span>`;
+    
     const mText = document.getElementById('top-chat-marquee');
-    if (mText && data.text) {
-        let cleanText = (data.originalText || data.text).substring(0, 50);
-        let spanMsg = `<span class="mx-4 text-indigo-600 font-bold">${flagImgHtml} ${senderDisplayName}: <span class="text-gray-700 font-medium">${cleanText}</span></span>`;
-        mText.innerHTML = spanMsg + mText.innerHTML.replace('🌍 Global Chat • Waiting for messages...', '').replace('🔒 Secure Room • Waiting for messages...', '');
+    if (mText) {
+        mText.innerHTML = spanMsg + mText.innerHTML.replace('🌍 Global Chat • AI Translation System Active...', '').replace('🔒 Secure Room • Waiting for messages...', '');
     }
-    // ОБНОВЛЯЕМ БЕГУЩУЮ СТРОКУ В ГОЛОСОВОЙ КОМНАТЕ
     const vrMarquee = document.getElementById('vr-marquee');
-    if(vrMarquee && data.text) {
-        let cleanText = data.text.substring(0, 50);
-        vrMarquee.innerHTML = `<span class="mx-4 text-indigo-600 font-bold">${flagImgHtml} ${senderDisplayName}: <span class="text-gray-700">${cleanText}</span></span>` + vrMarquee.innerHTML;
+    if(vrMarquee) {
+        vrMarquee.innerHTML = spanMsg + vrMarquee.innerHTML;
     }
 
+    // --- Дальше идет стандартная логика пузырей чата ---
     const messageGroup = document.createElement('div'); 
     messageGroup.className = "flex flex-col w-full mt-4 mb-2";
 
@@ -220,30 +232,21 @@ window.handleNewMessage = async function(snapshot) {
     let avatarHtml = `<img src="${p.photo || data.photo}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-slate-600 shadow-sm shrink-0 cursor-pointer hover:scale-105 transition" onclick="window.openUserProfile('${p.id}')">`;
 
     let bubbleContent = data.text;
-    let myReadLang = window.appLang === 'auto' ? window.getSmartLang(window.myProfileInfo) : window.appLang;
     let senderLang = data.langCode || 'auto'; 
 
-    // === ТОЧНАЯ ЛОГИКА ДВОЙНЫХ ПУЗЫРЕЙ ===
     if (window.currentRoomId !== 'global' && !isAI) {
         let orig = data.originalText || data.text; 
         let trans = data.text; 
         
         if (orig !== trans) {
             let mainText, subText;
-            if (isMe) {
-                mainText = orig;
-                subText = trans;
-            } else {
-                mainText = trans;
-                subText = orig;
-            }
+            if (isMe) { mainText = orig; subText = trans; } 
+            else { mainText = trans; subText = orig; }
 
             let dividerColor = isMe ? 'border-white/30 text-indigo-200' : 'border-gray-300 dark:border-slate-500 text-indigo-500 dark:text-indigo-400';
             bubbleContent = `
                 <div class="text-[0.95rem] leading-relaxed">${mainText}</div>
-                <div class="mt-1.5 pt-1.5 border-t ${dividerColor} text-[0.75rem] font-bold tracking-wide opacity-90">
-                    ➔ ${subText}
-                </div>
+                <div class="mt-1.5 pt-1.5 border-t ${dividerColor} text-[0.75rem] font-bold tracking-wide opacity-90">➔ ${subText}</div>
             `;
         } else {
             bubbleContent = `<div class="text-[0.95rem] leading-relaxed">${orig}</div>`;
@@ -267,9 +270,9 @@ window.handleNewMessage = async function(snapshot) {
          let targetUsers = []; 
          let neededLangs = new Set(); 
          
-         if (myReadLang && myReadLang !== 'un' && myReadLang.substring(0,2) !== senderLang.substring(0,2)) {
-             targetUsers.push({ code: myReadLang.substring(0,2), flagCode: (window.myProfileInfo ? window.myProfileInfo.flagCode : 'un'), photo: (window.myProfileInfo ? window.myProfileInfo.photo : '') });
-             neededLangs.add(myReadLang.substring(0,2));
+         if (myReadLang && myReadLang !== 'un' && myLangCode !== senderLang.substring(0,2)) {
+             targetUsers.push({ code: myLangCode, flagCode: (window.myProfileInfo ? window.myProfileInfo.flagCode : 'un'), photo: (window.myProfileInfo ? window.myProfileInfo.photo : '') });
+             neededLangs.add(myLangCode);
          }
 
          window.participants.filter(part => part.id !== 'ai').forEach(member => {
@@ -314,7 +317,6 @@ window.handleNewMessage = async function(snapshot) {
     chatMessages.appendChild(messageGroup); 
     chatMessages.scrollTop = chatMessages.scrollHeight;
 };
-
 // ==========================================
 // 4. КОРЗИНА И FIREBASE АРХИВ
 // ==========================================
