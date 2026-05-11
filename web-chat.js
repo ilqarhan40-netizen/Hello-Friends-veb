@@ -232,8 +232,7 @@ window.handleNewMessage = async function(snapshot) {
         : "bg-white dark:bg-slate-800 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-r-2xl rounded-tl-2xl";
     
     let alignment = isMe ? "justify-end" : "justify-start";
-    let avatarHtml = `<img src="${p.photo || data.photo}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-slate-600 shadow-sm shrink-0 cursor-pointer hover:scale-105 transition" onclick="window.openUserProfile('${p.id}')">`;
-
+   let avatarHtml = `<img src="${p.photo || data.photo}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-slate-600 shadow-sm shrink-0 cursor-pointer hover:scale-105 transition" onclick="event.stopPropagation(); window.openChatLangModal('${senderDisplayName}')">`;
     let bubbleContent = data.text;
     let senderLang = data.langCode || 'auto'; 
 
