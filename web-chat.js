@@ -2,9 +2,10 @@
 // ФАЙЛ: web-chat.js
 // ==========================================
 
+window.chatLang = 'auto';
 window.currentRoomId = 'global';
 window.currentTargetUser = null;
-window.isGeminiWaiting = false;
+window.isGeminiWaiting = false;и
 window.activeChatListener = null;
 window.isMarqueeActive = true; // Статус бегущей строки
 
