@@ -973,3 +973,62 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setTimeout(() => { window.switchWebChat('global'); }, 2000);
 });
+// ==========================================
+// ЛОГИКА КНОПОК ВИДЕОКОНФЕРЕНЦИИ
+// ==========================================
+
+// Закрытие комнаты
+window.closeConferenceRoom = function() {
+    const confModal = document.getElementById('conference-overlay');
+    if (confModal) {
+        confModal.style.display = 'none';
+        // Если есть логика отключения потоков WebRTC из web-calls.js, она должна срабатывать тут
+    }
+};
+
+// Вкл/Выкл Микрофона в Конференции
+window.toggleConfMic = function(btn) {
+    const icon = btn.querySelector('i');
+    if (icon.classList.contains('fa-microphone')) {
+        // Выключаем
+        icon.classList.replace('fa-microphone', 'fa-microphone-slash');
+        btn.classList.replace('bg-gray-200', 'bg-red-500');
+        btn.classList.replace('dark:bg-gray-700', 'dark:bg-red-600');
+        btn.classList.replace('text-gray-700', 'text-white');
+    } else {
+        // Включаем
+        icon.classList.replace('fa-microphone-slash', 'fa-microphone');
+        btn.classList.replace('bg-red-500', 'bg-gray-200');
+        btn.classList.replace('dark:bg-red-600', 'dark:bg-gray-700');
+        btn.classList.replace('text-white', 'text-gray-700');
+    }
+};
+
+// Вкл/Выкл Камеры в Конференции
+window.toggleConfCam = function(btn) {
+    const icon = btn.querySelector('i');
+    if (icon.classList.contains('fa-video')) {
+        // Выключаем
+        icon.classList.replace('fa-video', 'fa-video-slash');
+        btn.classList.remove('bg-indigo-600', 'dark:bg-[#00C4CC]', 'dark:text-black');
+        btn.classList.add('bg-red-500', 'dark:bg-red-600', 'text-white');
+    } else {
+        // Включаем
+        icon.classList.replace('fa-video-slash', 'fa-video');
+        btn.classList.remove('bg-red-500', 'dark:bg-red-600', 'text-white');
+        btn.classList.add('bg-indigo-600', 'dark:bg-[#00C4CC]', 'dark:text-black');
+    }
+};
+
+// Вкл/Выкл CC (Перевода бегущей строки)
+window.toggleConfCC = function(btn) {
+    if (btn.classList.contains('bg-indigo-600') || btn.classList.contains('dark:bg-[#00C4CC]')) {
+        // Пауза CC
+        btn.classList.remove('bg-indigo-600', 'dark:bg-[#00C4CC]', 'dark:text-black');
+        btn.classList.add('bg-gray-400', 'dark:bg-gray-600', 'text-white');
+    } else {
+        // Старт CC
+        btn.classList.remove('bg-gray-400', 'dark:bg-gray-600', 'text-white');
+        btn.classList.add('bg-indigo-600', 'dark:bg-[#00C4CC]', 'dark:text-black');
+    }
+};
