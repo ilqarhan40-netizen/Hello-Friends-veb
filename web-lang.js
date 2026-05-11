@@ -63,39 +63,47 @@ window.changeAppLanguage = function(langCode) {
 };
 
 // ==========================================
-// ЛОГИКА "ЯЗЫК ЧАТА" (ДИНАМИЧЕСКАЯ ГЕНЕРАЦИЯ)
+// ЛОГИКА "ЯЗЫК ЧАТА" (12 ЯЗЫКОВ, БЕЗ БЛЮРА)
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
-    // Встраиваем окно Языка Чата программно, чтобы не засорять HTML
     const chatLangModalHTML = `
-    <div id="chat-lang-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-[10000] backdrop-blur-sm transition-opacity" onclick="if(event.target===this) window.closeChatLangModal()">
-        <div class="bg-[#1a2235] w-[340px] rounded-3xl p-6 relative flex flex-col shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/5" onclick="event.stopPropagation()">
+    <div id="chat-lang-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] transition-opacity" onclick="if(event.target===this) window.closeChatLangModal()">
+        <div class="bg-[#1a2235] w-[340px] rounded-3xl p-6 relative flex flex-col shadow-[0_0_40px_rgba(0,0,0,0.8)] border border-white/5" onclick="event.stopPropagation()">
             <button onclick="window.closeChatLangModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-white/10 rounded-full text-gray-400 hover:text-white transition"><i class="fa-solid fa-xmark text-sm"></i></button>
             <div class="text-center mb-6">
                 <h3 class="text-white font-bold text-xl flex justify-center items-center gap-2"><i class="fa-solid fa-language text-green-400"></i> Язык Чата</h3>
                 <p class="text-green-500 text-[10px] font-black tracking-widest uppercase mt-2">Settings strictly for:</p>
-                <p id="chat-lang-room-name" class="text-white font-bold text-sm flex justify-center items-center gap-2 mt-1"><i class="fa-regular fa-file-lines"></i> Room</p>
+                <p id="chat-lang-room-name" class="text-white font-bold text-sm flex justify-center items-center gap-2 mt-1"><i class="fa-regular fa-file-lines"></i> ROOM</p>
             </div>
             <div class="flex flex-col gap-2 overflow-y-auto max-h-[50vh] pr-1 custom-scrollbar">
-                <button onclick="window.setChatLang('auto')" class="w-full py-3.5 px-4 bg-transparent border border-green-500 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5"><i class="fa-solid fa-globe text-blue-400 text-lg w-6 text-center"></i><span class="text-white">Auto (Profile)</span></button>
-                <button onclick="window.setChatLang('en')" class="w-full py-3.5 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">GB</span> English</button>
-                <button onclick="window.setChatLang('ru')" class="w-full py-3.5 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">RU</span> Русский</button>
-                <button onclick="window.setChatLang('az')" class="w-full py-3.5 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">AZ</span> Azərbaycanca</button>
-                <button onclick="window.setChatLang('de')" class="w-full py-3.5 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">DE</span> Deutsch</button>
-                <button onclick="window.setChatLang('tr')" class="w-full py-3.5 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">TR</span> Türkçe</button>
+                <button onclick="window.setChatLang('auto')" class="w-full py-3 px-4 bg-transparent border border-green-500 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5"><i class="fa-solid fa-globe text-blue-400 text-lg w-6 text-center"></i><span class="text-white">Auto (Profile)</span></button>
+                <button onclick="window.setChatLang('en')" class="w-full py-3 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">GB</span> English</button>
+                <button onclick="window.setChatLang('ru')" class="w-full py-3 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">RU</span> Русский</button>
+                <button onclick="window.setChatLang('az')" class="w-full py-3 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">AZ</span> Azərbaycanca</button>
+                <button onclick="window.setChatLang('de')" class="w-full py-3 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">DE</span> Deutsch</button>
+                <button onclick="window.setChatLang('tr')" class="w-full py-3 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">TR</span> Türkçe</button>
+                <button onclick="window.setChatLang('ar')" class="w-full py-3 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">SA</span> العربية</button>
+                <button onclick="window.setChatLang('es')" class="w-full py-3 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">ES</span> Español</button>
+                <button onclick="window.setChatLang('it')" class="w-full py-3 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">IT</span> Italiano</button>
+                <button onclick="window.setChatLang('fr')" class="w-full py-3 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">FR</span> Français</button>
+                <button onclick="window.setChatLang('pt')" class="w-full py-3 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">PT</span> Português</button>
+                <button onclick="window.setChatLang('ja')" class="w-full py-3 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">JP</span> 日本語</button>
+                <button onclick="window.setChatLang('zh')" class="w-full py-3 px-4 bg-transparent border border-white/10 rounded-xl font-bold text-sm flex items-center gap-3 transition hover:bg-white/5 text-white"><span class="text-gray-400 font-black w-6 text-center">CN</span> 中文</button>
             </div>
         </div>
     </div>`;
     document.body.insertAdjacentHTML('beforeend', chatLangModalHTML);
 });
 
-window.openChatLangModal = function() {
+window.openChatLangModal = function(partnerName) {
     if (typeof window.closeDropdown === 'function') window.closeDropdown();
     const m = document.getElementById('chat-lang-modal');
     if (m) {
+        // Подставляем имя того, на чью аватарку нажали (например, GARRY)
         const roomNameEl = document.getElementById('chat-lang-room-name');
-        const headerName = document.getElementById('chat-header-name');
-        if(roomNameEl && headerName) roomNameEl.innerHTML = `<i class="fa-regular fa-file-lines"></i> ${headerName.innerText.toUpperCase()}`;
+        if(roomNameEl && partnerName) {
+            roomNameEl.innerHTML = `<i class="fa-regular fa-file-lines"></i> ${partnerName.toUpperCase()}`;
+        }
         m.classList.remove('hidden'); m.classList.add('flex');
     }
 };
