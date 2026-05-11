@@ -243,8 +243,8 @@
             <div class="mt-4 flex gap-3 items-center relative" id="chat-input-area">
                 <div class="relative flex-grow flex items-center bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-full overflow-visible focus-within:ring-2 focus-within:ring-indigo-500 transition-colors shadow-inner px-2">
                     
-                    <button id="emoji-toggle-btn" class="p-3 text-gray-500 hover:text-yellow-500 transition-colors"><i class="fa-regular fa-face-smile text-xl"></i></button>
-                    <button onclick="document.getElementById('attachment-input').click();" class="p-3 text-gray-500 hover:text-blue-500 transition-colors" title="Attach File"><i class="fa-solid fa-paperclip text-xl"></i></button>
+                <button id="emoji-toggle-btn" class="p-3 text-gray-500 hover:text-yellow-500 transition-colors"><i class="fa-regular fa-face-smile text-xl"></i></button>
+                    <button onclick="openAttachmentModal()" class="p-3 text-gray-500 hover:text-blue-500 transition-colors" title="Attach File"><i class="fa-solid fa-paperclip text-xl"></i></button>
                     
                     <div id="emoji-picker" class="hidden absolute bottom-full left-0 mb-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-3 rounded-xl grid grid-cols-5 gap-3 text-2xl shadow-xl z-50">
                         <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertEmoji('😀')">😀</span>
@@ -495,13 +495,13 @@
         <div class="mt-6 pt-4 border-t border-gray-100 dark:border-white/5"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2" data-i18n="about_me">About</p><p id="modal-user-about" class="text-xs leading-relaxed text-gray-500 italic"></p></div>
     </div>
 
-    <div id="profile-right-panel" class="w-full max-w-sm flex flex-col gap-3 transform translate-x-full transition-transform duration-500" onclick="event.stopPropagation()">
+ <div id="profile-right-panel" class="w-full max-w-sm flex flex-col gap-3 transform translate-x-full transition-transform duration-500" onclick="event.stopPropagation()">
         <div class="grid grid-cols-2 gap-3">
-            <button id="btn-priv-chat" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
+            <button id="btn-priv-chat" onclick="if(window.currentTargetUser) { switchWebChat(window.currentTargetUser.id); closeUserProfile(); }" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
                 <i class="fa-solid fa-lock text-green-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]"></i>
                 <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_chat">Private Chat</span>
             </button>
-            <button id="btn-voice-msg" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
+            <button id="btn-voice-msg" onclick="startVoiceCall()" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
                 <i class="fa-solid fa-microphone text-blue-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]"></i>
                 <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_voice">Voice Msg</span>
             </button>
@@ -509,7 +509,7 @@
                 <i class="fa-solid fa-headset text-purple-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]"></i>
                 <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_app_audio">App Audio</span>
             </button>
-            <button id="btn-app-video" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
+            <button id="btn-app-video" onclick="openConference(); closeUserProfile();" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
                 <i class="fa-solid fa-video text-pink-500 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]"></i>
                 <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_video">App Video</span>
             </button>
@@ -522,7 +522,6 @@
             <span class="text-emerald-400 font-bold text-sm tracking-wide uppercase" data-i18n="view_cv">View Full CV</span>
         </button>
     </div>
-</div>
 
 <!-- ========================================== -->
 <!-- ОСТАЛЬНЫЕ МОДАЛЬНЫЕ ОКНА                   -->
@@ -670,7 +669,18 @@
         </div>
     </div>
 </div>
-
+<div id="attachment-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[300]" onclick="if(event.target===this) closeModal('attachment-modal')">
+    <div class="bg-white dark:bg-slate-800 w-[300px] rounded-[30px] shadow-2xl p-6 relative border border-gray-100 dark:border-slate-700">
+        <button onclick="closeModal('attachment-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4"><i class="fa-solid fa-paperclip text-blue-500 mr-2"></i> Attach</h3>
+        <div class="grid grid-cols-3 gap-3">
+            <button onclick="triggerPhotoUpload()" class="flex flex-col items-center p-3 bg-gray-50 dark:bg-slate-700 hover:bg-blue-50 rounded-2xl border border-gray-100 dark:border-slate-600 transition group"><i class="fa-solid fa-image text-blue-400 text-2xl mb-1 group-hover:scale-110 transition"></i><span class="text-[10px] font-bold uppercase">Photo</span></button>
+            <button onclick="triggerDocUpload()" class="flex flex-col items-center p-3 bg-gray-50 dark:bg-slate-700 hover:bg-green-50 rounded-2xl border border-gray-100 dark:border-slate-600 transition group"><i class="fa-solid fa-file-lines text-green-400 text-2xl mb-1 group-hover:scale-110 transition"></i><span class="text-[10px] font-bold uppercase">Doc</span></button>
+            <button onclick="openLocationFromAttachment()" class="flex flex-col items-center p-3 bg-gray-50 dark:bg-slate-700 hover:bg-red-50 rounded-2xl border border-gray-100 dark:border-slate-600 transition group"><i class="fa-solid fa-location-dot text-red-400 text-2xl mb-1 group-hover:scale-110 transition"></i><span class="text-[10px] font-bold uppercase">Location</span></button>
+        </div>
+    </div>
+</div>
+    
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyCVFkMsqelcnjjeIwGnAKmn1CFhDGc7kR0",
