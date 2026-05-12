@@ -675,7 +675,7 @@ window.openConference = function() {
 
 window.currentMicLang = 'auto'; // Умное автоопределение по умолчанию
 
-// Функция автоопределения нужного языка
+// Функция автоопределения нужного языка (Для меню микрофона)
 window.getSmartMicLang = function() {
     if (window.currentMicLang !== 'auto') return window.currentMicLang; 
 
@@ -689,7 +689,7 @@ window.getSmartMicLang = function() {
         'en': 'en-US', 'ru': 'ru-RU', 'az': 'az-AZ', 'de': 'de-DE',
         'tr': 'tr-TR', 'ar': 'ar-SA', 'it': 'it-IT', 'es': 'es-ES',
         'fr': 'fr-FR', 'pt': 'pt-PT', 'ja': 'ja-JP', 'zh': 'zh-CN',
-        'kk': 'kk-KZ' // <-- ДОБАВЛЕН КАЗАХСКИЙ
+        'kk': 'kk-KZ' 
     };
 
     return mapLocales[detectLang] || 'en-US'; 
@@ -711,7 +711,7 @@ window.openMicMenu = function() {
     if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
 };
 
-// Диктовка текста (Sprachtext) - Переводит голос в текст в поле ввода
+// Диктовка текста для главного чата (не комнаты)
 window.startDictation = function() {
     window.closeModal('mic-menu-modal');
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -751,7 +751,7 @@ window.startDictation = function() {
     recognition.start();
 };
 
-// Запуск Голосовой комнаты (через меню микрофона - Anrufen)
+// Запуск Голосовой комнаты (из меню Anrufen)
 window.startVoiceCall = function() {
     window.closeModal('mic-menu-modal'); 
     
@@ -794,7 +794,7 @@ window.startVoiceCall = function() {
     vr.classList.add('flex');
 };
 
-// Прямой вход в голосовую комнату (из верхнего меню навигации Voice Chat)
+// Прямой вход в голосовую комнату
 window.openVoiceRoomDirectly = function() {
     const vr = document.getElementById('voice-room-modal');
     if (!vr) return;
@@ -840,51 +840,97 @@ window.closeVoiceRoom = function() {
     const vr = document.getElementById('voice-room-modal');
     if (vr) { vr.classList.add('hidden'); vr.classList.remove('flex'); }
 };
+
 // ==========================================
-// ОТДЕЛЬНЫЙ МИР: ГОЛОСОВАЯ КОМНАТА
-// (Умный перевод по флагам, Микрофон + Клавиатура)
+// ЛОГИКА ВНУТРИ ГОЛОСОВОЙ КОМНАТЫ (РАЗДЕЛЕННЫЕ МИРЫ)
 // ==========================================
 
-// Конвертер: Флаг -> Код языка для перевода
-window.getLangFromFlag = function(flagCode) {
-    if (!flagCode) return 'ru'; 
-    const code = flagCode.toLowerCase().substring(0, 2);
-    const map = {
-        'gb': 'en', 'us': 'en', 'ru': 'ru', 'az': 'az', 'kz': 'kk',
-        'de': 'de', 'tr': 'tr', 'ae': 'ar', 'it': 'it', 'es': 'es',
-        'fr': 'fr', 'pt': 'pt', 'cn': 'zh', 'jp': 'ja'
-    };
-    return map[code] || 'en';
-};
-
-// 1. Отправка и Авто-Перевод (Клава + Микрофон)
+// МИР 1: КЛАВИАТУРА И ФОТО-АВАТАР (Умный перевод сообщений)
 window.sendVrMessage = async function() {
     const input = document.getElementById('vr-chat-input');
     const text = input.value.trim();
     if (!text) return;
 
-    input.value = ''; // Очистили поле 
+    input.value = ''; 
 
-    let myFlag = window.myProfileInfo ? window.myProfileInfo.flagCode : 'ru';
-    let partnerFlag = window.currentTargetUser ? window.currentTargetUser.flagCode : 'de';
-    
-    let myLang = window.getLangFromFlag(myFlag);
-    let partnerLang = window.getLangFromFlag(partnerFlag);
+    let targetLang = 'en';
 
-    window.updateVrMarquee(`Me: ${text} ...`);
+    // ЛОГИКА ЯЗЫКА: Смотрим в панель Аватара (chatLang)
+    if (window.chatLang && window.chatLang !== 'auto') {
+        targetLang = window.chatLang.substring(0, 2);
+    } else {
+        if (window.currentTargetUser) {
+            targetLang = typeof window.getSmartLang === 'function' 
+                ? window.getSmartLang(window.currentTargetUser).substring(0, 2) 
+                : (window.currentTargetUser.flagCode || 'en').substring(0, 2);
+        }
+    }
+
+    window.updateVrMarquee(`Я (текст): ${text} ...`);
 
     try {
-        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${myLang}|${partnerLang}`);
+        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=auto|${targetLang}`);
         const data = await res.json();
         const translated = data.responseData.translatedText;
 
-        window.updateVrMarquee(`Me: ${text} / Перевод: ${translated}`);
+        window.updateVrMarquee(`Я: ${text} / Перевод: ${translated}`);
     } catch (e) {
-        console.error("Ошибка перевода:", e);
-        window.updateVrMarquee(`Me: ${text} (Ошибка перевода)`);
+        window.updateVrMarquee(`Я: ${text}`);
     }
 };
 
+// МИР 2: МИКРОФОН ГОЛОСОВОЙ КОМНАТЫ (Строго по своему меню)
+window.startVrDictation = function() {
+    const micBtn = document.getElementById('vr-mic-btn');
+    
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+        return alert("Браузер не поддерживает микрофон.");
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    // ЛОГИКА ЯЗЫКА: Берем строго из функции микрофона
+    recognition.lang = typeof window.getSmartMicLang === 'function' ? window.getSmartMicLang() : 'ru-RU';
+    recognition.interimResults = false;
+
+    if (micBtn) {
+        micBtn.classList.remove('text-gray-400');
+        micBtn.classList.add('text-green-500'); 
+    }
+
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        window.updateVrMarquee(`🎤: ${transcript}`);
+    };
+
+    recognition.onspeechend = recognition.onerror = function() {
+        recognition.stop();
+        if (micBtn) {
+            micBtn.classList.add('text-gray-400');
+            micBtn.classList.remove('text-green-500');
+        }
+    };
+
+    recognition.start();
+};
+
+// ОБЩАЯ БЕГУЩАЯ СТРОКА
+window.updateVrMarquee = function(newText) {
+    const marquee = document.getElementById('vr-marquee');
+    if (!marquee) return;
+
+    let currentText = marquee.innerText;
+    if (currentText.includes("Waiting")) currentText = ""; 
+
+    marquee.innerText = newText + " • " + currentText;
+};
+
+// КНОПКА СС
+window.toggleVrCC = function() {
+    const ccContainer = document.getElementById('vr-cc-container');
+    if (ccContainer) ccContainer.classList.toggle('hidden');
+};
 // 2. Обновление запертой бегущей строки
 window.updateVrMarquee = function(newText) {
     const marquee = document.getElementById('vr-marquee');
