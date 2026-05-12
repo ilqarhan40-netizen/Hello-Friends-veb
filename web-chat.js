@@ -841,47 +841,83 @@ window.closeVoiceRoom = function() {
     if (vr) { vr.classList.add('hidden'); vr.classList.remove('flex'); }
 };
 // ==========================================
-// ГОЛОСОВАЯ КОМНАТА: ЛОГИКА РАБОТЫ (МИКРОФОН, ЧАТ, СТРОКА)
+// ГОЛОСОВАЯ КОМНАТА: УМНЫЙ МИКРОФОН, ПЕРЕВОД И БЕГУЩАЯ СТРОКА
 // ==========================================
 
-// 1. Отправка сообщений (иконка самолетика и Enter)
-window.sendVrMessage = function() {
+// 1. Отправка сообщения с мгновенным ПЕРЕВОДОМ
+window.sendVrMessage = async function() {
     const input = document.getElementById('vr-chat-input');
     const text = input.value.trim();
     if (!text) return;
-    
-    const marquee = document.getElementById('vr-marquee');
-    if (marquee) {
-        marquee.innerText = `Me: ${text} • ` + marquee.innerText;
+
+    input.value = ''; // Сразу очищаем поле
+
+    // Узнаем язык собеседника (чтобы знать, на какой переводить)
+    let partnerLang = 'en';
+    if (window.currentTargetUser && window.currentTargetUser.flagCode) {
+        partnerLang = window.currentTargetUser.flagCode.substring(0, 2).toLowerCase();
     }
-    input.value = '';
+    // Узнаем наш язык
+    let myLang = typeof window.getSmartMicLang === 'function' ? window.getSmartMicLang().substring(0, 2) : 'ru';
+
+    // Сразу показываем наш текст, чтобы не ждать перевода
+    window.updateVrMarquee(`Me: ${text} ...`);
+
+    try {
+        // Вызываем бесплатный API перевода (MyMemory)
+        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${myLang}|${partnerLang}`);
+        const data = await res.json();
+        const translated = data.responseData.translatedText;
+
+        // Обновляем строку: Оригинал + Перевод
+        window.updateVrMarquee(`Me: ${text} / Перевод: ${translated}`);
+    } catch (e) {
+        console.error("Ошибка перевода:", e);
+        window.updateVrMarquee(`Me: ${text} (Ошибка перевода)`);
+    }
 };
 
-// 2. Включение микрофона (Иконка микрофона)
+// 2. Умное обновление бегущей строки
+window.updateVrMarquee = function(newText) {
+    const marquee = document.getElementById('vr-marquee');
+    if (!marquee) return;
+
+    let currentText = marquee.innerText;
+    if (currentText.includes("Waiting") || currentText.includes("нету перевода")) {
+        currentText = ""; 
+    }
+
+    marquee.innerText = newText + " • " + currentText;
+};
+
+// 3. Умный Микрофон (берет язык из чата)
 window.startVrDictation = function() {
     const micBtn = document.getElementById('vr-mic-btn');
     
     if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
-        return alert('Голосовой ввод не поддерживается в твоем браузере (используй Chrome/Safari).');
+        return alert("Голосовой ввод не поддерживается браузером.");
     }
-    
+
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     
-    recognition.lang = window.chatLang && window.chatLang !== 'auto' ? window.chatLang : 'ru-RU'; 
+    recognition.lang = typeof window.getSmartMicLang === 'function' ? window.getSmartMicLang() : 'ru-RU';
     recognition.interimResults = false;
-    
+
     if (micBtn) {
         micBtn.classList.remove('text-gray-400');
-        micBtn.classList.add('text-green-500');
+        micBtn.classList.add('text-green-500'); 
     }
-    
+
     recognition.onresult = function(event) {
         const transcript = event.results[0][0].transcript;
-        document.getElementById('vr-chat-input').value = transcript;
-        window.sendVrMessage(); 
+        const input = document.getElementById('vr-chat-input');
+        if (input) {
+            input.value = transcript;
+            window.sendVrMessage(); 
+        }
     };
-    
+
     recognition.onspeechend = function() {
         recognition.stop();
         if (micBtn) {
@@ -889,7 +925,7 @@ window.startVrDictation = function() {
             micBtn.classList.remove('text-green-500');
         }
     };
-    
+
     recognition.onerror = function() {
         recognition.stop();
         if (micBtn) {
@@ -897,18 +933,15 @@ window.startVrDictation = function() {
             micBtn.classList.remove('text-green-500');
         }
     };
-    
+
     recognition.start();
 };
 
-// 3. Включение/Отключение бегущей строки (Кнопка CC)
+// 4. Вкл/Выкл строки CC
 window.toggleVrCC = function() {
-    const marqueeContainer = document.getElementById('vr-marquee');
-    if (marqueeContainer && marqueeContainer.parentElement) {
-        marqueeContainer.parentElement.classList.toggle('hidden');
-    }
+    const ccContainer = document.getElementById('vr-marquee').parentElement;
+    if (ccContainer) ccContainer.classList.toggle('hidden');
 };
-
 // ==========================================
 // ЛОГИКА МЕНЮ СКРЕПКИ (DATEI ANHÄNGEN)
 // ==========================================
