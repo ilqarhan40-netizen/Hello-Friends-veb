@@ -841,35 +841,43 @@ window.closeVoiceRoom = function() {
     if (vr) { vr.classList.add('hidden'); vr.classList.remove('flex'); }
 };
 // ==========================================
-// ГОЛОСОВАЯ КОМНАТА: УМНЫЙ МИКРОФОН, ПЕРЕВОД И БЕГУЩАЯ СТРОКА
+// ОТДЕЛЬНЫЙ МИР: ГОЛОСОВАЯ КОМНАТА
+// (Умный перевод по флагам, Микрофон + Клавиатура)
 // ==========================================
 
-// 1. Отправка сообщения с мгновенным ПЕРЕВОДОМ
+// Конвертер: Флаг -> Код языка для перевода
+window.getLangFromFlag = function(flagCode) {
+    if (!flagCode) return 'ru'; 
+    const code = flagCode.toLowerCase().substring(0, 2);
+    const map = {
+        'gb': 'en', 'us': 'en', 'ru': 'ru', 'az': 'az', 'kz': 'kk',
+        'de': 'de', 'tr': 'tr', 'ae': 'ar', 'it': 'it', 'es': 'es',
+        'fr': 'fr', 'pt': 'pt', 'cn': 'zh', 'jp': 'ja'
+    };
+    return map[code] || 'en';
+};
+
+// 1. Отправка и Авто-Перевод (Клава + Микрофон)
 window.sendVrMessage = async function() {
     const input = document.getElementById('vr-chat-input');
     const text = input.value.trim();
     if (!text) return;
 
-    input.value = ''; // Сразу очищаем поле
+    input.value = ''; // Очистили поле 
 
-    // Узнаем язык собеседника (чтобы знать, на какой переводить)
-    let partnerLang = 'en';
-    if (window.currentTargetUser && window.currentTargetUser.flagCode) {
-        partnerLang = window.currentTargetUser.flagCode.substring(0, 2).toLowerCase();
-    }
-    // Узнаем наш язык
-    let myLang = typeof window.getSmartMicLang === 'function' ? window.getSmartMicLang().substring(0, 2) : 'ru';
+    let myFlag = window.myProfileInfo ? window.myProfileInfo.flagCode : 'ru';
+    let partnerFlag = window.currentTargetUser ? window.currentTargetUser.flagCode : 'de';
+    
+    let myLang = window.getLangFromFlag(myFlag);
+    let partnerLang = window.getLangFromFlag(partnerFlag);
 
-    // Сразу показываем наш текст, чтобы не ждать перевода
     window.updateVrMarquee(`Me: ${text} ...`);
 
     try {
-        // Вызываем бесплатный API перевода (MyMemory)
         const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${myLang}|${partnerLang}`);
         const data = await res.json();
         const translated = data.responseData.translatedText;
 
-        // Обновляем строку: Оригинал + Перевод
         window.updateVrMarquee(`Me: ${text} / Перевод: ${translated}`);
     } catch (e) {
         console.error("Ошибка перевода:", e);
@@ -877,31 +885,33 @@ window.sendVrMessage = async function() {
     }
 };
 
-// 2. Умное обновление бегущей строки
+// 2. Обновление запертой бегущей строки
 window.updateVrMarquee = function(newText) {
     const marquee = document.getElementById('vr-marquee');
     if (!marquee) return;
 
     let currentText = marquee.innerText;
-    if (currentText.includes("Waiting") || currentText.includes("нету перевода")) {
-        currentText = ""; 
-    }
+    if (currentText.includes("Waiting")) currentText = ""; 
 
     marquee.innerText = newText + " • " + currentText;
 };
 
-// 3. Умный Микрофон (берет язык из чата)
+// 3. Умный Микрофон 
 window.startVrDictation = function() {
     const micBtn = document.getElementById('vr-mic-btn');
     
     if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
-        return alert("Голосовой ввод не поддерживается браузером.");
+        return alert("Браузер не поддерживает микрофон.");
     }
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     
-    recognition.lang = typeof window.getSmartMicLang === 'function' ? window.getSmartMicLang() : 'ru-RU';
+    let myFlag = window.myProfileInfo ? window.myProfileInfo.flagCode : 'ru';
+    let myLangCode = window.getLangFromFlag(myFlag);
+    
+    const micMap = {'en':'en-US', 'ru':'ru-RU', 'az':'az-AZ', 'kk':'kk-KZ', 'de':'de-DE', 'tr':'tr-TR'};
+    recognition.lang = micMap[myLangCode] || 'en-US';
     recognition.interimResults = false;
 
     if (micBtn) {
@@ -913,20 +923,12 @@ window.startVrDictation = function() {
         const transcript = event.results[0][0].transcript;
         const input = document.getElementById('vr-chat-input');
         if (input) {
-            input.value = transcript;
+            input.value = transcript; 
             window.sendVrMessage(); 
         }
     };
 
-    recognition.onspeechend = function() {
-        recognition.stop();
-        if (micBtn) {
-            micBtn.classList.add('text-gray-400');
-            micBtn.classList.remove('text-green-500');
-        }
-    };
-
-    recognition.onerror = function() {
+    recognition.onspeechend = recognition.onerror = function() {
         recognition.stop();
         if (micBtn) {
             micBtn.classList.add('text-gray-400');
@@ -937,9 +939,9 @@ window.startVrDictation = function() {
     recognition.start();
 };
 
-// 4. Вкл/Выкл строки CC
+// 4. Вкл/Выкл блока бегущей строки
 window.toggleVrCC = function() {
-    const ccContainer = document.getElementById('vr-marquee').parentElement;
+    const ccContainer = document.getElementById('vr-cc-container');
     if (ccContainer) ccContainer.classList.toggle('hidden');
 };
 // ==========================================
