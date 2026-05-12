@@ -840,6 +840,74 @@ window.closeVoiceRoom = function() {
     const vr = document.getElementById('voice-room-modal');
     if (vr) { vr.classList.add('hidden'); vr.classList.remove('flex'); }
 };
+// ==========================================
+// ГОЛОСОВАЯ КОМНАТА: ЛОГИКА РАБОТЫ (МИКРОФОН, ЧАТ, СТРОКА)
+// ==========================================
+
+// 1. Отправка сообщений (иконка самолетика и Enter)
+window.sendVrMessage = function() {
+    const input = document.getElementById('vr-chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+    
+    const marquee = document.getElementById('vr-marquee');
+    if (marquee) {
+        marquee.innerText = `Me: ${text} • ` + marquee.innerText;
+    }
+    input.value = '';
+};
+
+// 2. Включение микрофона (Иконка микрофона)
+window.startVrDictation = function() {
+    const micBtn = document.getElementById('vr-mic-btn');
+    
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+        return alert('Голосовой ввод не поддерживается в твоем браузере (используй Chrome/Safari).');
+    }
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.lang = window.chatLang && window.chatLang !== 'auto' ? window.chatLang : 'ru-RU'; 
+    recognition.interimResults = false;
+    
+    if (micBtn) {
+        micBtn.classList.remove('text-gray-400');
+        micBtn.classList.add('text-green-500');
+    }
+    
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('vr-chat-input').value = transcript;
+        window.sendVrMessage(); 
+    };
+    
+    recognition.onspeechend = function() {
+        recognition.stop();
+        if (micBtn) {
+            micBtn.classList.add('text-gray-400');
+            micBtn.classList.remove('text-green-500');
+        }
+    };
+    
+    recognition.onerror = function() {
+        recognition.stop();
+        if (micBtn) {
+            micBtn.classList.add('text-gray-400');
+            micBtn.classList.remove('text-green-500');
+        }
+    };
+    
+    recognition.start();
+};
+
+// 3. Включение/Отключение бегущей строки (Кнопка CC)
+window.toggleVrCC = function() {
+    const marqueeContainer = document.getElementById('vr-marquee');
+    if (marqueeContainer && marqueeContainer.parentElement) {
+        marqueeContainer.parentElement.classList.toggle('hidden');
+    }
+};
 
 // ==========================================
 // ЛОГИКА МЕНЮ СКРЕПКИ (DATEI ANHÄNGEN)
