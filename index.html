@@ -147,7 +147,10 @@
                 </button>
                 
                 <button id="header-menu-btn" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"><i class="fa-solid fa-ellipsis-vertical text-xl"></i></button>
-                
+
+                <button onclick="document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); event.stopPropagation();" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors text-left">
+    <i class="fa-solid fa-moon text-indigo-500 w-6"></i> <span data-i18n="theme">Change Theme</span>
+</button>
                 <div id="menu-panel" class="popover-panel absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-800 p-2 rounded-lg shadow-xl hidden opacity-0 transform scale-95 z-50 transition-colors border border-gray-100 dark:border-slate-700">
                     <div class="px-4 py-2 border-b dark:border-slate-700 mb-1">
                         <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest" data-i18n="menu">Settings</span>
