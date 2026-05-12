@@ -1,8 +1,9 @@
 // ==========================================
 // Файл: web-calls.js
-// Назначение: Сетка видеоконференции и голосовые звонки
+// Назначение: Сетка видеоконференции и логика звонков
 // ==========================================
 
+// --- 1. ОТКРЫТИЕ СЕТКИ И ГЕНЕРАЦИЯ ПОЛЬЗОВАТЕЛЕЙ (Твой оригинальный код) ---
 window.openConference = function() {
     if(typeof window.closeDropdown === 'function') window.closeDropdown();
     const overlay = document.getElementById('conference-overlay');
@@ -60,4 +61,120 @@ window.closeCalls = function() {
     const voiceOverlay = document.getElementById('voice-overlay');
     if(confOverlay) confOverlay.style.display = 'none';
     if(voiceOverlay) voiceOverlay.style.display = 'none';
+};
+
+// --- 2. ЛОГИКА ВИДЕОКОНФЕРЕНЦИИ (МИКРОФОН, ОТПРАВКА, СУБТИТРЫ) ---
+
+// Отправка сообщения из Видеоконференции
+window.sendConfMessage = function() {
+    const confInput = document.getElementById('conf-text-input');
+    if (!confInput || !confInput.value.trim()) return;
+
+    const text = confInput.value.trim();
+
+    // Добавляем текст в бегущую строку конференции (CC)
+    const marquee = document.getElementById('conf-marquee');
+    if (marquee) {
+        marquee.innerText = `Me: ${text} • ` + marquee.innerText;
+    }
+
+    // Дублируем текст в основной чат (если нужно для истории)
+    const mainChatInput = document.getElementById('chat-input') || document.getElementById('web-chat-input');
+    if (mainChatInput) {
+        mainChatInput.value = text;
+        if (typeof window.sendFirebaseMsg === 'function') window.sendFirebaseMsg(); 
+    }
+    
+    // Очищаем поле
+    confInput.value = ''; 
+};
+
+// Вкл/Выкл Микрофона (С распознаванием речи)
+window.toggleConfMic = function(btn) {
+    const icon = btn.querySelector('i');
+    
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+        return alert('Голосовой ввод не поддерживается в твоем браузере.');
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    // Язык распознавания берем из настроек или авто
+    recognition.lang = window.chatLang && window.chatLang !== 'auto' ? window.chatLang : 'ru-RU'; 
+    recognition.interimResults = false;
+
+    // Визуально включаем микрофон (красный цвет записи)
+    icon.classList.replace('fa-microphone', 'fa-microphone-slash');
+    btn.classList.replace('bg-gray-200', 'bg-red-500');
+    btn.classList.remove('dark:bg-gray-700');
+    btn.classList.add('text-white');
+
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        const confInput = document.getElementById('conf-text-input');
+        if (confInput) {
+            confInput.value = transcript;
+            window.sendConfMessage(); // Сразу кидаем сказанное в бегущую строку
+        }
+    };
+
+    recognition.onspeechend = function() {
+        recognition.stop();
+        icon.classList.replace('fa-microphone-slash', 'fa-microphone');
+        btn.classList.replace('bg-red-500', 'bg-gray-200');
+        btn.classList.add('dark:bg-gray-700');
+        btn.classList.remove('text-white');
+    };
+
+    recognition.onerror = function() {
+        recognition.stop();
+        icon.classList.replace('fa-microphone-slash', 'fa-microphone');
+        btn.classList.replace('bg-red-500', 'bg-gray-200');
+        btn.classList.add('dark:bg-gray-700');
+        btn.classList.remove('text-white');
+    };
+
+    recognition.start();
+};
+
+// Вкл/Выкл Камеры (визуально)
+window.toggleConfCam = function(btn) {
+    const icon = btn.querySelector('i');
+    if (icon.classList.contains('fa-video')) {
+        icon.classList.replace('fa-video', 'fa-video-slash');
+        btn.classList.remove('bg-indigo-600', 'dark:bg-[#00C4CC]');
+        btn.classList.add('bg-red-500');
+    } else {
+        icon.classList.replace('fa-video-slash', 'fa-video');
+        btn.classList.remove('bg-red-500');
+        btn.classList.add('bg-indigo-600', 'dark:bg-[#00C4CC]');
+    }
+};
+
+// Вкл/Выкл CC (Бегущая строка перевода)
+window.toggleConfCC = function(btn) {
+    const marqueeContainer = document.getElementById('conf-marquee-container');
+    const isActive = btn.classList.contains('bg-indigo-600') || btn.classList.contains('dark:bg-[#00C4CC]');
+
+    if (isActive) {
+        // ВЫКЛЮЧАЕМ
+        btn.classList.remove('bg-indigo-600', 'dark:bg-[#00C4CC]', 'dark:text-black');
+        btn.classList.add('bg-gray-400', 'text-white');
+        if (marqueeContainer) marqueeContainer.classList.add('hidden');
+    } else {
+        // ВКЛЮЧАЕМ
+        btn.classList.remove('bg-gray-400', 'text-white');
+        btn.classList.add('bg-indigo-600', 'dark:bg-[#00C4CC]', 'dark:text-black');
+        if (marqueeContainer) {
+            marqueeContainer.classList.remove('hidden');
+            marqueeContainer.classList.add('flex');
+        }
+    }
+};
+
+// Закрытие комнаты (кнопка с красной трубкой)
+window.closeConferenceRoom = function() {
+    const confModal = document.getElementById('conference-overlay');
+    if (confModal) confModal.style.display = 'none';
 };
