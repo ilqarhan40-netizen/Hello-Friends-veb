@@ -24,6 +24,17 @@
         * { backdrop-filter: none !important; }
         
         body { font-family: 'Inter', sans-serif; }
+
+        /* Жесткая анимация для бегущей строки */
+@keyframes scroll-text {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+#vr-marquee {
+    display: inline-block;
+    white-space: nowrap;
+    animation: scroll-text 15s linear infinite;
+}
         
         .page-section { display: none; animation: fadeIn 0.4s ease-in-out; }
         .page-section.active { display: block; }
@@ -148,13 +159,15 @@
                 
                 <button id="header-menu-btn" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"><i class="fa-solid fa-ellipsis-vertical text-xl"></i></button>
 
-                <button onclick="document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); event.stopPropagation();" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors text-left">
-    <i class="fa-solid fa-moon text-indigo-500 w-6"></i> <span data-i18n="theme">Change Theme</span>
-</button>
-                <div id="menu-panel" class="popover-panel absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-800 p-2 rounded-lg shadow-xl hidden opacity-0 transform scale-95 z-50 transition-colors border border-gray-100 dark:border-slate-700">
-                    <div class="px-4 py-2 border-b dark:border-slate-700 mb-1">
-                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest" data-i18n="menu">Settings</span>
-                    </div>
+<div id="menu-panel" class="popover-panel absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-800 p-2 rounded-lg shadow-xl hidden opacity-0 transform scale-95 z-50 transition-colors border border-gray-100 dark:border-slate-700">
+    
+    <div class="px-4 py-2 border-b dark:border-slate-700 mb-1">
+        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest" data-i18n="menu">Settings</span>
+    </div>
+
+    <button onclick="document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); event.stopPropagation();" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors text-left cursor-pointer">
+        <i class="fa-solid fa-moon text-indigo-500 w-6"></i> <span data-i18n="theme">Change Theme</span>
+    </button>
 
                     <a onclick="openMyProfile()" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer">
                         <i class="fa-solid fa-user text-indigo-500 w-6"></i> <span data-i18n="profile">Profile</span>
@@ -162,21 +175,22 @@
 
                     <div class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer relative">
                         <i class="fa-solid fa-globe text-blue-500 w-5 text-center"></i>
-                      <select id="app-lang-select" onchange="window.changeAppLanguage(this.value)" class="bg-transparent dark:bg-slate-800 font-bold outline-none cursor-pointer appearance-none w-full pr-6 text-gray-800 dark:text-white" onclick="event.stopPropagation()">
-                            <option value="en">🇬🇧 English</option>
-                            <option value="ru">🇷🇺 Русский</option>
-                            <option value="az">🇦🇿 Azərbaycanca</option>
-                            <option value="kk">🇰🇿 Қазақша</option>
-                            <option value="de">🇩🇪 Deutsch</option>
-                            <option value="tr">🇹🇷 Türkçe</option>
-                            <option value="ar">🇦🇪 العربية</option>
-                            <option value="it">🇮🇹 Italiano</option>
-                            <option value="es">🇪🇸 Español</option>
-                            <option value="fr">🇫🇷 Français</option>
-                            <option value="pt">🇵🇹 Português</option>
-                            <option value="ja">🇯🇵 日本語</option>
-                            <option value="zh">🇨🇳 中文</option>
-                        </select>
+                    <select id="app-lang-select" onchange="window.changeAppLanguage(this.value)" class="bg-transparent dark:bg-slate-800 font-bold outline-none cursor-pointer appearance-none w-full pr-6 text-gray-800 dark:text-white" onclick="event.stopPropagation()">
+    <option value="auto" class="bg-white dark:bg-slate-800">🤖 Auto</option>
+    <option value="en" class="bg-white dark:bg-slate-800">GB English</option>
+    <option value="ru" class="bg-white dark:bg-slate-800">RU Русский</option>
+    <option value="az" class="bg-white dark:bg-slate-800">AZ Azərbaycanca</option>
+    <option value="kk" class="bg-white dark:bg-slate-800">KZ Қазақша</option>
+    <option value="de" class="bg-white dark:bg-slate-800">DE Deutsch</option>
+    <option value="tr" class="bg-white dark:bg-slate-800">TR Türkçe</option>
+    <option value="ar" class="bg-white dark:bg-slate-800">SA العربية</option>
+    <option value="it" class="bg-white dark:bg-slate-800">IT Italiano</option>
+    <option value="es" class="bg-white dark:bg-slate-800">ES Español</option>
+    <option value="fr" class="bg-white dark:bg-slate-800">FR Français</option>
+    <option value="pt" class="bg-white dark:bg-slate-800">PT Português</option>
+    <option value="ja" class="bg-white dark:bg-slate-800">JP 日本語</option>
+    <option value="zh" class="bg-white dark:bg-slate-800">CN 中文</option>
+</select>
                         <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
                     </div>
 
