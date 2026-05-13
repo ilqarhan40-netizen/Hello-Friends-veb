@@ -25,16 +25,16 @@
         
         body { font-family: 'Inter', sans-serif; }
 
-        /* Жесткая анимация для бегущей строки */
-@keyframes scroll-text {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
-}
-#vr-marquee {
-    display: inline-block;
-    white-space: nowrap;
-    animation: scroll-text 15s linear infinite;
-}
+        /* Жесткая анимация для бегущей строки (ИЗОЛИРОВАННАЯ ВЕРСИЯ WEB) */
+        @keyframes scroll-text {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        #web-vr-marquee {
+            display: inline-block;
+            white-space: nowrap;
+            animation: scroll-text 40s linear infinite; /* Увеличено до 40 секунд для плавности */
+        }
         
         .page-section { display: none; animation: fadeIn 0.4s ease-in-out; }
         .page-section.active { display: block; }
@@ -125,6 +125,7 @@
         </button>
     </div>
 </div>
+
 <div id="app-wrapper" class="hidden flex-col h-full w-full opacity-0 transition-opacity duration-500">
     <input type="file" id="import-export-input" class="hidden">
     <input type="file" id="attachment-input" class="hidden" accept="image/*, .pdf, .doc, .docx, .txt">
@@ -384,6 +385,10 @@
         </div>
     </div>
 </div>
+
+<!-- ========================================== -->
+<!-- ГОЛОСОВАЯ КОМНАТА WEB (ПОЛНОЕ ОКНО) -->
+<!-- ========================================== -->
 <div id="voice-room-modal" class="fixed inset-0 bg-[#f8f9fa] dark:bg-slate-900 hidden flex-col z-[400] font-sans">
 
     <div class="flex justify-between items-center p-6 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 shadow-sm">
@@ -421,6 +426,7 @@
         </div>
     </div>
 
+    <!-- ВАЖНО: Новая нижняя панель с изолированными функциями -->
     <div class="w-full bg-white dark:bg-slate-800 p-3 border-t border-gray-200 dark:border-slate-700 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] z-50">
         <div class="max-w-4xl mx-auto flex flex-col gap-2">
             
@@ -429,7 +435,7 @@
                     Live CC:
                 </span>
                 <div class="flex-1 overflow-hidden ml-16 relative h-full flex items-center">
-                    <span id="vr-marquee" class="text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap absolute left-0">
+                    <span id="web-vr-marquee" class="text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap absolute left-0">
                         Waiting for voice translation...
                     </span>
                 </div>
@@ -456,14 +462,15 @@
                     <span class="text-[9px] font-bold">CC</span>
                 </button>
                 
-                <button onclick="window.closeVoiceRoom()" class="bg-red-500 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-600 shadow-md ml-2 transition hover:scale-105">
+                <!-- КРАСНАЯ КНОПКА ОТБОЯ -->
+                <button onclick="window.leaveWebVoiceRoom()" class="bg-red-500 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-600 shadow-md ml-2 transition hover:scale-105" title="Leave Voice Room">
                     <i class="fa-solid fa-phone-slash text-sm"></i>
                 </button>
             </div>
-
         </div>
     </div>
 </div>
+
 <div id="search-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] opacity-0 transition-opacity duration-300 backdrop-blur-sm" onclick="if(event.target===this) closeSearchModal()">
     <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 w-full max-w-xl shadow-2xl transform scale-95 transition-transform duration-300 relative border border-gray-100 dark:border-slate-700" onclick="event.stopPropagation();">
         <button onclick="closeSearchModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
