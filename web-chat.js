@@ -235,8 +235,8 @@ window.handleNewMessage = async function(snapshot) {
             mText.innerHTML = spanMsg + currentText;
         }
 
-        // 2. Обновление в Голосовой комнате (VR)
-        const vrMarquee = document.getElementById('vr-marquee');
+     // 2. Обновление в Голосовой комнате (VR)
+        const vrMarquee = document.getElementById('web-vr-marquee'); // <--- ИЗМЕНИЛИ ID ЗДЕСЬ
         if(vrMarquee) {
             vrMarquee.innerHTML = spanMsg + vrMarquee.innerHTML;
         }
@@ -835,19 +835,25 @@ window.openVoiceRoomDirectly = function() {
     vr.classList.add('flex');
 };
 
-// Закрыть голосовую комнату
-window.closeVoiceRoom = function() {
-    const vr = document.getElementById('voice-room-modal');
-    if (vr) { vr.classList.add('hidden'); vr.classList.remove('flex'); }
-};
+// ==========================================
+// ЛОГИКА ВНУТРИ ГОЛОСОВОЙ КОМНАТЫ (РАЗДЕЛЕННЫЕ МИРЫ - WEB)
+// ==========================================
 
-// ==========================================
-// ЛОГИКА ВНУТРИ ГОЛОСОВОЙ КОМНАТЫ (РАЗДЕЛЕННЫЕ МИРЫ)
-// ==========================================
+// ОБЩАЯ БЕГУЩАЯ СТРОКА ДЛЯ WEB (Уникальный ID)
+window.updateWebVrMarquee = function(newText) {
+    const marquee = document.getElementById('web-vr-marquee');
+    if (!marquee) return;
+
+    let currentText = marquee.innerText;
+    if (currentText.includes("Waiting")) currentText = ""; 
+
+    marquee.innerText = newText + " • " + currentText;
+};
 
 // МИР 1: КЛАВИАТУРА И ФОТО-АВАТАР (Умный перевод сообщений)
 window.sendVrMessage = async function() {
     const input = document.getElementById('vr-chat-input');
+    if (!input) return;
     const text = input.value.trim();
     if (!text) return;
 
@@ -866,16 +872,16 @@ window.sendVrMessage = async function() {
         }
     }
 
-    window.updateVrMarquee(`Я (текст): ${text} ...`);
+    window.updateWebVrMarquee(`Я (текст): ${text} ...`);
 
     try {
         const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=auto|${targetLang}`);
         const data = await res.json();
         const translated = data.responseData.translatedText;
 
-        window.updateVrMarquee(`Я: ${text} / Перевод: ${translated}`);
+        window.updateWebVrMarquee(`Я: ${text} / Перевод: ${translated}`);
     } catch (e) {
-        window.updateVrMarquee(`Я: ${text}`);
+        window.updateWebVrMarquee(`Я: ${text}`);
     }
 };
 
@@ -890,8 +896,24 @@ window.startVrDictation = function() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     
-    // ЛОГИКА ЯЗЫКА: Берем строго из функции микрофона
-    recognition.lang = typeof window.getSmartMicLang === 'function' ? window.getSmartMicLang() : 'ru-RU';
+    // Читаем СТРОГО переменную меню микрофона (Абсолютная изоляция от Аватара)
+    let rawLang = window.currentMicLang || 'auto';
+
+    if (rawLang === 'auto') {
+        let myFlag = window.myProfileInfo ? (window.myProfileInfo.flagCode || 'ru') : 'ru';
+        let code = myFlag.toLowerCase().substring(0, 2);
+        const flagMap = {'gb':'en', 'us':'en', 'kz':'kk', 'ae':'ar', 'jp':'ja', 'cn':'zh'};
+        rawLang = flagMap[code] || code;
+    }
+
+    const micLocales = {
+        'ru': 'ru-RU', 'en': 'en-US', 'az': 'az-AZ', 'kk': 'kk-KZ',
+        'de': 'de-DE', 'tr': 'tr-TR', 'ar': 'ar-SA', 'it': 'it-IT',
+        'es': 'es-ES', 'fr': 'fr-FR', 'pt': 'pt-PT', 'ja': 'ja-JP', 'zh': 'zh-CN'
+    };
+
+    let shortCode = rawLang.substring(0, 2);
+    recognition.lang = micLocales[shortCode] || 'en-US';
     recognition.interimResults = false;
 
     if (micBtn) {
@@ -901,7 +923,7 @@ window.startVrDictation = function() {
 
     recognition.onresult = function(event) {
         const transcript = event.results[0][0].transcript;
-        window.updateVrMarquee(`🎤: ${transcript}`);
+        window.updateWebVrMarquee(`🎤: ${transcript}`);
     };
 
     recognition.onspeechend = recognition.onerror = function() {
@@ -913,79 +935,9 @@ window.startVrDictation = function() {
     };
 
     recognition.start();
-};
-
-// ОБЩАЯ БЕГУЩАЯ СТРОКА
-window.updateVrMarquee = function(newText) {
-    const marquee = document.getElementById('vr-marquee');
-    if (!marquee) return;
-
-    let currentText = marquee.innerText;
-    if (currentText.includes("Waiting")) currentText = ""; 
-
-    marquee.innerText = newText + " • " + currentText;
 };
 
 // КНОПКА СС
-window.toggleVrCC = function() {
-    const ccContainer = document.getElementById('vr-cc-container');
-    if (ccContainer) ccContainer.classList.toggle('hidden');
-};
-// 2. Обновление запертой бегущей строки
-window.updateVrMarquee = function(newText) {
-    const marquee = document.getElementById('vr-marquee');
-    if (!marquee) return;
-
-    let currentText = marquee.innerText;
-    if (currentText.includes("Waiting")) currentText = ""; 
-
-    marquee.innerText = newText + " • " + currentText;
-};
-
-// 3. Умный Микрофон 
-window.startVrDictation = function() {
-    const micBtn = document.getElementById('vr-mic-btn');
-    
-    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
-        return alert("Браузер не поддерживает микрофон.");
-    }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    
-    let myFlag = window.myProfileInfo ? window.myProfileInfo.flagCode : 'ru';
-    let myLangCode = window.getLangFromFlag(myFlag);
-    
-    const micMap = {'en':'en-US', 'ru':'ru-RU', 'az':'az-AZ', 'kk':'kk-KZ', 'de':'de-DE', 'tr':'tr-TR'};
-    recognition.lang = micMap[myLangCode] || 'en-US';
-    recognition.interimResults = false;
-
-    if (micBtn) {
-        micBtn.classList.remove('text-gray-400');
-        micBtn.classList.add('text-green-500'); 
-    }
-
-    recognition.onresult = function(event) {
-        const transcript = event.results[0][0].transcript;
-        const input = document.getElementById('vr-chat-input');
-        if (input) {
-            input.value = transcript; 
-            window.sendVrMessage(); 
-        }
-    };
-
-    recognition.onspeechend = recognition.onerror = function() {
-        recognition.stop();
-        if (micBtn) {
-            micBtn.classList.add('text-gray-400');
-            micBtn.classList.remove('text-green-500');
-        }
-    };
-
-    recognition.start();
-};
-
-// 4. Вкл/Выкл блока бегущей строки
 window.toggleVrCC = function() {
     const ccContainer = document.getElementById('vr-cc-container');
     if (ccContainer) ccContainer.classList.toggle('hidden');
