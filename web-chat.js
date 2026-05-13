@@ -670,91 +670,24 @@ window.openConference = function() {
 };
 
 // ==========================================
-// 8. ГОЛОСОВАЯ КОМНАТА И МИКРОФОН (SPRACHRAUM)
+// ВХОД И ВЫХОД ИЗ ГОЛОСОВОЙ КОМНАТЫ (WEB)
 // ==========================================
 
-window.currentMicLang = 'auto'; // Умное автоопределение по умолчанию
-
-// Функция автоопределения нужного языка (Для меню микрофона)
-window.getSmartMicLang = function() {
-    if (window.currentMicLang !== 'auto') return window.currentMicLang; 
-
-    let detectLang = window.appLang || 'auto';
-    if (detectLang === 'auto' && window.myProfileInfo) {
-        detectLang = typeof window.getSmartLang === 'function' ? window.getSmartLang(window.myProfileInfo) : (window.myProfileInfo.langCode || 'en');
-    }
-    detectLang = detectLang.toLowerCase().substring(0, 2);
-
-    const mapLocales = {
-        'en': 'en-US', 'ru': 'ru-RU', 'az': 'az-AZ', 'de': 'de-DE',
-        'tr': 'tr-TR', 'ar': 'ar-SA', 'it': 'it-IT', 'es': 'es-ES',
-        'fr': 'fr-FR', 'pt': 'pt-PT', 'ja': 'ja-JP', 'zh': 'zh-CN',
-        'kk': 'kk-KZ' 
-    };
-
-    return mapLocales[detectLang] || 'en-US'; 
+// Новая функция отбоя (красная трубка)
+window.leaveWebVoiceRoom = function() {
+    if (typeof window.switchTab === 'function') window.switchTab(0);
+    if (typeof window.switchWebChat === 'function') window.switchWebChat('global');
+    else if (typeof window.switchChatRoom === 'function') window.switchChatRoom('global');
+    window.closeVoiceRoom();
 };
 
-// Установка языка вручную из модалки "Mic Lang"
-window.setMicLang = function(langCode) {
-    window.currentMicLang = langCode;
-    window.closeModal('lang-modal');
+window.closeVoiceRoom = function() {
+    const vr = document.getElementById('voice-room-modal');
+    if (vr) { vr.classList.add('hidden'); vr.classList.remove('flex'); }
 };
 
-// Открыть меню выбора действий микрофона (в чате)
-window.openMicMenu = function() {
-    if (window.currentRoomId === 'global') {
-        alert("В Global Chat звонки отключены. Перейдите в приватный чат.");
-        return;
-    }
-    const m = document.getElementById('mic-menu-modal');
-    if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
-};
-
-// Диктовка текста для главного чата (не комнаты)
-window.startDictation = function() {
-    window.closeModal('mic-menu-modal');
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return alert("Ваш браузер не поддерживает голосовой ввод.");
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = window.getSmartMicLang(); 
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    const chatInput = document.getElementById('chat-input') || document.getElementById('web-chat-input');
-
-    recognition.onstart = function() {
-        if (chatInput) {
-            chatInput.placeholder = `🎤 Listening (${recognition.lang})...`;
-            chatInput.classList.add('bg-red-50', 'dark:bg-red-900/20');
-        }
-    };
-
-    recognition.onresult = function(event) {
-        const speechResult = event.results[0][0].transcript;
-        if (chatInput) {
-            chatInput.value = speechResult;
-            chatInput.placeholder = "Type message or click mic...";
-            chatInput.classList.remove('bg-red-50', 'dark:bg-red-900/20');
-            chatInput.focus();
-        }
-    };
-
-    recognition.onerror = recognition.onend = function() {
-        if (chatInput) {
-            chatInput.placeholder = "Type message or click mic...";
-            chatInput.classList.remove('bg-red-50', 'dark:bg-red-900/20');
-        }
-    };
-
-    recognition.start();
-};
-
-// Запуск Голосовой комнаты (из меню Anrufen)
 window.startVoiceCall = function() {
     window.closeModal('mic-menu-modal'); 
-    
     const vr = document.getElementById('voice-room-modal');
     if (!vr) return;
 
@@ -784,7 +717,7 @@ window.startVoiceCall = function() {
         vPartnerAvatar.style.cursor = "pointer";
         vPartnerAvatar.onclick = function(e) {
             e.stopPropagation();
-            if(typeof window.openChatLangModal === 'function') window.openChatLangModal(partnerName);
+            if(typeof window.openChatLangModal === 'function') window.openChatLangModal();
         };
     }
     
@@ -794,7 +727,6 @@ window.startVoiceCall = function() {
     vr.classList.add('flex');
 };
 
-// Прямой вход в голосовую комнату
 window.openVoiceRoomDirectly = function() {
     const vr = document.getElementById('voice-room-modal');
     if (!vr) return;
@@ -825,7 +757,7 @@ window.openVoiceRoomDirectly = function() {
         vPartnerAvatar.style.cursor = "pointer";
         vPartnerAvatar.onclick = function(e) {
             e.stopPropagation();
-            if(typeof window.openChatLangModal === 'function') window.openChatLangModal(partnerName);
+            if(typeof window.openChatLangModal === 'function') window.openChatLangModal();
         };
     }
 
@@ -839,7 +771,6 @@ window.openVoiceRoomDirectly = function() {
 // ЛОГИКА ВНУТРИ ГОЛОСОВОЙ КОМНАТЫ (РАЗДЕЛЕННЫЕ МИРЫ - WEB)
 // ==========================================
 
-// ОБЩАЯ БЕГУЩАЯ СТРОКА ДЛЯ WEB (Уникальный ID)
 window.updateWebVrMarquee = function(newText) {
     const marquee = document.getElementById('web-vr-marquee');
     if (!marquee) return;
@@ -937,6 +868,120 @@ window.startVrDictation = function() {
     recognition.start();
 };
 
+window.toggleVrCC = function() {
+    const ccContainer = document.getElementById('vr-cc-container');
+    if (ccContainer) ccContainer.classList.toggle('hidden');
+};
+
+// ==========================================
+// УНИВЕРСАЛЬНАЯ ЯЗЫКОВАЯ ПАНЕЛЬ (ТЕКСТ + МИКРОФОН 2 в 1)
+// ==========================================
+
+window.chatLang = window.chatLang || 'auto';
+window.currentMicLang = window.currentMicLang || 'auto';
+window.currentLangTab = 'text';
+
+window.openChatLangModal = function() {
+    if(typeof window.closeDropdown === 'function') window.closeDropdown();
+    const m = document.getElementById('unified-lang-modal');
+    if (m) {
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+        setTimeout(() => m.classList.remove('opacity-0'), 10);
+        window.switchLangTab('text'); // По умолчанию открываем вкладку Текст
+    }
+};
+
+window.openLangModal = function() {
+    if(typeof window.closeDropdown === 'function') window.closeDropdown();
+    const m = document.getElementById('unified-lang-modal');
+    if (m) {
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+        setTimeout(() => m.classList.remove('opacity-0'), 10);
+        window.switchLangTab('mic'); // По умолчанию открываем вкладку Микрофон
+    }
+};
+
+window.switchLangTab = function(tab) {
+    window.currentLangTab = tab;
+    const tabText = document.getElementById('tab-lang-text');
+    const tabMic = document.getElementById('tab-lang-mic');
+    
+    if (!tabText || !tabMic) return;
+
+    if(tab === 'text') {
+        tabText.className = "flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 text-sm font-bold shadow-sm transition flex items-center justify-center gap-2";
+        tabMic.className = "flex-1 py-2 rounded-lg bg-transparent text-gray-500 dark:text-gray-400 text-sm font-bold hover:text-gray-700 dark:hover:text-gray-200 transition flex items-center justify-center gap-2";
+    } else {
+        tabMic.className = "flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-green-600 dark:text-green-400 text-sm font-bold shadow-sm transition flex items-center justify-center gap-2";
+        tabText.className = "flex-1 py-2 rounded-lg bg-transparent text-gray-500 dark:text-gray-400 text-sm font-bold hover:text-gray-700 dark:hover:text-gray-200 transition flex items-center justify-center gap-2";
+    }
+
+    window.renderUnifiedLangList();
+};
+
+window.renderUnifiedLangList = function() {
+    const list = document.getElementById('unified-lang-list');
+    if (!list) return;
+
+    const langs = [
+        { name: '🤖 Auto (Smart)', textCode: 'auto', micCode: 'auto' },
+        { name: '🇬🇧 English', textCode: 'en', micCode: 'en-US' },
+        { name: '🇷🇺 Русский', textCode: 'ru', micCode: 'ru-RU' },
+        { name: '🇦🇿 Azərbaycanca', textCode: 'az', micCode: 'az-AZ' },
+        { name: '🇰🇿 Қазақша', textCode: 'kk', micCode: 'kk-KZ' },
+        { name: '🇩🇪 Deutsch', textCode: 'de', micCode: 'de-DE' },
+        { name: '🇹🇷 Türkçe', textCode: 'tr', micCode: 'tr-TR' },
+        { name: '🇦🇪 العربية', textCode: 'ar', micCode: 'ar-SA' },
+        { name: '🇮🇹 Italiano', textCode: 'it', micCode: 'it-IT' },
+        { name: '🇪🇸 Español', textCode: 'es', micCode: 'es-ES' },
+        { name: '🇫🇷 Français', textCode: 'fr', micCode: 'fr-FR' },
+        { name: '🇵🇹 Português', textCode: 'pt', micCode: 'pt-PT' },
+        { name: '🇯🇵 日本語', textCode: 'ja', micCode: 'ja-JP' },
+        { name: '🇨🇳 中文', textCode: 'zh', micCode: 'zh-CN' }
+    ];
+
+    let html = '';
+    let activeVal = window.currentLangTab === 'text' ? (window.chatLang || 'auto') : (window.currentMicLang || 'auto');
+
+    langs.forEach(l => {
+        let valToCheck = window.currentLangTab === 'text' ? l.textCode : l.micCode;
+        let isActive = activeVal === valToCheck;
+        
+        let bgClass = isActive 
+            ? (window.currentLangTab === 'text' 
+                ? 'bg-indigo-100 dark:bg-indigo-900/50 border-indigo-400 dark:border-indigo-500 text-indigo-700 dark:text-indigo-300' 
+                : 'bg-green-100 dark:bg-green-900/50 border-green-400 dark:border-green-500 text-green-700 dark:text-green-300') 
+            : 'bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-600';
+            
+        let actionCode = window.currentLangTab === 'text' ? l.textCode : l.micCode;
+        
+        html += `<button onclick="window.applyUnifiedLang('${actionCode}')" class="p-2 ${bgClass} rounded-xl text-left text-xs font-bold border transition shadow-sm">${l.name}</button>`;
+    });
+
+    list.innerHTML = html;
+};
+
+window.applyUnifiedLang = function(code) {
+    if (window.currentLangTab === 'text') {
+        window.chatLang = code;
+    } else {
+        window.currentMicLang = code;
+    }
+    window.renderUnifiedLangList(); // Перерисовываем для эффекта нажатия
+};
+
+window.closeModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) { 
+        modal.classList.add('opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden'); 
+            modal.classList.remove('flex'); 
+        }, 300);
+    }
+};
 // КНОПКА СС
 window.toggleVrCC = function() {
     const ccContainer = document.getElementById('vr-cc-container');
