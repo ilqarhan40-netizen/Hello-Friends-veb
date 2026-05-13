@@ -613,16 +613,33 @@
     </div>
 </div>
 
-<div id="personal-lang-modal" class="fixed inset-0 z-[105] hidden flex-col items-center justify-center bg-black/50 px-4 opacity-0 transition-opacity duration-300" onclick="if(event.target===this) closePersonalLangModal()">
-    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-6 w-full max-w-xs transform scale-95 transition-transform duration-300 border border-gray-100 dark:border-slate-700">
-        <h3 class="text-lg font-bold mb-4 text-center text-gray-900 dark:text-white" data-i18n="select_room_lang">Room Language</h3>
-     <div class="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
-            <button onclick="setPersonalLang('en')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇬🇧 English</button>
-            <button onclick="setPersonalLang('ru')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇷🇺 Русский</button>
-            <button onclick="setPersonalLang('az')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇦🇿 Azərbaycanca</button>
-            <button onclick="setPersonalLang('kk')" class="py-2.5 px-3 bg-gray-50 dark:bg-slate-700 rounded-xl text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-left transition-colors">🇰🇿 Қазақша</button>
+<!-- ========================================== -->
+<!-- УНИВЕРСАЛЬНАЯ ПАНЕЛЬ ЯЗЫКОВ (ТЕКСТ + МИКРОФОН 2 в 1) -->
+<!-- ========================================== -->
+<div id="unified-lang-modal" class="fixed inset-0 z-[99999] hidden flex-col items-center justify-center bg-black/60 px-4 opacity-0 transition-opacity duration-300 backdrop-blur-sm" onclick="if(event.target===this) window.closeModal('unified-lang-modal')">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-6 w-full max-w-sm transform scale-95 transition-transform duration-300 border border-gray-100 dark:border-slate-700" onclick="event.stopPropagation()">
+        <button onclick="window.closeModal('unified-lang-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+        
+        <h3 class="text-lg font-bold mb-4 text-center text-gray-900 dark:text-white flex items-center justify-center gap-2">
+            <i class="fa-solid fa-language text-blue-500"></i> Language Settings
+        </h3>
+        
+        <!-- ПЕРЕКЛЮЧАТЕЛЬ ТАБОВ: ТЕКСТ / МИКРОФОН -->
+        <div class="flex gap-1 bg-gray-100 dark:bg-slate-900 p-1.5 rounded-xl mb-4 border border-gray-200 dark:border-slate-700 shadow-inner">
+            <button id="tab-lang-text" onclick="window.switchLangTab('text')" class="flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 text-sm font-bold shadow-sm transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-keyboard"></i> Text
+            </button>
+            <button id="tab-lang-mic" onclick="window.switchLangTab('mic')" class="flex-1 py-2 rounded-lg bg-transparent text-gray-500 dark:text-gray-400 text-sm font-bold hover:text-gray-700 dark:hover:text-gray-200 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-microphone"></i> Mic
+            </button>
         </div>
-        <button onclick="closePersonalLangModal()" class="w-full mt-5 py-3 bg-gray-100 dark:bg-slate-600 rounded-xl font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-500 transition-colors" data-i18n="cancel">Cancel</button>
+
+        <!-- ДИНАМИЧЕСКИЙ СПИСОК ЯЗЫКОВ -->
+        <div class="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1" id="unified-lang-list">
+            <!-- Заполняется через JS -->
+        </div>
+        
+        <button onclick="window.closeModal('unified-lang-modal')" class="w-full mt-5 py-3 bg-gray-100 dark:bg-slate-700 rounded-xl font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors shadow-sm">Confirm</button>
     </div>
 </div>
 
