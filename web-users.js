@@ -157,19 +157,36 @@ window.openUserProfile = function(userId) {
 
     // Назначаем действия на Правой Панели (6 Кнопок)
     const btnPrivChat = document.getElementById('btn-priv-chat');
-    if (btnPrivChat) btnPrivChat.onclick = () => { window.closeUserProfile(); if(typeof window.switchWebChat === 'function') window.switchWebChat(userId); };
+    if (btnPrivChat) btnPrivChat.onclick = () => { 
+        window.closeUserProfile(); 
+        if(typeof window.switchWebChat === 'function') window.switchWebChat(userId); 
+    };
     
     const btnVoiceMsg = document.getElementById('btn-voice-msg');
-    if (btnVoiceMsg) btnVoiceMsg.onclick = () => alert("Voice msg feature coming soon!");
+    if (btnVoiceMsg) btnVoiceMsg.onclick = () => { 
+        window.closeUserProfile(); 
+        window.currentTargetUser = user; 
+        if(typeof window.startVoiceCall === 'function') window.startVoiceCall(); 
+    };
     
     const btnAppAudio = document.getElementById('btn-app-audio');
-    if (btnAppAudio) btnAppAudio.onclick = () => { window.closeUserProfile(); if(typeof window.openVoiceChat === 'function') window.openVoiceChat(); };
+    if (btnAppAudio) btnAppAudio.onclick = () => { 
+        window.closeUserProfile(); 
+        window.currentTargetUser = user; 
+        if(typeof window.openVoiceChat === 'function') window.openVoiceChat(); 
+    };
     
     const btnAppVideo = document.getElementById('btn-app-video');
-    if (btnAppVideo) btnAppVideo.onclick = () => { window.closeUserProfile(); if(typeof window.openConference === 'function') window.openConference(); };
+    if (btnAppVideo) btnAppVideo.onclick = () => { 
+        window.closeUserProfile(); 
+        window.currentTargetUser = user;
+        if(typeof window.openConference === 'function') window.openConference(); 
+    };
 
     const btnExtCall = document.getElementById('btn-ext-call');
-    if (btnExtCall) btnExtCall.onclick = () => { if(user.phone) { window.location.href='tel:'+user.phone; } else { alert('Phone not specified'); } };
+    if (btnExtCall) btnExtCall.onclick = () => { 
+        if(user.phone) { window.location.href='tel:'+user.phone; } else { alert('Phone not specified'); } 
+    };
 
     const btnFullCv = document.getElementById('btn-full-cv');
     if (btnFullCv) {
