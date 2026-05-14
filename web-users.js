@@ -169,11 +169,11 @@ window.openUserProfile = function(userId) {
         if(typeof window.startVoiceCall === 'function') window.startVoiceCall(); 
     };
     
-    const btnAppAudio = document.getElementById('btn-app-audio');
+const btnAppAudio = document.getElementById('btn-app-audio');
     if (btnAppAudio) btnAppAudio.onclick = () => { 
         window.closeUserProfile(); 
         window.currentTargetUser = user; 
-        if(typeof window.openVoiceChat === 'function') window.openVoiceChat(); 
+        if(typeof window.startVoiceCall === 'function') window.startVoiceCall(); 
     };
     
     const btnAppVideo = document.getElementById('btn-app-video');
