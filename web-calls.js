@@ -1,9 +1,9 @@
 // ==========================================
 // Файл: web-calls.js
-// Назначение: Сетка видеоконференции и логика звонков
+// Назначение: Сетка видеоконференции, Голосовая комната, Микрофон и Вложения
 // ==========================================
 
-// --- 1. ОТКРЫТИЕ СЕТКИ И ГЕНЕРАЦИЯ ПОЛЬЗОВАТЕЛЕЙ (Твой оригинальный код) ---
+// --- 1. ОТКРЫТИЕ СЕТКИ И ГЕНЕРАЦИЯ ПОЛЬЗОВАТЕЛЕЙ ---
 window.openConference = function() {
     if(typeof window.closeDropdown === 'function') window.closeDropdown();
     const overlay = document.getElementById('conference-overlay');
@@ -25,7 +25,6 @@ window.openConference = function() {
             }
         });
         
-        // Берем 6 уникальных юзеров
         let activeUsers = uniqueUsers.slice(0, 6);
         
         activeUsers.forEach(user => {
@@ -50,95 +49,65 @@ window.openConference = function() {
     }
 };
 
-window.openVoiceChat = function() {
-    if(typeof window.closeDropdown === 'function') window.closeDropdown();
-    const overlay = document.getElementById('voice-overlay');
-    if(overlay) overlay.style.display = 'flex';
-};
-
 window.closeCalls = function() {
     const confOverlay = document.getElementById('conference-overlay');
-    const voiceOverlay = document.getElementById('voice-overlay');
+    const voiceOverlay = document.getElementById('voice-room-modal');
     if(confOverlay) confOverlay.style.display = 'none';
-    if(voiceOverlay) voiceOverlay.style.display = 'none';
+    if(voiceOverlay) {
+        voiceOverlay.classList.remove('flex');
+        voiceOverlay.classList.add('hidden');
+    }
 };
 
-// --- 2. ЛОГИКА ВИДЕОКОНФЕРЕНЦИИ (МИКРОФОН, ОТПРАВКА, СУБТИТРЫ) ---
-
-// Отправка сообщения из Видеоконференции
+// --- 2. ЛОГИКА ВИДЕОКОНФЕРЕНЦИИ ---
 window.sendConfMessage = function() {
     const confInput = document.getElementById('conf-text-input');
     if (!confInput || !confInput.value.trim()) return;
 
     const text = confInput.value.trim();
-
-    // Добавляем текст в бегущую строку конференции (CC)
     const marquee = document.getElementById('conf-marquee');
-    if (marquee) {
-        marquee.innerText = `Me: ${text} • ` + marquee.innerText;
-    }
+    if (marquee) marquee.innerText = `Me: ${text} • ` + marquee.innerText;
 
-    // Дублируем текст в основной чат (если нужно для истории)
     const mainChatInput = document.getElementById('chat-input') || document.getElementById('web-chat-input');
     if (mainChatInput) {
         mainChatInput.value = text;
         if (typeof window.sendFirebaseMsg === 'function') window.sendFirebaseMsg(); 
     }
-    
-    // Очищаем поле
     confInput.value = ''; 
 };
 
-// Вкл/Выкл Микрофона (С распознаванием речи)
 window.toggleConfMic = function(btn) {
     const icon = btn.querySelector('i');
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) return alert('Голосовой ввод не поддерживается.');
     
-    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
-        return alert('Голосовой ввод не поддерживается в твоем браузере.');
-    }
-
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    
-    // Язык распознавания берем из настроек или авто
     recognition.lang = window.chatLang && window.chatLang !== 'auto' ? window.chatLang : 'ru-RU'; 
     recognition.interimResults = false;
 
-    // Визуально включаем микрофон (красный цвет записи)
     icon.classList.replace('fa-microphone', 'fa-microphone-slash');
     btn.classList.replace('bg-gray-200', 'bg-red-500');
     btn.classList.remove('dark:bg-gray-700');
     btn.classList.add('text-white');
 
     recognition.onresult = function(event) {
-        const transcript = event.results[0][0].transcript;
         const confInput = document.getElementById('conf-text-input');
         if (confInput) {
-            confInput.value = transcript;
-            window.sendConfMessage(); // Сразу кидаем сказанное в бегущую строку
+            confInput.value = event.results[0][0].transcript;
+            window.sendConfMessage(); 
         }
     };
 
-    recognition.onspeechend = function() {
+    recognition.onspeechend = recognition.onerror = function() {
         recognition.stop();
         icon.classList.replace('fa-microphone-slash', 'fa-microphone');
         btn.classList.replace('bg-red-500', 'bg-gray-200');
         btn.classList.add('dark:bg-gray-700');
         btn.classList.remove('text-white');
     };
-
-    recognition.onerror = function() {
-        recognition.stop();
-        icon.classList.replace('fa-microphone-slash', 'fa-microphone');
-        btn.classList.replace('bg-red-500', 'bg-gray-200');
-        btn.classList.add('dark:bg-gray-700');
-        btn.classList.remove('text-white');
-    };
-
     recognition.start();
 };
 
-// Вкл/Выкл Камеры (визуально)
 window.toggleConfCam = function(btn) {
     const icon = btn.querySelector('i');
     if (icon.classList.contains('fa-video')) {
@@ -152,18 +121,14 @@ window.toggleConfCam = function(btn) {
     }
 };
 
-// Вкл/Выкл CC (Бегущая строка перевода)
 window.toggleConfCC = function(btn) {
     const marqueeContainer = document.getElementById('conf-marquee-container');
     const isActive = btn.classList.contains('bg-indigo-600') || btn.classList.contains('dark:bg-[#00C4CC]');
-
     if (isActive) {
-        // ВЫКЛЮЧАЕМ
         btn.classList.remove('bg-indigo-600', 'dark:bg-[#00C4CC]', 'dark:text-black');
         btn.classList.add('bg-gray-400', 'text-white');
         if (marqueeContainer) marqueeContainer.classList.add('hidden');
     } else {
-        // ВКЛЮЧАЕМ
         btn.classList.remove('bg-gray-400', 'text-white');
         btn.classList.add('bg-indigo-600', 'dark:bg-[#00C4CC]', 'dark:text-black');
         if (marqueeContainer) {
@@ -173,39 +138,95 @@ window.toggleConfCC = function(btn) {
     }
 };
 
-// Закрытие комнаты (кнопка с красной трубкой)
 window.closeConferenceRoom = function() {
     const confModal = document.getElementById('conference-overlay');
     if (confModal) confModal.style.display = 'none';
 };
 
 // ==========================================
-// ЛОГИКА ВЫБОРА ТИПА ЗВОНКА (ИЗ ПРОФИЛЯ)
+// 3. ЛОГИКА ВЫБОРА ЗВОНКА И ГОЛОСОВАЯ КОМНАТА
 // ==========================================
-
-// Открыть меню выбора
 window.openCallMenu = function() {
     const m = document.getElementById('call-menu-modal');
-    if (m) { 
-        m.classList.remove('hidden'); 
-        m.classList.add('flex'); 
-    }
+    if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
 };
 
-// 1. Звонок внутри приложения
-window.startInAppCall = function() {
-    window.closeModal('call-menu-modal');
-    // Перекидываем сразу в Голосовую комнату (встроенная функция)
-    if (typeof window.startVoiceCall === 'function') {
-        window.startVoiceCall();
+// Бронебойная функция: открывает Голосовую Комнату
+window.startVoiceCall = function() {
+    if(typeof window.closeDropdown === 'function') window.closeDropdown();
+    window.closeModal('call-menu-modal'); 
+    
+    const voiceRoom = document.getElementById('voice-room-modal');
+    if(voiceRoom) {
+        voiceRoom.classList.remove('hidden');
+        voiceRoom.classList.add('flex');
     } else {
-        alert("Голосовая комната недоступна.");
+        alert("Окно voice-room-modal не найдено в HTML!");
     }
 };
 
-// 2. Звонок на внешний номер
+// Алиасы (чтобы кнопки из HTML в любом случае срабатывали)
+window.startInAppCall = window.startVoiceCall;
+window.openVoiceChat = window.startVoiceCall;
+window.openVoiceRoomDirectly = window.startVoiceCall;
+
 window.startExternalCall = function() {
     window.closeModal('call-menu-modal');
-    // Тут пока заглушка, потом прикрутим API для GSM-звонков
     alert("Инициирован звонок на внешний номер (GSM)!");
+};
+
+// ==========================================
+// 4. МЕНЮ МИКРОФОНА (3 ФУНКЦИИ) + ФИКС НАСЛОЕНИЯ
+// ==========================================
+window.openMicMenu = function() {
+    // 1. ЖЕСТКО И МГНОВЕННО УБИВАЕМ ПРОФИЛЬ
+    const profileOverlay = document.getElementById('web-profile-overlay');
+    if (profileOverlay) {
+        profileOverlay.style.display = 'none'; // Скрываем визуально
+        profileOverlay.classList.remove('flex');
+        profileOverlay.classList.add('hidden');
+    }
+    
+    // 2. ОТКРЫВАЕМ ЧЕРНОЕ МЕНЮ
+    const m = document.getElementById('mic-menu-modal');
+    if (m) {
+        m.style.zIndex = '999999';
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+    }
+};
+
+window.startDictation = function() {
+    window.closeModal('mic-menu-modal');
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) return alert('Голосовой ввод не поддерживается.');
+    const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    rec.lang = window.chatLang && window.chatLang !== 'auto' ? window.chatLang : 'ru-RU';
+    const inp = document.getElementById('chat-input');
+    if (inp) inp.placeholder = "🎤 Говорите...";
+    
+    rec.onresult = e => { if(inp) inp.value = (inp.value + " " + e.results[0][0].transcript).trim(); };
+    rec.onspeechend = () => { rec.stop(); if(inp) inp.placeholder = "Type message or click mic..."; };
+    rec.start();
+};
+
+// ==========================================
+// 5. СКРЕПКА (МЕНЮ ВЛОЖЕНИЙ) И БАЗОВОЕ ЗАКРЫТИЕ
+// ==========================================
+window.openAttachmentModal = function() {
+    const m = document.getElementById('attachment-modal');
+    if (m) {
+        m.style.zIndex = '999999';
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+    }
+};
+
+// Универсальная закрывашка для всех модалок
+window.closeModal = window.closeModal || function(modalId) {
+    const m = document.getElementById(modalId);
+    if (m) {
+        m.style.display = ''; // Сбрасываем жесткий display
+        m.classList.remove('flex');
+        m.classList.add('hidden');
+    }
 };
