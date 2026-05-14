@@ -545,33 +545,38 @@
         <div class="mt-6 pt-4 border-t border-gray-100 dark:border-white/5"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2" data-i18n="about_me">About</p><p id="modal-user-about" class="text-xs leading-relaxed text-gray-500 italic"></p></div>
     </div>
 
- <div id="profile-right-panel" class="w-full max-w-sm flex flex-col gap-3 transform translate-x-full transition-transform duration-500" onclick="event.stopPropagation()">
-        <div class="grid grid-cols-2 gap-3">
-            <button id="btn-priv-chat" onclick="if(window.currentTargetUser) { switchWebChat(window.currentTargetUser.id); closeUserProfile(); }" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
-                <i class="fa-solid fa-lock text-green-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]"></i>
-                <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_chat">Private Chat</span>
-            </button>
-            <button id="btn-voice-msg" onclick="startVoiceCall()" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
-                <i class="fa-solid fa-microphone text-blue-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]"></i>
-                <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_voice">Voice Msg</span>
-            </button>
-            <button id="btn-app-audio" onclick="openMicMenu()" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
-                <i class="fa-solid fa-headset text-purple-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]"></i>
-                <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_app_audio">App Audio</span>
-            </button>
-            <button id="btn-app-video" onclick="openConference(); closeUserProfile();" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
-                <i class="fa-solid fa-video text-pink-500 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]"></i>
-                <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_video">App Video</span>
-            </button>
-        </div>
-        <button id="btn-ext-call" class="glass-panel rounded-2xl py-4 flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer shadow-lg mt-1">
-            <span class="text-white font-bold text-base tracking-wide" data-i18n="action_cellular">Phone Call</span>
+<div id="profile-right-panel" class="w-full max-w-sm flex flex-col gap-3 transform translate-x-full transition-transform duration-500" onclick="event.stopPropagation()">
+    <div class="grid grid-cols-2 gap-3">
+        <button id="btn-priv-chat" onclick="if(window.currentTargetUser) { switchWebChat(window.currentTargetUser.id); closeUserProfile(); }" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
+            <i class="fa-solid fa-lock text-green-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]"></i>
+            <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_chat">Private Chat</span>
         </button>
-        <button id="btn-full-cv" class="bg-[#10b981]/10 border border-[#10b981]/40 backdrop-blur-md rounded-2xl p-4 flex items-center justify-center gap-3 hover:bg-[#10b981]/20 transition-all cursor-pointer shadow-lg mt-1 group">
-            <i class="fa-solid fa-user-tie text-emerald-400 text-xl group-hover:scale-110 transition"></i>
-            <span class="text-emerald-400 font-bold text-sm tracking-wide uppercase" data-i18n="view_cv">View Full CV</span>
+        
+        <button id="btn-voice-msg" onclick="startVoiceCall(); closeUserProfile();" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
+            <i class="fa-solid fa-microphone text-blue-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]"></i>
+            <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_voice">Voice Msg</span>
+        </button>
+        
+        <button id="btn-app-audio" onclick="openMicMenu(); closeUserProfile();" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
+            <i class="fa-solid fa-headset text-purple-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]"></i>
+            <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_app_audio">App Audio</span>
+        </button>
+        
+        <button id="btn-app-video" onclick="openConference(); closeUserProfile();" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
+            <i class="fa-solid fa-video text-pink-500 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]"></i>
+            <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_video">App Video</span>
         </button>
     </div>
+    
+  <!-- ВНЕШНИЙ ЗВОНОК (Phone Call) -> Открывает меню выбора типа звонка -->
+    <button id="btn-ext-call" onclick="window.openCallMenu(); closeUserProfile();" class="glass-panel rounded-2xl py-4 flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer shadow-lg mt-1">
+        <span class="text-white font-bold text-base tracking-wide" data-i18n="action_cellular">Phone Call</span>
+    </button>
+    
+    <button id="btn-full-cv" onclick="closeUserProfile();" class="bg-[#10b981]/10 border border-[#10b981]/40 backdrop-blur-md rounded-2xl p-4 flex items-center justify-center gap-3 hover:bg-[#10b981]/20 transition-all cursor-pointer shadow-lg mt-1 group">
+        <i class="fa-solid fa-user-tie text-emerald-400 text-xl group-hover:scale-110 transition"></i>
+        <span class="text-emerald-400 font-bold text-sm tracking-wide uppercase" data-i18n="view_cv">View Full CV</span>
+    </button>
 </div>
 
 <div id="trash-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200]">
@@ -747,6 +752,39 @@
         </div>
     </div>
 </div>
+</div>
+    </div>
+</div>
+    
+<!-- ========================================== -->
+<!-- МЕНЮ ВЫБОРА ЗВОНКА (ВНУТРИ ПРИЛОЖЕНИЯ / ВНЕШНИЙ) -->
+<!-- ========================================== -->
+<div id="call-menu-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[100000]" onclick="if(event.target===this) window.closeModal('call-menu-modal')">
+    <div class="bg-slate-800 w-[280px] rounded-[30px] shadow-2xl flex flex-col gap-2 p-4 border border-slate-700" onclick="event.stopPropagation()">
+        
+        <button onclick="window.startInAppCall()" class="flex items-center gap-4 bg-slate-700/50 hover:bg-slate-700 p-4 rounded-2xl text-white transition">
+            <i class="fa-solid fa-headset text-cyan-400 text-xl w-6 text-center"></i>
+            <div class="flex flex-col text-left">
+                <span class="font-bold text-[13px]">Внутри приложения</span>
+                <span class="text-[10px] text-gray-400">Бесплатный App-звонок</span>
+            </div>
+        </button>
+        
+        <button onclick="window.startExternalCall()" class="flex items-center gap-4 bg-slate-700/50 hover:bg-slate-700 p-4 rounded-2xl text-white transition">
+            <i class="fa-solid fa-mobile-screen-button text-green-400 text-xl w-6 text-center"></i>
+            <div class="flex flex-col text-left">
+                <span class="font-bold text-[13px]">На внешний номер</span>
+                <span class="text-[10px] text-gray-400">Обычный GSM-звонок</span>
+            </div>
+        </button>
+        
+        <button onclick="window.closeModal('call-menu-modal')" class="mt-2 text-slate-400 hover:text-white text-xs py-2 font-bold transition">Отмена / Cancel</button>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyCVFkMsqelcnjjeIwGnAKmn1CFhDGc7kR0",
     
 <script>
     const firebaseConfig = {
