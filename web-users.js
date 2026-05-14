@@ -162,14 +162,21 @@ window.openUserProfile = function(userId) {
         if(typeof window.switchWebChat === 'function') window.switchWebChat(userId); 
     };
     
+ 
     // ИСПРАВЛЕНИЕ 1: МИКРОФОН открывает меню с 3 функциями (openMicMenu)
     const btnVoiceMsg = document.getElementById('btn-voice-msg');
     if (btnVoiceMsg) btnVoiceMsg.onclick = () => { 
-        window.closeUserProfile(); 
+        // 1. МГНОВЕННО прячем профиль (в обход функции с таймером)
+        const overlay = document.getElementById('web-profile-overlay');
+        if (overlay) {
+            overlay.classList.remove('flex');
+            overlay.classList.add('hidden');
+        }
+        
+        // 2. Открываем меню микрофона
         window.currentTargetUser = user; 
         if(typeof window.openMicMenu === 'function') window.openMicMenu(); 
     };
-    
     // ИСПРАВЛЕНИЕ 2: НАУШНИКИ (App Audio) открывают Голосовую комнату (startVoiceCall)
     const btnAppAudio = document.getElementById('btn-app-audio');
     if (btnAppAudio) btnAppAudio.onclick = () => { 
