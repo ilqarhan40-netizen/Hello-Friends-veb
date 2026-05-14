@@ -163,19 +163,25 @@ window.openUserProfile = function(userId) {
     };
     
  
-    // ИСПРАВЛЕНИЕ 1: МИКРОФОН открывает меню с 3 функциями (openMicMenu)
+// ИСПРАВЛЕНИЕ 1: МИКРОФОН (Мгновенное переключение без наслоения)
     const btnVoiceMsg = document.getElementById('btn-voice-msg');
     if (btnVoiceMsg) btnVoiceMsg.onclick = () => { 
-        // 1. МГНОВЕННО прячем профиль (в обход функции с таймером)
+        // 1. ЖЕСТКО И МГНОВЕННО ВЫРУБАЕМ ПРОФИЛЬ
         const overlay = document.getElementById('web-profile-overlay');
         if (overlay) {
+            overlay.style.display = 'none'; // Убиваем визуально
             overlay.classList.remove('flex');
             overlay.classList.add('hidden');
         }
         
-        // 2. Открываем меню микрофона
+        // 2. СРАЗУ ОТКРЫВАЕМ МЕНЮ МИКРОФОНА ПОВЕРХ ВСЕГО
         window.currentTargetUser = user; 
-        if(typeof window.openMicMenu === 'function') window.openMicMenu(); 
+        const micMenu = document.getElementById('mic-menu-modal');
+        if (micMenu) {
+            micMenu.style.zIndex = '999999';
+            micMenu.classList.remove('hidden');
+            micMenu.classList.add('flex');
+        }
     };
     // ИСПРАВЛЕНИЕ 2: НАУШНИКИ (App Audio) открывают Голосовую комнату (startVoiceCall)
     const btnAppAudio = document.getElementById('btn-app-audio');
