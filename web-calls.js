@@ -178,3 +178,34 @@ window.closeConferenceRoom = function() {
     const confModal = document.getElementById('conference-overlay');
     if (confModal) confModal.style.display = 'none';
 };
+
+// ==========================================
+// ЛОГИКА ВЫБОРА ТИПА ЗВОНКА (ИЗ ПРОФИЛЯ)
+// ==========================================
+
+// Открыть меню выбора
+window.openCallMenu = function() {
+    const m = document.getElementById('call-menu-modal');
+    if (m) { 
+        m.classList.remove('hidden'); 
+        m.classList.add('flex'); 
+    }
+};
+
+// 1. Звонок внутри приложения
+window.startInAppCall = function() {
+    window.closeModal('call-menu-modal');
+    // Перекидываем сразу в Голосовую комнату (встроенная функция)
+    if (typeof window.startVoiceCall === 'function') {
+        window.startVoiceCall();
+    } else {
+        alert("Голосовая комната недоступна.");
+    }
+};
+
+// 2. Звонок на внешний номер
+window.startExternalCall = function() {
+    window.closeModal('call-menu-modal');
+    // Тут пока заглушка, потом прикрутим API для GSM-звонков
+    alert("Инициирован звонок на внешний номер (GSM)!");
+};
