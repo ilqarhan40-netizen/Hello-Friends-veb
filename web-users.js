@@ -162,14 +162,16 @@ window.openUserProfile = function(userId) {
         if(typeof window.switchWebChat === 'function') window.switchWebChat(userId); 
     };
     
+    // ИСПРАВЛЕНИЕ 1: МИКРОФОН открывает меню с 3 функциями (openMicMenu)
     const btnVoiceMsg = document.getElementById('btn-voice-msg');
     if (btnVoiceMsg) btnVoiceMsg.onclick = () => { 
         window.closeUserProfile(); 
         window.currentTargetUser = user; 
-        if(typeof window.startVoiceCall === 'function') window.startVoiceCall(); 
+        if(typeof window.openMicMenu === 'function') window.openMicMenu(); 
     };
     
-const btnAppAudio = document.getElementById('btn-app-audio');
+    // ИСПРАВЛЕНИЕ 2: НАУШНИКИ (App Audio) открывают Голосовую комнату (startVoiceCall)
+    const btnAppAudio = document.getElementById('btn-app-audio');
     if (btnAppAudio) btnAppAudio.onclick = () => { 
         window.closeUserProfile(); 
         window.currentTargetUser = user; 
