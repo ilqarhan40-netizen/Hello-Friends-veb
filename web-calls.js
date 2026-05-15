@@ -1,9 +1,8 @@
 // ==========================================
 // Файл: web-calls.js
-// Назначение: Сетка видеоконференции, Голосовая комната, Микрофон и Вложения
+// Назначение: Сетка видеоконференции, Голосовая комната, Меню звонков, Скрепка
 // ==========================================
 
-// --- 1. ОТКРЫТИЕ СЕТКИ И ГЕНЕРАЦИЯ ПОЛЬЗОВАТЕЛЕЙ ---
 window.openConference = function() {
     if(typeof window.closeDropdown === 'function') window.closeDropdown();
     const overlay = document.getElementById('conference-overlay');
@@ -13,7 +12,6 @@ window.openConference = function() {
     
     if (grid && window.participants) {
         grid.innerHTML = ''; 
-        
         let allUsers = [window.myProfileInfo, ...window.participants].filter(Boolean);
         let uniqueUsers = [];
         let seen = new Set();
@@ -35,7 +33,6 @@ window.openConference = function() {
             
             let card = document.createElement('div');
             card.className = "user-card relative aspect-video bg-gray-900 rounded-xl overflow-hidden border border-gray-700 shadow-lg";
-            
             card.innerHTML = `
                 <img src="${user.photo || 'https://ui-avatars.com/api/?name=U'}" class="absolute inset-0 w-full h-full object-cover opacity-80">
                 <div class="absolute top-3 left-3 bg-black/60 px-2 py-1 rounded text-white text-xs font-bold">${(user.name || 'User').split(' ')[0]}</div>
@@ -59,15 +56,12 @@ window.closeCalls = function() {
     }
 };
 
-// --- 2. ЛОГИКА ВИДЕОКОНФЕРЕНЦИИ ---
 window.sendConfMessage = function() {
     const confInput = document.getElementById('conf-text-input');
     if (!confInput || !confInput.value.trim()) return;
-
     const text = confInput.value.trim();
     const marquee = document.getElementById('conf-marquee');
     if (marquee) marquee.innerText = `Me: ${text} • ` + marquee.innerText;
-
     const mainChatInput = document.getElementById('chat-input') || document.getElementById('web-chat-input');
     if (mainChatInput) {
         mainChatInput.value = text;
@@ -79,7 +73,6 @@ window.sendConfMessage = function() {
 window.toggleConfMic = function(btn) {
     const icon = btn.querySelector('i');
     if (!window.SpeechRecognition && !window.webkitSpeechRecognition) return alert('Голосовой ввод не поддерживается.');
-    
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     recognition.lang = window.chatLang && window.chatLang !== 'auto' ? window.chatLang : 'ru-RU'; 
@@ -97,7 +90,6 @@ window.toggleConfMic = function(btn) {
             window.sendConfMessage(); 
         }
     };
-
     recognition.onspeechend = recognition.onerror = function() {
         recognition.stop();
         icon.classList.replace('fa-microphone-slash', 'fa-microphone');
@@ -144,28 +136,32 @@ window.closeConferenceRoom = function() {
 };
 
 // ==========================================
-// 3. ЛОГИКА ВЫБОРА ЗВОНКА И ГОЛОСОВАЯ КОМНАТА
+// ЛОГИКА ВЫБОРА ЗВОНКА И СДВОЕННАЯ МОДАЛКА
 // ==========================================
 window.openCallMenu = function() {
     const m = document.getElementById('call-menu-modal');
-    if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
+    if (m) {
+        m.style.zIndex = '999999';
+        m.classList.remove('hidden'); 
+        m.classList.add('flex'); 
+    } else {
+        alert("Окно call-menu-modal не найдено!");
+    }
 };
 
-// Бронебойная функция: открывает Голосовую Комнату
 window.startVoiceCall = function() {
     if(typeof window.closeDropdown === 'function') window.closeDropdown();
     window.closeModal('call-menu-modal'); 
-    
     const voiceRoom = document.getElementById('voice-room-modal');
     if(voiceRoom) {
         voiceRoom.classList.remove('hidden');
         voiceRoom.classList.add('flex');
+        voiceRoom.style.display = 'flex';
     } else {
-        alert("Окно voice-room-modal не найдено в HTML!");
+        alert("Окно voice-room-modal не найдено!");
     }
 };
 
-// Алиасы (чтобы кнопки из HTML в любом случае срабатывали)
 window.startInAppCall = window.startVoiceCall;
 window.openVoiceChat = window.startVoiceCall;
 window.openVoiceRoomDirectly = window.startVoiceCall;
@@ -176,23 +172,16 @@ window.startExternalCall = function() {
 };
 
 // ==========================================
-// 4. МЕНЮ МИКРОФОНА (3 ФУНКЦИИ) + ФИКС НАСЛОЕНИЯ
+// МЕНЮ МИКРОФОНА (3 ФУНКЦИИ) И ДИКТОВКА
 // ==========================================
 window.openMicMenu = function() {
-    // 1. ЖЕСТКО И МГНОВЕННО УБИВАЕМ ПРОФИЛЬ
-    const profileOverlay = document.getElementById('web-profile-overlay');
-    if (profileOverlay) {
-        profileOverlay.style.display = 'none'; // Скрываем визуально
-        profileOverlay.classList.remove('flex');
-        profileOverlay.classList.add('hidden');
-    }
-    
-    // 2. ОТКРЫВАЕМ ЧЕРНОЕ МЕНЮ
     const m = document.getElementById('mic-menu-modal');
     if (m) {
         m.style.zIndex = '999999';
         m.classList.remove('hidden');
         m.classList.add('flex');
+    } else {
+        alert("Окно mic-menu-modal не найдено!");
     }
 };
 
@@ -210,7 +199,7 @@ window.startDictation = function() {
 };
 
 // ==========================================
-// 5. СКРЕПКА (МЕНЮ ВЛОЖЕНИЙ) И БАЗОВОЕ ЗАКРЫТИЕ
+// СКРЕПКА (МЕНЮ ВЛОЖЕНИЙ) И БАЗОВОЕ ЗАКРЫТИЕ
 // ==========================================
 window.openAttachmentModal = function() {
     const m = document.getElementById('attachment-modal');
@@ -221,11 +210,10 @@ window.openAttachmentModal = function() {
     }
 };
 
-// Универсальная закрывашка для всех модалок
 window.closeModal = window.closeModal || function(modalId) {
     const m = document.getElementById(modalId);
     if (m) {
-        m.style.display = ''; // Сбрасываем жесткий display
+        m.style.display = '';
         m.classList.remove('flex');
         m.classList.add('hidden');
     }
