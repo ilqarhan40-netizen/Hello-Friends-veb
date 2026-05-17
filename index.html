@@ -33,7 +33,7 @@
         #web-vr-marquee {
             display: inline-block;
             white-space: nowrap;
-            animation: scroll-text 40s linear infinite; /* Увеличено до 40 секунд для плавности */
+            animation: scroll-text 40s linear infinite;
         }
         
         .page-section { display: none; animation: fadeIn 0.4s ease-in-out; }
@@ -386,9 +386,6 @@
     </div>
 </div>
 
-<!-- ========================================== -->
-<!-- ГОЛОСОВАЯ КОМНАТА WEB (ПОЛНОЕ ОКНО) -->
-<!-- ========================================== -->
 <div id="voice-room-modal" class="fixed inset-0 bg-[#f8f9fa] dark:bg-slate-900 hidden flex-col z-[400] font-sans">
 
     <div class="flex justify-between items-center p-6 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 shadow-sm">
@@ -426,7 +423,6 @@
         </div>
     </div>
 
-    <!-- ВАЖНО: Новая нижняя панель с изолированными функциями -->
     <div class="w-full bg-white dark:bg-slate-800 p-3 border-t border-gray-200 dark:border-slate-700 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] z-50">
         <div class="max-w-4xl mx-auto flex flex-col gap-2">
             
@@ -462,7 +458,6 @@
                     <span class="text-[9px] font-bold">CC</span>
                 </button>
                 
-                <!-- КРАСНАЯ КНОПКА ОТБОЯ -->
                 <button onclick="window.leaveWebVoiceRoom()" class="bg-red-500 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-600 shadow-md ml-2 transition hover:scale-105" title="Leave Voice Room">
                     <i class="fa-solid fa-phone-slash text-sm"></i>
                 </button>
@@ -529,37 +524,53 @@
     </div>
 </div>
 
-<div class="grid grid-cols-2 gap-3">
-        <button id="btn-priv-chat" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
-            <i class="fa-solid fa-lock text-green-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]"></i>
-            <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_chat">Private Chat</span>
+<div id="web-profile-overlay" class="fixed inset-0 z-[10000] hidden items-center justify-center gap-6 md:gap-10 p-4 bg-black/80 transition-all duration-500 overflow-hidden" onclick="if(event.target===this) closeUserProfile()">
+    
+    <div id="profile-left-panel" class="bg-white dark:bg-slate-800 text-gray-900 dark:text-white w-full max-w-sm rounded-[2rem] p-8 shadow-2xl relative transform -translate-x-full transition-transform duration-500" onclick="event.stopPropagation()">
+        <button onclick="closeUserProfile()" class="absolute top-6 right-6 text-gray-400 hover:text-red-500 text-3xl transition-colors">&times;</button>
+        <div class="flex flex-col items-center mb-6">
+            <div class="w-28 h-28 rounded-full p-1 border-4 border-indigo-500 shadow-xl mb-4"><img id="modal-user-photo" src="" class="w-full h-full rounded-full object-cover"></div>
+            <h2 id="modal-user-name" class="text-2xl font-black tracking-tight">Name</h2>
+        </div>
+        <div class="space-y-4 text-sm font-bold">
+            <div class="flex items-center gap-4 py-2 border-b border-gray-100 dark:border-white/5"><i class="fa-solid fa-globe text-indigo-500 w-6 text-center text-xl"></i><span class="text-gray-400 w-24 uppercase text-[10px] tracking-widest" data-i18n="country">Country</span><span id="modal-user-country" class="flex items-center gap-2"></span></div>
+            <div class="flex items-center gap-4 py-2 border-b border-gray-100 dark:border-white/5"><i class="fa-solid fa-language text-indigo-500 w-6 text-center text-xl"></i><span class="text-gray-400 w-24 uppercase text-[10px] tracking-widest" data-i18n="languages">Languages</span><span id="modal-user-langs" class="truncate max-w-[150px]"></span></div>
+            <div class="flex items-center gap-4 py-2 border-b border-gray-100 dark:border-white/5"><i class="fa-solid fa-users text-indigo-500 w-6 text-center text-xl"></i><span class="text-gray-400 w-24 uppercase text-[10px] tracking-widest" data-i18n="population">Population</span><span id="modal-user-pop"></span></div>
+            <div class="flex items-center gap-4 py-2"><i class="fa-solid fa-water text-indigo-500 w-6 text-center text-xl"></i><span class="text-gray-400 w-24 uppercase text-[10px] tracking-widest" data-i18n="seas">Seas</span><span id="modal-user-seas" class="truncate max-w-[150px]"></span></div>
+        </div>
+        <div class="mt-6 pt-4 border-t border-gray-100 dark:border-white/5"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2" data-i18n="about_me">About</p><p id="modal-user-about" class="text-xs leading-relaxed text-gray-500 italic"></p></div>
+    </div>
+
+    <div id="profile-right-panel" class="w-full max-w-sm flex flex-col gap-3 transform translate-x-full transition-transform duration-500" onclick="event.stopPropagation()">
+        
+        <div class="grid grid-cols-2 gap-3">
+            <button id="btn-priv-chat" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
+                <i class="fa-solid fa-lock text-green-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]"></i>
+                <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_chat">Private Chat</span>
+            </button>
+            <button id="btn-voice-msg" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
+                <i class="fa-solid fa-microphone text-blue-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]"></i>
+                <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_voice">Sprachraum</span>
+            </button>
+            <button id="btn-app-audio" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
+                <i class="fa-solid fa-headset text-purple-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]"></i>
+                <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_app_audio">App Audio</span>
+            </button>
+            <button id="btn-app-video" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
+                <i class="fa-solid fa-video text-pink-500 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]"></i>
+                <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_video">App Video</span>
+            </button>
+        </div>
+        
+        <button id="btn-ext-call" class="glass-panel rounded-2xl py-4 flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer shadow-lg mt-1">
+            <span class="text-white font-bold text-base tracking-wide" data-i18n="action_cellular">Phone Call</span>
         </button>
         
-        <button id="btn-voice-msg" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
-            <i class="fa-solid fa-microphone text-blue-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]"></i>
-            <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_voice">Sprachraum</span>
-        </button>
-        
-        <button id="btn-app-audio" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
-            <i class="fa-solid fa-headset text-purple-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]"></i>
-            <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_app_audio">App Audio</span>
-        </button>
-        
-        <button id="btn-app-video" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
-            <i class="fa-solid fa-video text-pink-500 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]"></i>
-            <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_video">App Video</span>
+        <button id="btn-full-cv" class="bg-[#10b981]/10 border border-[#10b981]/40 backdrop-blur-md rounded-2xl p-4 flex items-center justify-center gap-3 hover:bg-[#10b981]/20 transition-all cursor-pointer shadow-lg mt-1 group">
+            <i class="fa-solid fa-user-tie text-emerald-400 text-xl group-hover:scale-110 transition"></i>
+            <span class="text-emerald-400 font-bold text-sm tracking-wide uppercase" data-i18n="view_cv">View Full CV</span>
         </button>
     </div>
-    
-  <!-- ВНЕШНИЙ ЗВОНОК (Phone Call) -> Открывает меню выбора типа звонка -->
-    <button id="btn-ext-call" onclick="window.openCallMenu(); closeUserProfile();" class="glass-panel rounded-2xl py-4 flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer shadow-lg mt-1">
-        <span class="text-white font-bold text-base tracking-wide" data-i18n="action_cellular">Phone Call</span>
-    </button>
-    
-    <button id="btn-full-cv" onclick="closeUserProfile();" class="bg-[#10b981]/10 border border-[#10b981]/40 backdrop-blur-md rounded-2xl p-4 flex items-center justify-center gap-3 hover:bg-[#10b981]/20 transition-all cursor-pointer shadow-lg mt-1 group">
-        <i class="fa-solid fa-user-tie text-emerald-400 text-xl group-hover:scale-110 transition"></i>
-        <span class="text-emerald-400 font-bold text-sm tracking-wide uppercase" data-i18n="view_cv">View Full CV</span>
-    </button>
 </div>
 
 <div id="trash-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200]">
@@ -591,7 +602,7 @@
         <div class="px-5 pb-2 text-[10px] font-bold text-green-500 uppercase tracking-wider">Corporate Mailbox</div>
         <div id="archive-content" class="flex-1 overflow-y-auto px-4 pb-4 flex flex-col gap-3"></div>
     </div>
-</div>            
+</div>
 
 <div id="location-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] opacity-0 transition-opacity duration-300 backdrop-blur-sm" onclick="if(event.target===this) closeLocationModal()">
     <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-lg h-[60vh] flex flex-col shadow-2xl transform scale-95 transition-transform duration-300 relative border border-gray-100 dark:border-slate-700 mx-4" onclick="event.stopPropagation();">
@@ -601,9 +612,6 @@
     </div>
 </div>
 
-<!-- ========================================== -->
-<!-- УНИВЕРСАЛЬНАЯ ПАНЕЛЬ ЯЗЫКОВ (ТЕКСТ + МИКРОФОН 2 в 1) -->
-<!-- ========================================== -->
 <div id="unified-lang-modal" class="fixed inset-0 z-[99999] hidden flex-col items-center justify-center bg-black/60 px-4 opacity-0 transition-opacity duration-300 backdrop-blur-sm" onclick="if(event.target===this) window.closeModal('unified-lang-modal')">
     <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-6 w-full max-w-sm transform scale-95 transition-transform duration-300 border border-gray-100 dark:border-slate-700" onclick="event.stopPropagation()">
         <button onclick="window.closeModal('unified-lang-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -612,7 +620,6 @@
             <i class="fa-solid fa-language text-blue-500"></i> Language Settings
         </h3>
         
-        <!-- ПЕРЕКЛЮЧАТЕЛЬ ТАБОВ: ТЕКСТ / МИКРОФОН -->
         <div class="flex gap-1 bg-gray-100 dark:bg-slate-900 p-1.5 rounded-xl mb-4 border border-gray-200 dark:border-slate-700 shadow-inner">
             <button id="tab-lang-text" onclick="window.switchLangTab('text')" class="flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 text-sm font-bold shadow-sm transition flex items-center justify-center gap-2">
                 <i class="fa-solid fa-keyboard"></i> Text
@@ -622,10 +629,8 @@
             </button>
         </div>
 
-        <!-- ДИНАМИЧЕСКИЙ СПИСОК ЯЗЫКОВ -->
         <div class="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1" id="unified-lang-list">
-            <!-- Заполняется через JS -->
-        </div>
+            </div>
         
         <button onclick="window.closeModal('unified-lang-modal')" class="w-full mt-5 py-3 bg-gray-100 dark:bg-slate-700 rounded-xl font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors shadow-sm">Confirm</button>
     </div>
@@ -724,6 +729,7 @@
         </div>
     </div>
 </div>
+
 <div id="attachment-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[99999]" onclick="if(event.target===this) closeModal('attachment-modal')">
     <div class="bg-white dark:bg-slate-800 w-[300px] rounded-[30px] p-6 relative border border-gray-100 dark:border-slate-700" onclick="event.stopPropagation()">
         <button onclick="closeModal('attachment-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -736,9 +742,6 @@
     </div>
 </div>
     
-<!-- ========================================== -->
-<!-- МЕНЮ ВЫБОРА ЗВОНКА (ВНУТРИ ПРИЛОЖЕНИЯ / ВНЕШНИЙ) -->
-<!-- ========================================== -->
 <div id="call-menu-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[100000]" onclick="if(event.target===this) window.closeModal('call-menu-modal')">
     <div class="bg-slate-800 w-[280px] rounded-[30px] shadow-2xl flex flex-col gap-2 p-4 border border-slate-700" onclick="event.stopPropagation()">
         
