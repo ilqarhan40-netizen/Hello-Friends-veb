@@ -951,6 +951,69 @@ window.startDictation = function() {
 
     recognition.start();
 };
+// ==========================================
+// ВИЗУАЛЬНАЯ ПОДСВЕТКА ЯЗЫКА МИКРОФОНА
+// ==========================================
+
+window.updateMicLangUI = function() {
+    // Находим модалку микрофона (убедись, что ID модалки у тебя именно такой, или исправь)
+    const modal = document.getElementById('mic-lang-modal'); 
+    if (!modal) return;
+
+    const buttons = modal.querySelectorAll('button');
+    
+    buttons.forEach(btn => {
+        // Ищем атрибут onclick, чтобы вытащить код языка (например, setMicLang('ru'))
+        const onclickAttr = btn.getAttribute('onclick');
+        if (!onclickAttr || !onclickAttr.includes('setMicLang')) return;
+
+        // Вытаскиваем код языка из строки onclick
+        const langMatch = onclickAttr.match(/'([^']+)'/);
+        const lang = langMatch ? langMatch[1] : null;
+        if (!lang) return;
+
+        // Сбрасываем стили у всех кнопок
+        btn.classList.remove('border-green-500', 'bg-white/5');
+        btn.classList.add('border-white/10');
+        const checkIcon = btn.querySelector('.check-icon');
+        if (checkIcon) checkIcon.remove();
+
+        // Подсвечиваем активную кнопку (сверяем с текущим выбранным языком)
+        if (lang === window.currentMicLang) {
+            btn.classList.remove('border-white/10');
+            btn.classList.add('border-green-500', 'bg-white/5');
+            btn.insertAdjacentHTML('beforeend', `<i class="fa-solid fa-check text-green-400 ml-auto check-icon"></i>`);
+        }
+    });
+};
+
+// Перехватываем твою функцию выбора языка микрофона
+const originalSetMicLang = window.setMicLang;
+window.setMicLang = function(langCode) {
+    window.currentMicLang = langCode; // Запоминаем выбор
+    
+    // Если у тебя была старая функция, выполняем её
+    if (typeof originalSetMicLang === 'function') {
+        originalSetMicLang(langCode);
+    }
+
+    // Обновляем галочки и рамки
+    window.updateMicLangUI();
+    
+    // Если есть функция закрытия модалки — вызываем её
+    if (typeof window.closeMicLangModal === 'function') {
+        window.closeMicLangModal();
+    }
+};
+
+// Чтобы при открытии меню галочка УЖЕ стояла на нужном месте
+const originalOpenMicLangModal = window.openMicLangModal;
+window.openMicLangModal = function() {
+    if (typeof originalOpenMicLangModal === 'function') {
+        originalOpenMicLangModal();
+    }
+    setTimeout(window.updateMicLangUI, 50); // Ждем отрисовку и ставим галочку
+};
 // КНОПКА СС
 window.toggleVrCC = function() {
     const ccContainer = document.getElementById('vr-cc-container');
