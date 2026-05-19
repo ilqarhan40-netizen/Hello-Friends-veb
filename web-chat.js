@@ -781,7 +781,7 @@ window.updateWebVrMarquee = function(newText) {
     marquee.innerText = newText + " • " + currentText;
 };
 
-// МИР 1: КЛАВИАТУРА И ФОТО-АВАТАР (Умный перевод сообщений)
+// МИР 1: КЛАВИАТУРА И ФОТО-АВАТАР (Умный перевод сообщений Google API)
 window.sendVrMessage = async function() {
     const input = document.getElementById('vr-chat-input');
     if (!input) return;
@@ -803,17 +803,64 @@ window.sendVrMessage = async function() {
         }
     }
 
-    window.updateWebVrMarquee(`Я (текст): ${text} ...`);
+    window.updateWebVrMarquee(`Я: ${text} (перевожу...)`);
 
     try {
-        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=auto|${targetLang}`);
+        const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`);
         const data = await res.json();
-        const translated = data.responseData.translatedText;
-
-        window.updateWebVrMarquee(`Я: ${text} / Перевод: ${translated}`);
+        if (data && data[0] && data[0][0][0]) {
+            const translated = data[0][0][0];
+            window.updateWebVrMarquee(`Я: ${text} ➔ Перевод: ${translated}`);
+        } else {
+            window.updateWebVrMarquee(`Я: ${text}`);
+        }
     } catch (e) {
         window.updateWebVrMarquee(`Я: ${text}`);
     }
+};
+
+// СТРОГО: ГОЛОС В ТЕКСТ ТОЛЬКО ДЛЯ ГОЛОСОВОЙ КОМНАТЫ
+window.startVrDictation = function() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return alert("Ваш браузер не поддерживает голосовой ввод.");
+
+    const recognition = new SpeechRecognition();
+    
+    let micLang = 'en-US';
+    if (typeof window.getSmartMicLang === 'function') {
+        micLang = window.getSmartMicLang();
+    } else if (window.myProfileInfo && typeof window.getSmartLang === 'function') {
+        const code = window.getSmartLang(window.myProfileInfo).substring(0,2);
+        const mapLocales = { 'en': 'en-US', 'ru': 'ru-RU', 'az': 'az-AZ', 'de': 'de-DE', 'tr': 'tr-TR', 'kk': 'kk-KZ', 'es': 'es-ES' };
+        micLang = mapLocales[code] || 'en-US';
+    }
+    
+    recognition.lang = micLang; 
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    const vrInput = document.getElementById('vr-chat-input');
+    const vrMicBtn = document.getElementById('vr-mic-btn');
+
+    recognition.onstart = function() {
+        if (vrInput) vrInput.placeholder = "🎤 Говорите...";
+        if (vrMicBtn) vrMicBtn.classList.add('text-red-500'); // Кнопка краснеет во время записи
+    };
+
+    recognition.onresult = function(event) {
+        const speechResult = event.results[0][0].transcript;
+        if (vrInput) {
+            vrInput.value = speechResult;
+            window.sendVrMessage(); // Сразу отправляем текст в бегущую строку с переводом
+        }
+    };
+
+    recognition.onerror = recognition.onend = function() {
+        if (vrInput) vrInput.placeholder = "Type message or click mic...";
+        if (vrMicBtn) vrMicBtn.classList.remove('text-red-500');
+    };
+
+    recognition.start();
 };
 
 // ==========================================
