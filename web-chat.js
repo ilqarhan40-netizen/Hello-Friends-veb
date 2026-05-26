@@ -190,73 +190,89 @@ window.sendFirebaseMsg = async function() {
     }
 };
 
-// ==========================================
-// 3. ПРИЕМ И ОТРИСОВКА (С ПЕРЕВОДОМ В БЕГУЩЕЙ СТРОКЕ)
-// ==========================================
-window.handleNewMessage = async function(snapshot) {
-    const data = snapshot.val(); 
-    if(!data) return; 
-    
-    const chatMessages = document.getElementById('chat-messages');
-    if (!chatMessages) return;
-
-    const isMe = data.sessionId === window.mySessionId || data.userId === (window.myProfileInfo ? window.myProfileInfo.id : 'guest');
-    const isAI = data.userId === "ai" || data.sessionId === "ai-bot-session";
-    let p = isMe ? window.myProfileInfo : (isAI ? { id: 'ai', name: 'AI Assistant', photo: 'https://ui-avatars.com/api/?name=AI&background=6b21a8&color=fff', flagCode: 'us' } : (window.participants.find(part => part.id === data.userId) || { id: data.userId, photo: data.photo || 'https://ui-avatars.com/api/?name=U', langCode: data.langCode || 'en', flag: data.flag || '🌐', flagCode: data.flagCode || 'un', name: data.name || 'User' }));
-    
-    let senderDisplayName = isMe ? window.myUsername || "Me" : (p.name || 'User').split(' ')[0];
-    let safeFlagCode = p.flagCode ? p.flagCode.toLowerCase() : 'un';
-    let flagImgHtml = `<img src="https://flagcdn.com/w20/${safeFlagCode}.png" class="inline-block w-4 h-3 rounded-[2px] ml-1 shadow-sm object-cover" style="vertical-align: middle;">`;
-
-    // === ОПРЕДЕЛЯЕМ ЯЗЫК ДЛЯ ЧТЕНИЯ И БЕГУЩЕЙ СТРОКИ ===
-    let myReadLang = 'en';
-    if (window.currentRoomId === 'global') {
-        // В Глобальном чате жестко берем системный язык (игнорируем chatLang из модалки)
-        myReadLang = window.appLang || 'auto';
-        if (myReadLang === 'auto') {
-            myReadLang = window.myProfileInfo ? window.getSmartLang(window.myProfileInfo) : (navigator.language ? navigator.language.slice(0, 2) : 'en');
-        }
-    } else {
-        // В приватном чате слушаемся настроек меню (chatLang)
-        let cL = window.chatLang || 'auto';
-        myReadLang = cL === 'auto' ? (window.myProfileInfo ? window.getSmartLang(window.myProfileInfo) : 'en') : cL;
-    }
-    if (!myReadLang || typeof myReadLang !== 'string') myReadLang = 'en';
-    let myLangCode = myReadLang.substring(0, 2);
-    // =================================================
-
-    let textForMarquee = data.originalText || data.text;
-    
-    if (!isMe && myLangCode !== (data.langCode || '').substring(0,2)) {
-        try {
-            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${myLangCode}&dt=t&q=${encodeURIComponent(textForMarquee)}`);
-            const tData = await res.json();
-            if (tData && tData[0] && tData[0][0][0]) textForMarquee = tData[0][0][0];
-        } catch(e){}
-    }
-
 // 🌟 БЕГУЩАЯ СТРОКА: пускаем только свежие сообщения
     let isNewMessage = (data.timestamp || 0) > (window.joinedRoomTime - 5000); 
     if (isNewMessage) {
-        let spanMsg = `<span class="mx-4 inline-flex items-center gap-1"><span class="text-indigo-600 dark:text-indigo-400 font-black tracking-wide">${flagImgHtml} ${senderDisplayName}:</span> <span class="text-gray-800 dark:text-gray-200 font-semibold ml-1">${textForMarquee.substring(0, 80)}</span></span>`;
+        let originalText = data.originalText || data.text;
+        let senderLang = (data.langCode || 'en').substring(0, 2);
+        
+        let marqueeHtml = `<span class="text-indigo-600 dark:text-indigo-400 font-black tracking-wide">${flagImgHtml} ${senderDisplayName}:</span> <span class="text-gray-800 dark:text-gray-200 font-semibold ml-1">${originalText}</span>`;
+
+        if (window.currentRoomId === 'global' && window.participants) {
+            // Ищем уникальные языки всех участников глобального чата
+            let neededLangs = new Set();
+            let langToFlag = {};
+            
+            window.participants.forEach(member => {
+                if (member.id === 'ai') return;
+                let memberLang = window.getSmartLang(member);
+                if (memberLang && memberLang !== 'un') {
+                    let code = memberLang.substring(0, 2);
+                    if (code !== senderLang) {
+                        neededLangs.add(code);
+                        langToFlag[code] = member.flagCode || 'un';
+                    }
+                }
+            });
+
+            // Добавляем язык твоей системы, если его нет в списке
+            let mySysLang = (window.appLang || 'en').substring(0, 2);
+            if (mySysLang !== senderLang && !neededLangs.has(mySysLang)) {
+                neededLangs.add(mySysLang);
+                langToFlag[mySysLang] = window.myProfileInfo ? window.myProfileInfo.flagCode : 'un';
+            }
+
+            // Переводим на все найденные языки
+            if (neededLangs.size > 0) {
+                try {
+                    let fetchPromises = Array.from(neededLangs).map(lang => 
+                        fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${lang}&dt=t&q=${encodeURIComponent(originalText)}`)
+                        .then(res => res.json())
+                        .then(tData => {
+                            if (tData && tData[0] && tData[0][0][0]) {
+                                let tFlagHtml = `<img src="https://flagcdn.com/w20/${langToFlag[lang].toLowerCase()}.png" class="inline-block w-4 h-3 rounded-[2px] mx-1 shadow-sm object-cover" style="vertical-align: middle;">`;
+                                marqueeHtml += `<span class="text-gray-400 mx-2">➔</span>${tFlagHtml} <span class="text-gray-800 dark:text-gray-200 italic">${tData[0][0][0]}</span>`;
+                            }
+                        })
+                        .catch(e => {})
+                    );
+                    await Promise.all(fetchPromises);
+                } catch (e) {}
+            }
+        } else {
+            // Если это Приватный чат (переводим только на выбранный язык чата)
+            let myChatLang = (window.chatLang && window.chatLang !== 'auto') ? window.chatLang.substring(0, 2) : (window.appLang || 'en').substring(0, 2);
+            if (myChatLang !== senderLang) {
+                try {
+                    const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${myChatLang}&dt=t&q=${encodeURIComponent(originalText)}`);
+                    const tData = await res.json();
+                    if (tData && tData[0] && tData[0][0][0]) {
+                        let tFlagHtml = `<img src="https://flagcdn.com/w20/${(window.myProfileInfo ? window.myProfileInfo.flagCode : 'un').toLowerCase()}.png" class="inline-block w-4 h-3 rounded-[2px] mx-1 shadow-sm object-cover" style="vertical-align: middle;">`;
+                        marqueeHtml += `<span class="text-gray-400 mx-2">➔</span>${tFlagHtml} <span class="text-gray-800 dark:text-gray-200 italic">${tData[0][0][0]}</span>`;
+                    }
+                } catch(e) {}
+            }
+        }
+
+        let spanMsg = `<span class="mx-6 inline-flex items-center gap-1 whitespace-nowrap">${marqueeHtml}</span>`;
         
         // 1. Обновление в основном чате
         const mText = document.getElementById('top-chat-marquee');
         if (mText) {
             let currentText = mText.innerHTML.replace('🌍 Global Chat • Waiting for messages...', '').replace('🔒 Secure Room • Waiting for messages...', '');
-            mText.innerHTML = spanMsg + currentText;
+            mText.innerHTML = spanMsg + (currentText ? `<span class="text-gray-300 mx-4">•</span>` + currentText : '');
         }
 
-     // 2. Обновление в Голосовой комнате (VR)
-        const vrMarquee = document.getElementById('web-vr-marquee');
+        // 2. Обновление в Голосовой комнате (VR)
+        const vrMarquee = document.getElementById('web-vr-marquee'); 
         if(vrMarquee) {
-            vrMarquee.innerHTML = spanMsg + vrMarquee.innerHTML;
+            vrMarquee.innerHTML = spanMsg + vrMarquee.innerHTML.replace('Waiting...', '');
         }
 
         // 3. Обновление в Видеоконференции (Conf)
         const confMarquee = document.getElementById('conf-marquee');
         if(confMarquee) {
-            confMarquee.innerHTML = spanMsg + confMarquee.innerHTML;
+            confMarquee.innerHTML = spanMsg + confMarquee.innerHTML.replace('Waiting...', '');
         }
     }
     // --- Дальше идет стандартная логика пузырей чата ---
