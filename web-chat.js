@@ -208,12 +208,23 @@ window.handleNewMessage = async function(snapshot) {
     let safeFlagCode = p.flagCode ? p.flagCode.toLowerCase() : 'un';
     let flagImgHtml = `<img src="https://flagcdn.com/w20/${safeFlagCode}.png" class="inline-block w-4 h-3 rounded-[2px] ml-1 shadow-sm object-cover" style="vertical-align: middle;">`;
 
-    // ПОЛНОСТЬЮ ОТВЯЗАНО ОТ appLang (МЕНЮ +)
-    let cL = window.chatLang || 'auto';
-    let myReadLang = cL === 'auto' ? (window.myProfileInfo ? window.getSmartLang(window.myProfileInfo) : 'en') : cL;
+    // === ОПРЕДЕЛЯЕМ ЯЗЫК ДЛЯ ЧТЕНИЯ И БЕГУЩЕЙ СТРОКИ ===
+    let myReadLang = 'en';
+    if (window.currentRoomId === 'global') {
+        // В Глобальном чате жестко берем системный язык (игнорируем chatLang из модалки)
+        myReadLang = window.appLang || 'auto';
+        if (myReadLang === 'auto') {
+            myReadLang = window.myProfileInfo ? window.getSmartLang(window.myProfileInfo) : (navigator.language ? navigator.language.slice(0, 2) : 'en');
+        }
+    } else {
+        // В приватном чате слушаемся настроек меню (chatLang)
+        let cL = window.chatLang || 'auto';
+        myReadLang = cL === 'auto' ? (window.myProfileInfo ? window.getSmartLang(window.myProfileInfo) : 'en') : cL;
+    }
     if (!myReadLang || typeof myReadLang !== 'string') myReadLang = 'en';
     let myLangCode = myReadLang.substring(0, 2);
-    
+    // =================================================
+
     let textForMarquee = data.originalText || data.text;
     
     if (!isMe && myLangCode !== (data.langCode || '').substring(0,2)) {
@@ -223,6 +234,7 @@ window.handleNewMessage = async function(snapshot) {
             if (tData && tData[0] && tData[0][0][0]) textForMarquee = tData[0][0][0];
         } catch(e){}
     }
+
 // 🌟 БЕГУЩАЯ СТРОКА: пускаем только свежие сообщения
     let isNewMessage = (data.timestamp || 0) > (window.joinedRoomTime - 5000); 
     if (isNewMessage) {
@@ -236,7 +248,7 @@ window.handleNewMessage = async function(snapshot) {
         }
 
      // 2. Обновление в Голосовой комнате (VR)
-        const vrMarquee = document.getElementById('web-vr-marquee'); // <--- ИЗМЕНИЛИ ID ЗДЕСЬ
+        const vrMarquee = document.getElementById('web-vr-marquee');
         if(vrMarquee) {
             vrMarquee.innerHTML = spanMsg + vrMarquee.innerHTML;
         }
@@ -247,7 +259,6 @@ window.handleNewMessage = async function(snapshot) {
             confMarquee.innerHTML = spanMsg + confMarquee.innerHTML;
         }
     }
-
     // --- Дальше идет стандартная логика пузырей чата ---
     const messageGroup = document.createElement('div'); 
     messageGroup.className = "flex flex-col w-full mt-4 mb-2";
