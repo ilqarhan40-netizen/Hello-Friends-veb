@@ -1,794 +1,1620 @@
 <!DOCTYPE html>
-<html lang="ru" class="light">
+<html lang="en" class="dark" translate="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello Friends App - Web Super App</title>
-    
+    <meta name="google" content="notranslate">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Hello Friends — Web Ecosystem</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' }
     </script>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
+
+    <!-- Firebase + EmailJS -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script>
+        (function(){ emailjs.init("NXn0TeAF95L5qScxO"); })();
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVFkMsqelcnjjeIwGnAKmn1CFhDGc7kR0",
+            authDomain: "hello-friends-p8p3i7.firebaseapp.com",
+            databaseURL: "https://hello-friends-p8p3i7-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "hello-friends-p8p3i7",
+            storageBucket: "hello-friends-p8p3i7.firebasestorage.app",
+            messagingSenderId: "518434765438",
+            appId: "1:518434765438:web:78a3e7f7bc4ad32dd1362f"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+    </script>
+
+    <!-- Единый «мозг» экосистемы (модули из мобильной версии) -->
+    <script src="js/language.js?v=2000"></script>
+    <script src="js/search.js?v=2000"></script>
+    <script src="js/ecosystem.js?v=2000"></script>
+    <script src="js/profiles.js?v=2000"></script>
+    <script src="js/chat.js?v=2000"></script>
+    <script src="js/voice.js?v=2000"></script>
+    <script src="js/archive.js?v=2000"></script>
+    <script src="js/invite.js?v=2000"></script>
+    <script src="clipboard.js?v=5000"></script>
+    <script src="planner.js?v=9999"></script>
+    <script src="trash.js?v=1000"></script>
+    <script src="js/email.js?v=2028"></script>
+    <script src="js/calls.js?v=2028"></script>
+    <script src="conference.js"></script>
+    <script src="js/video-room.js?v=2026"></script>
+    <script src="js/notifications.js?v=2027"></script>
+    <script src="js/microphones.js?v=2"></script>
+    <script src="js/audio-room.js?v=10"></script>
 
     <style>
-        /* ЯДЕРНОЕ УДАЛЕНИЕ БЛЮРА ВО ВСЕМ ПРИЛОЖЕНИИ */
+        :root {
+            --wa-bg: #121318;
+            --wa-panel: #1b1d24;
+            --wa-border: #2a2d37;
+            --wa-green: #00a884;
+            --wa-indigo: #4f46e5;
+            --wa-msg-out: #3730e6;
+            --wa-msg-in: #262934;
+            --wa-text: #f3f4f6;
+            --wa-text-muted: #9ca3af;
+            color-scheme: dark;
+        }
+
         * { backdrop-filter: none !important; }
-        
         body { font-family: 'Inter', sans-serif; }
 
-        /* Жесткая анимация для бегущей строки (ИЗОЛИРОВАННАЯ ВЕРСИЯ WEB) */
-        @keyframes scroll-text {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
+        /* Вкладки */
+        .page-content { display: none !important; animation: fadeIn 0.25s ease-out; }
+        .page-content.active { display: flex !important; flex-direction: column; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+        @keyframes scroll-text { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+        @keyframes pulseRing { 0% { transform: scale(1); opacity: 0.9; } 100% { transform: scale(1.45); opacity: 0; } }
+
+        .nav-item.active { background-color: #3730e6 !important; color: #ffffff !important; box-shadow: 0 4px 14px rgba(55, 48, 230, 0.35); }
+
+        /* Горизонтальная лента участников (адаптация #chat-sidebar под десктоп) */
+        #chat-sidebar {
+            display: flex;
+            flex-direction: row;
+            overflow-x: auto;
+            gap: 18px;
+            padding: 6px 4px 12px 4px;
+            align-items: flex-start;
+            justify-content: flex-start;
+            scrollbar-width: none;
         }
-        #web-vr-marquee {
-            display: inline-block;
+        @media (min-width: 768px) {
+            #chat-sidebar { justify-content: center; }
+        }
+        #chat-sidebar::-webkit-scrollbar { display: none; }
+        #chat-sidebar .chat-contact {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            width: 68px;
+            flex-shrink: 0;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        #chat-sidebar .chat-contact:hover { transform: translateY(-2px); }
+        #chat-sidebar .chat-contact-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            border: 2px solid transparent;
+            padding: 2px;
+            background-clip: content-box;
+            position: relative;
+        }
+        #chat-sidebar .chat-contact.active-room .chat-contact-icon {
+            border-color: #4f46e5;
+            box-shadow: 0 0 14px rgba(79, 70, 229, 0.55);
+        }
+        #chat-sidebar .chat-contact-name {
+            font-size: 0.72rem;
+            color: #9ca3af;
+            font-weight: 600;
             white-space: nowrap;
-            animation: scroll-text 40s linear infinite;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            max-width: 68px;
+            text-align: center;
         }
-        
-        .page-section { display: none; animation: fadeIn 0.4s ease-in-out; }
-        .page-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .nav-link.active { background-color: #4f46e5 !important; color: white !important; }
-        .rhombus-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; }
-        .popover-panel { transition: opacity 0.2s ease, transform 0.2s ease; }
+        #chat-sidebar .chat-contact.active-room .chat-contact-name { color: #818cf8; }
 
-        /* Стеклянные панели (без блюра теперь) */
-        .glass-panel { background: rgba(42, 45, 54, 0.85); border: 1px solid rgba(255,255,255,0.05); }
-        .square-btn { aspect-ratio: 1 / 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; border-radius: 1.5rem; transition: all 0.2s; }
-
-        /* СЕТКА КОНФЕРЕНЦИИ */
-        .call-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; flex-direction: column; overflow: hidden; }
-        .grid-conf { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 1400px; margin: 0 auto; align-content: center; }
-        .user-card { position: relative; aspect-ratio: 16 / 9; background: #1e1e1e; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
-        .speaker-card { border: 2px solid #00C4CC; box-shadow: 0 0 25px rgba(0, 196, 204, 0.4); transform: scale(1.02); z-index: 10; }
-
-        .smart-trash-btn { width: 100%; text-align: left; padding: 10px 15px; border-radius: 8px; font-weight: 500; transition: 0.2s; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
-        .smart-trash-btn:hover { transform: scale(0.98); }
-
-        .toast-notification {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            background: linear-gradient(145deg, #4f46e5, #4338ca); color: white;
-            padding: 12px 25px; border-radius: 20px; font-family: sans-serif; font-size: 0.9rem;
-            font-weight: bold; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 10000;
-            opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in-out, top 0.5s ease-in-out;
-            display: flex; align-items: center; gap: 12px;
+        /* Бегущая строка переводов */
+        .chat-info-marquee-container {
+            width: 100%;
+            overflow: hidden;
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
         }
-        .toast-notification.show { opacity: 1; top: 80px; }
-        
+        .chat-info-marquee-text {
+            display: inline-block;
+            padding-left: 100%;
+            animation: scroll-text 18s linear infinite;
+            font-size: 0.82rem;
+            color: #60a5fa;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Сообщения чата (классы из js/chat.js в десктопном стиле) */
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding: 18px;
+            gap: 8px;
+            scroll-behavior: smooth;
+        }
+        .chat-bubble-wrapper { display: flex; flex-direction: column; max-width: 78%; }
+        .chat-bubble {
+            padding: 10px 16px;
+            border-radius: 18px;
+            font-size: 0.94rem;
+            line-height: 1.45;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+        }
+        .incoming { align-self: flex-start; }
+        .incoming .chat-bubble { background: #262934; color: #f3f4f6; border-bottom-left-radius: 4px; }
+        .outgoing { align-self: flex-end; }
+        .outgoing .chat-bubble { background: #3730e6; color: #ffffff; border-bottom-right-radius: 4px; }
+        .chat-sender-name { font-size: 0.72rem; color: #818cf8; margin-bottom: 4px; margin-left: 4px; font-weight: 600; }
+
+        .ai-audio-player {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(0, 0, 0, 0.28); padding: 8px 12px;
+            border-radius: 12px; margin-top: 6px; cursor: pointer;
+            transition: 0.2s; border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .ai-audio-player:hover { background: rgba(79, 70, 229, 0.25); border-color: #6366f1; }
+        .ai-audio-player i { font-size: 1.1rem; color: #00a884; }
+        .ai-audio-player span { font-size: 0.8rem; font-weight: 600; color: white; }
+
+        /* Ромб + меню */
+        .rhombus-wrapper { position: relative; width: 44px; height: 44px; flex-shrink: 0; margin-left: 4px; }
+        .rhombus-btn {
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            border-radius: 12px;
+            transform: rotate(45deg);
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.45);
+            transition: transform 0.25s ease;
+        }
+        .rhombus-btn.active { transform: rotate(180deg); }
+        .rhombus-btn i { transform: rotate(-45deg); color: white; font-size: 1.1rem; }
+        .rhombus-menu {
+            position: absolute; bottom: 62px; right: 0;
+            background: #1e2029; border: 1px solid #323646;
+            border-radius: 20px; padding: 14px;
+            display: none; grid-template-columns: repeat(3, 1fr); gap: 12px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.65); z-index: 150;
+        }
+        .rhombus-menu.active { display: grid; animation: scaleIn 0.2s; }
+        .action-icon {
+            width: 48px; height: 48px;
+            background-color: #2a2d3a; color: #e5e7eb;
+            border-radius: 14px; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: 0.2s; font-size: 1.15rem;
+        }
+        .action-icon:hover { background-color: #4f46e5; color: #ffffff; transform: scale(1.06); }
+
+        /* СЕТКА КОНФЕРЕНЦИИ 12 + 1 ДЛЯ ДЕСКТОПА */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            width: 100%;
+        }
+        @media (min-width: 768px) {
+            .video-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (min-width: 1024px) {
+            .video-grid { grid-template-columns: repeat(6, 1fr); }
+        }
+        .video-frame {
+            position: relative;
+            aspect-ratio: 16 / 10;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #181a21;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .video-frame.main {
+            grid-column: 1 / -1;
+            aspect-ratio: 21 / 8;
+            max-height: 36vh;
+            border: 2px solid #00a884;
+            box-shadow: 0 0 24px rgba(0, 168, 132, 0.25);
+        }
+        .video-frame video, .video-frame .placeholder-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;
+        }
+        .video-overlay {
+            position: absolute; bottom: 26px; left: 8px;
+            background: rgba(0, 0, 0, 0.72); color: white;
+            font-size: 0.72rem; padding: 3px 8px; border-radius: 8px; font-weight: 700; z-index: 10;
+        }
+        .flag-overlay { position: absolute; top: 8px; right: 8px; z-index: 10; }
+        .translation-bar {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: rgba(0, 0, 0, 0.82); padding: 4px 8px;
+            overflow: hidden; display: flex; align-items: center; z-index: 20;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .conf-marquee-text {
+            display: inline-block; padding-left: 100%;
+            animation: scroll-text 10s linear infinite;
+            font-size: 0.72rem; color: #00a884; font-weight: 700; white-space: nowrap;
+        }
+
+        /* Карточка профиля (2 колонки) */
+        .glass-panel { background: #262934; border: 1px solid rgba(255, 255, 255, 0.07); }
+        .square-btn {
+            aspect-ratio: 1 / 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 12px;
+            border-radius: 1.5rem; transition: all 0.2s;
+        }
+
+        /* Выпадающее меню шапки */
+        .header-dropdown {
+            position: absolute; top: 64px; right: 0; width: 240px;
+            background: #1e2029; border: 1px solid #2e3240;
+            border-radius: 16px; padding: 10px;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.75);
+            display: none; flex-direction: column; gap: 4px; z-index: 200;
+        }
+        .header-dropdown.active { display: flex; animation: scaleIn 0.18s; }
+        .header-dropdown a {
+            color: #e5e7eb; font-size: 0.88rem; padding: 9px 10px;
+            border-radius: 10px; display: flex; align-items: center; gap: 12px;
+            cursor: pointer; transition: 0.15s;
+        }
+        .header-dropdown a:hover { background: #2a2d3a; }
+
+        /* Центрированные десктопные модалки (совместимы с мобильным .app-modal.active) */
+        .app-modal {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.78);
+            display: none; align-items: center; justify-content: center;
+            z-index: 9999; padding: 16px;
+        }
+        .app-modal.active { display: flex !important; animation: fadeIn 0.2s; }
+        .app-modal-content {
+            background: #1b1d24; border: 1px solid #2e3240;
+            width: 100%; max-width: 460px; border-radius: 28px;
+            padding: 26px; position: relative;
+            display: flex; flex-direction: column;
+            max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+            color: #f3f4f6;
+        }
+        .close-sheet-btn {
+            position: absolute; top: 16px; right: 16px;
+            width: 34px; height: 34px; background: #2a2d3a;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            color: #9ca3af; font-size: 1rem; cursor: pointer; transition: 0.2s; z-index: 100;
+        }
+        .close-sheet-btn:hover { background: #ef4444; color: white; }
+        .form-input-box {
+            width: 100%; padding: 12px 14px; border-radius: 14px;
+            border: 1px solid #323646; background: #121318;
+            color: white; font-size: 0.9rem; outline: none; margin-bottom: 12px; transition: 0.2s;
+        }
+        .form-input-box:focus { border-color: #4f46e5; }
+        .form-label { font-size: 0.7rem; color: #00a884; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .btn-primary {
+            width: 100%; padding: 13px 16px; border-radius: 14px; border: none;
+            background: #00a884; color: #111b21; font-weight: 700; font-size: 0.95rem;
+            cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .btn-primary:hover { filter: brightness(1.08); }
+
+        /* Универсальный попап микрофона */
+        #universal-mic-popup {
+            position: fixed; bottom: 90px; right: 32px;
+            background: #1b1d24; border: 1px solid #323646;
+            border-radius: 20px; padding: 8px; display: none;
+            flex-direction: column; gap: 6px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.8); z-index: 10050;
+        }
+        #universal-mic-popup.active { display: flex; animation: scaleIn 0.2s; }
+        .mic-option-btn {
+            background: #262934; color: white; border: none;
+            padding: 12px 16px; border-radius: 14px; font-size: 0.85rem; font-weight: 700;
+            display: flex; align-items: center; gap: 10px; cursor: pointer;
+            transition: 0.2s; text-align: left; width: 230px;
+        }
+        .mic-option-btn:hover { background: #323646; }
+        .pulse-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid #00a884; animation: pulseRing 2s infinite; }
+
+        /* Светлая тема */
+        html:not(.dark) body { background-color: #f3f4f6 !important; color: #111827 !important; }
+        html:not(.dark) .incoming .chat-bubble { background: #e5e7eb; color: #111827; }
+        html:not(.dark) .app-modal-content { background: #ffffff; color: #111827; border-color: #e5e7eb; }
+        html:not(.dark) .form-input-box { background: #f9fafb; color: #111827; border-color: #d1d5db; }
+        html:not(.dark) .header-dropdown { background: #ffffff; border-color: #e5e7eb; }
+        html:not(.dark) .header-dropdown a { color: #1f2937; }
+        html:not(.dark) .header-dropdown a:hover { background: #f3f4f6; }
+
         #chat-messages::-webkit-scrollbar { width: 6px; }
-        #chat-messages::-webkit-scrollbar-track { background: transparent; }
-        #chat-messages::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .dark #chat-messages::-webkit-scrollbar-thumb { background: #475569; }
+        #chat-messages::-webkit-scrollbar-thumb { background: #3f4456; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-slate-900 text-gray-800 dark:text-gray-100 relative transition-colors duration-300">
+<body class="bg-[#121318] text-gray-100 min-h-screen transition-colors duration-300">
 
-<div id="welcome-splash" class="fixed inset-0 bg-[#121c25] z-[99999] flex flex-col items-center justify-center cursor-pointer transition-opacity duration-700">
-    <div class="w-24 h-24 rounded-full bg-[#00faad] shadow-[0_0_80px_6px_rgba(0,250,173,0.6)] mb-10 animate-pulse flex items-center justify-center">
-        <span class="text-4xl font-extrabold text-white tracking-tighter">HF</span>
-    </div>
-    <h1 class="text-2xl md:text-4xl font-extrabold text-white mb-3 text-center tracking-wide" data-i18n="welcome_title">
-        Добро пожаловать в Hello Friends!
-    </h1>
-    <p class="text-sm md:text-base text-gray-300 font-medium tracking-widest mb-16" data-i18n="global_network">
-        Глобальная Смарт-Сеть
-    </p>
-    <div class="flex items-center gap-4 px-6 py-3 rounded-[2rem] border border-[#00faad]/50 bg-white/5 shadow-[0_0_15px_rgba(0,250,173,0.1)] transition-transform hover:scale-105">
-        <img src="ilgar.jpg" alt="Creator" class="w-10 h-10 rounded-full object-cover border border-[#00faad]" onerror="this.src='https://ui-avatars.com/api/?name=Ilgar&background=00faad&color=fff'">
-        <span class="text-[#00faad] font-bold text-sm md:text-base" data-i18n="creator_badge">
-            Создатель Hello Friends
-        </span>
-    </div>
-</div>
+<!-- Скрытые загрузчики файлов (общие ID с мобильными модулями) -->
+<input type="file" id="photo-upload-input" accept="image/*" class="hidden" onchange="window.handleFileUpload(event)">
+<input type="file" id="import-file-input" class="hidden" accept=".json" onchange="window.importData(event)">
+<input type="file" id="hf-upload-photo" accept="image/*" class="hidden" onchange="window.handleMediaUpload(event)">
+<input type="file" id="hf-upload-video" accept="video/*" class="hidden" onchange="window.handleMediaUpload(event)">
+<input type="file" id="hf-upload-audio" accept="audio/*" class="hidden" onchange="window.handleMediaUpload(event)">
+<input type="file" id="hf-upload-doc" accept=".pdf,.doc,.docx,.txt,.html,.xls,.xlsx" class="hidden" onchange="window.handleDocUpload(event)">
+<input type="file" id="email-attach-input" class="hidden" onchange="window.handleEmailAttachment(event)">
+<input type="file" id="hf-upload-camera" accept="image/*" capture="environment" class="hidden" onchange="window.handleMediaUpload(event)">
 
-<div id="security-lock" class="fixed inset-0 z-[999999] flex flex-col justify-center items-center bg-gray-100 dark:bg-slate-900 px-6 transition-opacity duration-500">
+<!-- Экран авторизации -->
+<div id="security-lock" class="fixed inset-0 z-[999999] flex flex-col justify-center items-center bg-[#121318] px-6 transition-opacity duration-400">
     <div id="auth-spinner" class="flex flex-col items-center">
-        <i class="fa-solid fa-circle-notch fa-spin text-indigo-600 text-5xl mb-6"></i>
-        <h2 class="text-gray-900 dark:text-white font-bold text-2xl tracking-widest uppercase">Hello Friends</h2>
-        <p class="text-gray-500 dark:text-gray-400 text-sm mt-2">Connecting to Secure Cloud...</p>
+        <i class="fa-solid fa-circle-notch fa-spin text-indigo-500 text-5xl mb-6"></i>
+        <h2 class="text-white font-bold text-2xl tracking-widest uppercase" style="font-family:'Orbitron',sans-serif;">Hello Friends</h2>
+        <p class="text-gray-400 text-sm mt-2">Connecting to Secure Cloud...</p>
     </div>
 
-    <div id="auth-login-box" class="hidden flex-col items-center bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl border border-gray-100 dark:border-slate-700 max-w-sm w-full mx-4">
-        <div class="w-16 h-16 rounded-full bg-indigo-50 dark:bg-slate-700 flex items-center justify-center text-3xl mb-4 shadow-inner">
-            <i class="fa-solid fa-shield-halved text-indigo-500"></i>
+    <div id="auth-login-box" style="display:none;" class="flex-col items-center bg-[#1b1d24] p-8 rounded-3xl shadow-2xl border border-[#2e3240] max-w-sm w-full">
+        <div class="w-16 h-16 rounded-full bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-3xl mb-4">
+            <i class="fa-solid fa-shield-halved text-indigo-400"></i>
         </div>
-        <h2 class="text-gray-900 dark:text-white font-bold text-xl mb-1 tracking-tight">Вход в систему</h2>
-        <p class="text-gray-500 dark:text-gray-400 text-xs mb-6 text-center uppercase tracking-widest font-semibold">Hello Friends</p>
-        
-        <input type="email" id="auth-email" placeholder="Email (любая почта)" class="w-full mb-3 px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded-xl text-sm outline-none focus:border-indigo-500 text-gray-900 dark:text-white transition shadow-inner">
-        <input type="password" id="auth-password" placeholder="Пароль (от 6 символов)" class="w-full mb-5 px-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded-xl text-sm outline-none focus:border-indigo-500 text-gray-900 dark:text-white transition shadow-inner">
-        
-        <button onclick="signInWithEmail()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold text-sm transition-all hover:bg-indigo-700 shadow-md active:scale-95 mb-3">Войти</button>
-        <button onclick="registerWithEmail()" class="w-full bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 py-3 rounded-xl font-bold text-sm transition-all hover:bg-gray-200 dark:hover:bg-slate-600 shadow-sm active:scale-95 mb-5">Создать аккаунт</button>
+        <h2 class="text-white font-bold text-xl mb-1">Welcome</h2>
+        <p class="text-gray-400 text-[11px] mb-6 uppercase tracking-widest font-semibold">Hello Friends Ecosystem</p>
+
+        <input type="email" id="auth-email" placeholder="Email Address" class="form-input-box">
+        <input type="password" id="auth-password" placeholder="Password" class="form-input-box">
+
+        <button onclick="window.loginWithEmail()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-sm transition mb-2.5">Sign In</button>
+        <button onclick="window.registerWithEmail()" class="w-full bg-[#262934] hover:bg-[#323646] text-gray-200 py-3 rounded-xl font-bold text-sm transition mb-5">Create Account</button>
 
         <div class="w-full flex items-center gap-3 mb-5">
-            <div class="h-px bg-gray-200 dark:bg-slate-600 flex-1"></div>
-            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">ИЛИ</span>
-            <div class="h-px bg-gray-200 dark:bg-slate-600 flex-1"></div>
+            <div class="h-px bg-[#2e3240] flex-1"></div>
+            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">OR</span>
+            <div class="h-px bg-[#2e3240] flex-1"></div>
         </div>
-        
-        <button onclick="signInWithGoogle()" class="w-full bg-white dark:bg-slate-700 text-gray-700 dark:text-white border border-gray-200 dark:border-slate-600 py-3 px-6 rounded-xl font-bold text-sm transition-all hover:bg-gray-50 dark:hover:bg-slate-600 flex items-center justify-center gap-3 shadow-sm active:scale-95">
+
+        <button onclick="window.signInWithGoogle()" class="w-full bg-white text-gray-800 py-3 px-6 rounded-xl font-bold text-sm hover:bg-gray-100 flex items-center justify-center gap-3 transition">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4" alt="Google">
-            Войти через Google
+            Sign in with Google
         </button>
     </div>
 </div>
 
-<div id="app-wrapper" class="hidden flex-col h-full w-full opacity-0 transition-opacity duration-500">
-    <input type="file" id="import-export-input" class="hidden">
-    <input type="file" id="attachment-input" class="hidden" accept="image/*, .pdf, .doc, .docx, .txt">
+<!-- Входящий звонок -->
+<div id="incoming-call-modal" class="fixed inset-0 bg-black/95 z-[99999] hidden flex-col items-center justify-center">
+    <h2 id="incoming-call-type" class="text-[#00a884] font-bold text-xl mb-10 tracking-widest uppercase animate-pulse">📞 Audio Call</h2>
+    <div class="relative w-32 h-32 mb-4">
+        <div class="absolute inset-0 rounded-full border-4 border-[#00a884] animate-ping opacity-50"></div>
+        <img id="incoming-call-photo" src="" class="w-full h-full rounded-full object-cover relative z-10 border-4 border-[#1b1d24]">
+    </div>
+    <h3 id="incoming-call-name" class="text-white font-bold text-3xl mb-2">User</h3>
+    <span class="text-gray-400 text-sm mb-14">Hello Friends</span>
+    <div class="flex gap-12 justify-center">
+        <button onclick="window.declineCall()" class="w-16 h-16 rounded-full bg-red-600 text-white flex justify-center items-center text-2xl hover:scale-110 transition"><i class="fa-solid fa-phone-slash"></i></button>
+        <button onclick="window.acceptCall()" class="w-16 h-16 rounded-full bg-[#00a884] text-[#111b21] flex justify-center items-center text-2xl hover:scale-110 transition animate-bounce"><i id="incoming-call-accept-icon" class="fa-solid fa-phone"></i></button>
+    </div>
+</div>
 
-    <div id="toast-notification" class="toast-notification border border-indigo-300">
-        <img id="toast-img" src="" class="w-12 h-12 rounded-full object-cover border-2 border-white shrink-0" style="display: none;">
-        <div id="toast-icon-wrap" class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-xl shrink-0 border-2 border-white">🌍</div>
-        <div class="flex flex-col flex-grow ml-2">
-            <div class="flex items-center gap-2">
-                <span id="toast-flag" class="text-lg">🌍</span>
-                <span id="toast-name" class="font-bold text-lg text-white">Group Chat</span>
-            </div>
-            <span id="toast-info" class="text-xs text-indigo-100 font-sans leading-snug mt-1">Switched to Global Room</span>
+<!-- Toast уведомление -->
+<div id="toast-notification" class="fixed left-1/2 -translate-x-1/2 bg-[#1e2029] border border-indigo-500 text-white p-3.5 rounded-2xl shadow-2xl z-[10005] flex flex-col gap-2 w-[92%] max-w-md opacity-0 pointer-events-none" style="top:-160px; transition:all 0.45s cubic-bezier(0.175,0.885,0.32,1.275);">
+    <div class="flex items-center gap-3">
+        <div id="toast-icon-wrap" class="w-11 h-11 rounded-full bg-indigo-600 flex items-center justify-center text-xl shrink-0 hidden">🌍</div>
+        <img id="toast-img" src="" class="w-11 h-11 rounded-full object-cover shrink-0 border-2 border-indigo-400">
+        <div class="flex flex-col flex-grow">
+            <span id="toast-name" class="font-bold text-sm leading-tight">User</span>
+            <span id="toast-phone" class="text-xs text-[#00a884] font-mono mt-0.5 font-bold"></span>
         </div>
     </div>
-
-    <div class="container mx-auto md:max-w-4xl md:p-8">
-
-        <header class="bg-white dark:bg-slate-800 md:rounded-xl shadow-md p-4 md:p-6 mb-0 md:mb-8 flex justify-between items-center relative transition-colors duration-300">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 md:w-16 md:h-16 bg-indigo-600 rounded-full flex items-center justify-center text-white text-2xl md:text-3xl font-bold shadow-lg flex-shrink-0">HF</div>
-                <div><p class="text-lg md:text-xl font-semibold">Hello Friends</p></div>
-            </div>
-            
-            <div class="hidden md:flex items-center gap-2 relative">
-                <button onclick="openSearchModal()" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors" title="Global Search">
-                    <i class="fa-solid fa-magnifying-glass text-xl text-indigo-500"></i>
-                </button>
-                <button onclick="openEmailModal()" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors" title="Send Email">
-                    <i class="fa-solid fa-envelope text-xl text-indigo-500"></i>
-                </button>
-                
-                <button id="header-menu-btn" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"><i class="fa-solid fa-ellipsis-vertical text-xl"></i></button>
-
-<div id="menu-panel" class="popover-panel absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-800 p-2 rounded-lg shadow-xl hidden opacity-0 transform scale-95 z-50 transition-colors border border-gray-100 dark:border-slate-700">
-    
-    <div class="px-4 py-2 border-b dark:border-slate-700 mb-1">
-        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest" data-i18n="menu">Settings</span>
+    <div id="toast-desc-box" class="bg-[#121318] p-2.5 rounded-xl border border-[#2e3240]">
+        <span id="toast-info" class="text-xs text-gray-200 leading-relaxed"></span>
     </div>
+</div>
 
-    <button onclick="document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); event.stopPropagation();" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors text-left cursor-pointer">
-        <i class="fa-solid fa-moon text-indigo-500 w-6"></i> <span data-i18n="theme">Change Theme</span>
-    </button>
+<!-- Эмодзи пикер -->
+<div id="emoji-picker" class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-[#1e2029] border border-[#323646] rounded-2xl p-3 z-[6000] shadow-2xl transition-all duration-200 scale-95 opacity-0 pointer-events-none w-[320px]" onclick="event.stopPropagation();">
+    <div class="flex flex-wrap gap-3 text-2xl justify-center pb-2">
+        <span class="cursor-pointer hover:scale-125 transition" onclick="window.insertEmoji('😀')">😀</span>
+        <span class="cursor-pointer hover:scale-125 transition" onclick="window.insertEmoji('😂')">😂</span>
+        <span class="cursor-pointer hover:scale-125 transition" onclick="window.insertEmoji('😎')">😎</span>
+        <span class="cursor-pointer hover:scale-125 transition" onclick="window.insertEmoji('😍')">😍</span>
+        <span class="cursor-pointer hover:scale-125 transition" onclick="window.insertEmoji('🤔')">🤔</span>
+        <span class="cursor-pointer hover:scale-125 transition" onclick="window.insertEmoji('👍')">👍</span>
+        <span class="cursor-pointer hover:scale-125 transition" onclick="window.insertEmoji('👏')">👏</span>
+        <span class="cursor-pointer hover:scale-125 transition" onclick="window.insertEmoji('❤️')">❤️</span>
+        <span class="cursor-pointer hover:scale-125 transition" onclick="window.insertEmoji('🔥')">🔥</span>
+        <span class="cursor-pointer hover:scale-125 transition" onclick="window.insertEmoji('🎉')">🎉</span>
+        <span class="cursor-pointer hover:scale-125 transition" onclick="window.insertEmoji('🚀')">🚀</span>
+        <span class="cursor-pointer hover:scale-125 transition" onclick="window.insertEmoji('🌍')">🌍</span>
+    </div>
+    <div class="flex justify-end border-t border-[#2e3240] pt-2">
+        <button onclick="window.closeEmojiPicker()" class="text-gray-400 hover:text-white text-xs font-bold px-3 py-1 rounded-lg bg-[#262934]">Close</button>
+    </div>
+</div>
 
-                    <a onclick="openMyProfile()" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer">
-                        <i class="fa-solid fa-user text-indigo-500 w-6"></i> <span data-i18n="profile">Profile</span>
-                    </a>
+<!-- ОСНОВНОЙ ДЕСКТОПНЫЙ КОНТЕЙНЕР -->
+<div id="phone-body" class="container mx-auto max-w-6xl px-3 md:px-6 py-4 md:py-6 flex flex-col min-h-screen">
 
-                    <div class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer relative">
-                        <i class="fa-solid fa-globe text-blue-500 w-5 text-center"></i>
-                    <select id="app-lang-select" onchange="window.changeAppLanguage(this.value)" class="bg-transparent dark:bg-slate-800 font-bold outline-none cursor-pointer appearance-none w-full pr-6 text-gray-800 dark:text-white" onclick="event.stopPropagation()">
-    <option value="auto" class="bg-white dark:bg-slate-800">🤖 Auto</option>
-    <option value="en" class="bg-white dark:bg-slate-800">GB English</option>
-    <option value="ru" class="bg-white dark:bg-slate-800">RU Русский</option>
-    <option value="az" class="bg-white dark:bg-slate-800">AZ Azərbaycanca</option>
-    <option value="kk" class="bg-white dark:bg-slate-800">KZ Қазақша</option>
-    <option value="de" class="bg-white dark:bg-slate-800">DE Deutsch</option>
-    <option value="tr" class="bg-white dark:bg-slate-800">TR Türkçe</option>
-    <option value="ar" class="bg-white dark:bg-slate-800">SA العربية</option>
-    <option value="it" class="bg-white dark:bg-slate-800">IT Italiano</option>
-    <option value="es" class="bg-white dark:bg-slate-800">ES Español</option>
-    <option value="fr" class="bg-white dark:bg-slate-800">FR Français</option>
-    <option value="pt" class="bg-white dark:bg-slate-800">PT Português</option>
-    <option value="ja" class="bg-white dark:bg-slate-800">JP 日本語</option>
-    <option value="zh" class="bg-white dark:bg-slate-800">CN 中文</option>
-</select>
-                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
-                    </div>
+    <!-- ШАПКА -->
+    <header class="bg-white dark:bg-[#1b1d24] rounded-2xl shadow-lg border border-gray-200 dark:border-[#2a2d37] px-5 py-3.5 mb-4 flex justify-between items-center relative">
+        <div class="flex items-center gap-3.5">
+            <div onclick="window.activateGodMode()" class="w-12 h-12 bg-[#3730e6] rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg cursor-pointer select-none">HF</div>
+            <span class="text-lg md:text-xl font-bold tracking-tight text-gray-900 dark:text-white">Hello Friends</span>
+        </div>
 
-                    <a onclick="openBankTransferModal()" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer">
-                        <i class="fa-solid fa-wallet text-green-500 w-6"></i> <span data-i18n="wallet">Wallet</span>
-                    </a>
+        <div class="flex items-center gap-2 relative">
+            <button onclick="window.openSearchModal()" class="p-2.5 text-gray-500 dark:text-indigo-400 hover:bg-gray-100 dark:hover:bg-[#262934] rounded-full transition" title="Global Search">
+                <i class="fa-solid fa-magnifying-glass text-lg"></i>
+            </button>
+            <button onclick="if(window.openEmailModal) window.openEmailModal()" class="p-2.5 text-gray-500 dark:text-indigo-400 hover:bg-gray-100 dark:hover:bg-[#262934] rounded-full transition" title="Send Email">
+                <i class="fa-solid fa-envelope text-lg"></i>
+            </button>
+            <button onclick="window.toggleHeaderMenu(event)" class="p-2.5 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#262934] rounded-full transition">
+                <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
+            </button>
 
-                    <a onclick="openEmailStore()" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer">
-                        <i class="fa-solid fa-store text-indigo-400 w-6"></i> <span data-i18n="email_store">Email Store</span>
-                    </a>
-
-                    <div class="border-t dark:border-slate-700 my-1"></div>
-
-                    <button id="menu-theme-toggle" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md transition-colors text-left">
-                        <i class="fa-solid fa-moon text-indigo-500 w-6"></i> <span data-i18n="theme">Change Theme</span>
-                    </button>
-                    
-                    <div class="border-t dark:border-slate-700 my-1"></div>
-                    
-                    <a onclick="signOutGoogle()" class="flex items-center px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-slate-700 rounded-md transition-colors cursor-pointer">
-                        <i class="fa-solid fa-right-from-bracket w-6"></i> <span data-i18n="logout">Logout</span>
-                    </a>
+            <div id="header-dropdown" class="header-dropdown" onclick="event.stopPropagation();">
+                <div class="flex justify-between items-center px-2 pb-2 mb-1 border-b border-gray-200 dark:border-[#2e3240]">
+                    <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest" data-i18n="menu">Settings</span>
+                    <i class="fa-solid fa-xmark text-gray-400 hover:text-red-500 cursor-pointer" onclick="window.closeAllMenus()"></i>
                 </div>
-            </div>
-        </header>
+                <a id="admin-menu-btn" style="display:none; color:#a29bfe;" onclick="window.openAdminModal()"><i class="fa-solid fa-crown w-5"></i> <span>Admin Panel</span></a>
+                <a onclick="window.openMyProfile(); window.closeAllMenus();"><i class="fa-solid fa-user text-indigo-400 w-5"></i> <span data-i18n="profile">My Profile</span></a>
 
-   <nav id="main-nav" class="bg-white dark:bg-slate-800 md:rounded-xl shadow-md hidden md:flex flex-wrap justify-center gap-2 mb-4 p-2 transition-colors duration-300">
-        <a href="#" data-target="chat" class="nav-link active px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_chat">Chat</a>
-        <a href="#" onclick="openVoiceRoomDirectly(); return false;" class="px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_voice">Voice Chat</a>
-        <a href="#" onclick="openConference(); return false;" class="px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_conf">Conference</a>
-        <a href="#" data-target="profession" class="nav-link px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_prof">Profession</a>
-        <a href="#" data-target="contacts" class="nav-link px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_contacts">Contacts</a>
-        <a href="#" data-target="archive" class="nav-link px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" data-i18n="nav_archive">Archive</a>
+                <div class="flex items-center gap-3 px-2.5 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a2d3a] cursor-pointer relative">
+                    <i class="fa-solid fa-globe text-blue-400 w-5 text-center pointer-events-none"></i>
+                    <select id="app-lang-select" onchange="window.changeAppLanguage(this.value)" onclick="event.stopPropagation()" class="bg-transparent text-sm font-medium w-full outline-none cursor-pointer appearance-none pr-5">
+                        <option value="auto">🤖 Auto (Profile)</option>
+                        <option value="en">🇬🇧 English</option>
+                        <option value="ru">🇷🇺 Русский</option>
+                        <option value="az">🇦🇿 Azərbaycanca</option>
+                        <option value="kk">🇰🇿 Қазақша</option>
+                        <option value="de">🇩🇪 Deutsch</option>
+                        <option value="tr">🇹🇷 Türkçe</option>
+                        <option value="ar">🇦🇪 العربية</option>
+                        <option value="it">🇮🇹 Italiano</option>
+                        <option value="es">🇪🇸 Español</option>
+                        <option value="fr">🇫🇷 Français</option>
+                        <option value="pt">🇵🇹 Português</option>
+                        <option value="ja">🇯🇵 日本語</option>
+                        <option value="zh">🇨🇳 中文</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-3 text-gray-400 text-[10px] pointer-events-none"></i>
+                </div>
+
+                <a onclick="window.openBankTransferModal(); window.closeAllMenus();"><i class="fa-solid fa-wallet text-emerald-400 w-5"></i> <span data-i18n="wallet">Wallet</span></a>
+                <a onclick="window.openEmailStore(); window.closeAllMenus();"><i class="fa-solid fa-store text-indigo-400 w-5"></i> <span>Email Store</span></a>
+                <div class="h-px bg-gray-200 dark:bg-[#2e3240] my-1"></div>
+                <a onclick="window.toggleTheme()"><i class="fa-solid fa-moon text-yellow-400 w-5" id="theme-icon"></i> <span data-i18n="theme">Theme</span></a>
+                <div class="h-px bg-gray-200 dark:bg-[#2e3240] my-1"></div>
+                <a style="color:#eab308;" onclick="window.signOutGoogle()"><i class="fa-solid fa-right-from-bracket w-5"></i> <span data-i18n="logout">Log Out</span></a>
+                <a style="color:#ef4444;" onclick="window.deleteMyAccount()"><i class="fa-solid fa-user-xmark w-5"></i> <span data-i18n="delete_acc">Delete Account</span></a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ВЕРХНЯЯ НАВИГАЦИЯ (6 вкладок) -->
+    <nav id="main-nav" class="bg-white dark:bg-[#1b1d24] rounded-2xl shadow-md border border-gray-200 dark:border-[#2a2d37] flex flex-wrap justify-center gap-2 mb-3 p-2">
+        <button onclick="window.switchTab(0)" class="nav-item active px-5 py-2 rounded-xl font-semibold text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#262934] transition" data-i18n="chat">Chat</button>
+        <button onclick="window.switchTab(1)" class="nav-item px-5 py-2 rounded-xl font-semibold text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#262934] transition" data-i18n="voice">Call</button>
+        <button onclick="window.switchTab(2)" class="nav-item px-5 py-2 rounded-xl font-semibold text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#262934] transition" data-i18n="meet">Conference</button>
+        <button onclick="window.switchTab(3)" class="nav-item px-5 py-2 rounded-xl font-semibold text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#262934] transition" data-i18n="cv">Profession</button>
+        <button onclick="window.switchTab(4)" class="nav-item px-5 py-2 rounded-xl font-semibold text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#262934] transition" data-i18n="contacts">Contacts</button>
+        <button onclick="window.switchTab(5)" class="nav-item relative px-5 py-2 rounded-xl font-semibold text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#262934] transition">
+            <span>Archive</span>
+            <span id="archive-unread-badge" class="hidden absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+        </button>
     </nav>
 
-    <div class="flex justify-center gap-6 mb-6 text-2xl">
-        <a href="https://telegram.org/" target="_blank" class="text-gray-500 dark:text-gray-400 hover:text-blue-500 transition-colors"><i class="fa-brands fa-telegram"></i></a>
-        <a href="https://instagram.com/" target="_blank" class="text-gray-500 dark:text-gray-400 hover:text-pink-600 transition-colors"><i class="fa-brands fa-instagram"></i></a>
-        <a href="https://linkedin.com/" target="_blank" class="text-gray-500 dark:text-gray-400 hover:text-blue-700 transition-colors"><i class="fa-brands fa-linkedin"></i></a>
-        <a href="https://twitter.com/" target="_blank" class="text-gray-500 dark:text-gray-400 hover:text-blue-400 transition-colors"><i class="fa-brands fa-twitter"></i></a>
-        <a href="https://youtube.com/" target="_blank" class="text-gray-500 dark:text-gray-400 hover:text-red-600 transition-colors"><i class="fa-brands fa-youtube"></i></a>
+    <!-- СОЦСЕТИ -->
+    <div class="flex justify-center gap-6 mb-5 text-xl text-gray-400">
+        <a href="https://telegram.org/" target="_blank" class="hover:text-blue-400 transition"><i class="fa-brands fa-telegram"></i></a>
+        <a href="https://instagram.com/" target="_blank" class="hover:text-pink-500 transition"><i class="fa-brands fa-instagram"></i></a>
+        <a href="https://linkedin.com/" target="_blank" class="hover:text-blue-500 transition"><i class="fa-brands fa-linkedin"></i></a>
+        <a href="https://twitter.com/" target="_blank" class="hover:text-sky-400 transition"><i class="fa-brands fa-twitter"></i></a>
+        <a href="https://youtube.com/" target="_blank" class="hover:text-red-500 transition"><i class="fa-brands fa-youtube"></i></a>
+        <button onclick="window.inviteViaWhatsApp()" class="hover:text-green-400 transition" title="Invite via WhatsApp"><i class="fa-brands fa-whatsapp"></i></button>
     </div>
 
-    <main id="page-container">
-        
-        <section id="chat" class="page-section active bg-white dark:bg-slate-800 md:rounded-xl shadow-md p-4 md:p-8 transition-colors duration-300">
-            <h2 class="text-2xl font-bold mb-2">General Chat</h2>
-            <p class="text-gray-500 dark:text-gray-400 mb-6">Select a participant to switch chat:</p>
-            
-         <div id="top-users-horizontal-bar" class="flex flex-row overflow-x-auto justify-start md:justify-center gap-4 mb-8 pb-2 scrollbar-hide w-full"></div>
+    <!-- РАБОЧАЯ ОБЛАСТЬ -->
+    <main id="page-container" class="flex-grow flex flex-col">
 
-            <h3 class="text-xl font-bold mb-4 border-t border-gray-200 dark:border-slate-700 pt-6 flex justify-between items-center" id="active-chat-header">
-                <div class="flex items-center gap-3">
-                    <div id="chat-header-avatar" class="w-12 h-12 rounded-full flex items-center justify-center text-white bg-gradient-to-r from-blue-500 to-purple-500 shadow-md cursor-pointer hover:scale-105 transition-transform text-2xl" onclick="if(window.currentTargetUser) openUserProfile(window.currentTargetUser.id)" style="background-size: cover; background-position: center;">🌍</div>
-                    <div class="flex flex-col">
-                        <span id="chat-header-name" class="font-bold text-gray-800 dark:text-white leading-tight">Group Chat</span>
-                        <span id="chat-header-status" class="text-xs text-green-500 font-medium mt-0.5">🌍 All members</span>
-                    </div>
-                </div>
-                
-                <div class="flex items-center gap-3 ml-auto" id="header-buttons-container">
-                    <button onclick="toggleMarquee()" id="marquee-toggle-btn" class="bg-blue-100 dark:bg-slate-700 text-blue-600 dark:text-blue-400 px-2 py-1.5 rounded-lg text-[10px] font-extrabold hover:bg-blue-200 transition shadow-sm" title="Toggle CC Translation">CC</button>
-                    <button onclick="openTrashModal()" class="text-gray-400 hover:text-red-500 transition-colors text-lg px-2" title="Smart Trash"><i class="fa-solid fa-trash-can"></i></button>
-                </div>
-            </h3>
-            
-            <div class="border border-gray-200 dark:border-slate-700 rounded-lg h-[450px] bg-gray-50 dark:bg-slate-900 flex flex-col overflow-hidden transition-colors relative">
-                
-            <div id="marquee-container" class="bg-gray-100 dark:bg-slate-800 overflow-hidden relative flex-shrink-0 border-b border-gray-200 dark:border-slate-700 flex items-center shadow-inner" style="height: 40px;">
-    <marquee id="top-chat-marquee" class="text-[13px] text-gray-700 dark:text-gray-200 font-medium px-4 w-full flex items-center" scrollamount="3">
-        🌍 Global Chat • AI Translation System Active... 
-    </marquee>
-</div>
-                
-                <div id="chat-messages" class="p-4 overflow-y-auto flex flex-col flex-grow scroll-smooth"></div>
-            </div>
-
-            <div class="mt-4 flex gap-3 items-center relative" id="chat-input-area">
-                <div class="relative flex-grow flex items-center bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-full overflow-visible focus-within:ring-2 focus-within:ring-indigo-500 transition-colors shadow-inner px-2">
-                    
-                <button id="emoji-toggle-btn" class="p-3 text-gray-500 hover:text-yellow-500 transition-colors"><i class="fa-regular fa-face-smile text-xl"></i></button>
-                    <button onclick="openAttachmentModal()" class="p-3 text-gray-500 hover:text-blue-500 transition-colors" title="Attach File"><i class="fa-solid fa-paperclip text-xl"></i></button>
-                    
-                    <div id="emoji-picker" class="hidden absolute bottom-full left-0 mb-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-3 rounded-xl grid grid-cols-5 gap-3 text-2xl z-50">
-                        <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertEmoji('😀')">😀</span>
-                        <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertEmoji('😂')">😂</span>
-                        <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertEmoji('❤️')">❤️</span>
-                        <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertEmoji('😍')">😍</span>
-                        <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertEmoji('👍')">👍</span>
-                        <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertEmoji('🔥')">🔥</span>
-                        <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertEmoji('🎉')">🎉</span>
-                        <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertEmoji('😢')">😢</span>
-                        <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertEmoji('😎')">😎</span>
-                        <span class="cursor-pointer hover:scale-125 transition-transform" onclick="insertEmoji('🤔')">🤔</span>
-                    </div>
-
-                    <input type="text" id="chat-input" placeholder="Type message or click mic..." class="flex-grow bg-transparent text-gray-900 dark:text-white px-2 py-3 outline-none">
-                    
-                    <button id="magic-wand-btn" onclick="applyAiMagic()" class="p-3 text-purple-500 hover:text-purple-700 transition-colors" title="AI Rewrite (Make it Professional)"><i class="fa-solid fa-wand-magic-sparkles text-xl"></i></button>
-                    
-                    <button id="main-chat-mic-btn" onclick="openMicMenu()" class="p-3 text-gray-500 hover:text-red-500 transition-colors" title="Voice / Dictation"><i class="fa-solid fa-microphone text-xl"></i></button>
-                </div>
-                
-                <button id="chat-send-btn" class="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-full hover:bg-indigo-700 transition-colors shadow-md">Send</button>
-                
-                <div class="relative">
-                    <button id="actions-btn" class="w-12 h-12 bg-gray-200 dark:bg-slate-700 rounded-full flex items-center justify-center hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors"><i class="fa-solid fa-plus text-gray-600 dark:text-gray-300 text-xl"></i></button>
-                    
-                    <div id="actions-panel" class="popover-panel absolute bottom-full right-0 mb-3 bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-2xl hidden opacity-0 transform scale-95 z-[100] transition-all border border-gray-100 dark:border-slate-700 w-80">
-                        <div class="grid grid-cols-4 gap-2">
-                            <button onclick="openLocationModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-blue-50 hover:text-blue-600 rounded-2xl transition-colors group"><i class="fa-solid fa-location-dot text-xl mb-1 group-hover:scale-110 transition"></i><span class="text-[9px] font-bold uppercase" data-i18n="menu_location">Location</span></button>
-                            <button onclick="alert('Video calls coming soon!')" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-green-50 hover:text-green-600 rounded-2xl transition-colors group"><i class="fa-solid fa-video text-xl mb-1 group-hover:scale-110 transition"></i><span class="text-[9px] font-bold uppercase" data-i18n="menu_video">Video</span></button>
-                            <button onclick="openGuideModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-yellow-50 hover:text-yellow-600 rounded-2xl transition-colors group"><i class="fa-solid fa-map-location-dot text-xl mb-1 group-hover:scale-110 transition"></i><span class="text-[9px] font-bold uppercase" data-i18n="menu_guide">Guide</span></button>
-                            <button onclick="smartArchive()" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 rounded-2xl transition-colors group"><i class="fa-solid fa-file-zipper text-xl mb-1 group-hover:scale-110 transition"></i><span class="text-[9px] font-bold uppercase">Archive</span></button>
-                            <button onclick="openSecurityModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-slate-100 hover:text-gray-800 rounded-2xl transition-colors group"><i class="fa-solid fa-shield-halved text-xl mb-1 group-hover:scale-110 transition"></i><span class="text-[9px] font-bold uppercase" data-i18n="menu_security">Security</span></button>
-                            <button onclick="blockUser()" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-red-50 hover:text-red-600 rounded-2xl transition-colors group"><i class="fa-solid fa-user-slash text-xl mb-1 group-hover:scale-110 transition"></i><span class="text-[9px] font-bold uppercase" data-i18n="menu_blacklist">Blacklist</span></button>
-                            <button onclick="openQrModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-purple-50 hover:text-purple-600 rounded-2xl transition-colors group"><i class="fa-solid fa-qrcode text-xl mb-1 group-hover:scale-110 transition"></i><span class="text-[9px] font-bold uppercase" data-i18n="menu_qr">Share QR</span></button>
-                            <button onclick="openLangModal()" class="flex flex-col items-center justify-center p-3 text-gray-500 hover:bg-orange-50 hover:text-orange-600 rounded-2xl transition-colors group"><i class="fa-solid fa-language text-xl mb-1 group-hover:scale-110 transition"></i><span class="text-[9px] font-bold uppercase">Mic Lang</span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="profession" class="page-section bg-white dark:bg-slate-800 md:rounded-3xl shadow-xl p-6 md:p-10 transition-colors duration-300">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-gray-100 dark:border-slate-700 pb-6">
+        <!-- 0. CHAT -->
+        <section id="message" class="page-content active bg-white dark:bg-[#1b1d24] rounded-2xl shadow-xl border border-gray-200 dark:border-[#2a2d37] p-5 md:p-7">
+            <div class="flex justify-between items-start mb-2">
                 <div>
-                    <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight">Professional Community</h2>
-                    <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Discover and connect with talents worldwide.</p>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">General Chat</h2>
+                    <p class="text-gray-400 text-sm">Select a participant to switch chat:</p>
                 </div>
-                <button onclick="openEditCVModal()" class="w-full md:w-auto bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transition-transform hover:scale-105 flex items-center justify-center gap-2 cursor-pointer uppercase text-xs tracking-wider">
-                    <i class="fa-solid fa-file-signature text-lg"></i> 
-                    <span data-i18n="edit_cv">Edit My CV</span>
+                <button onclick="window.openNewsFast()" class="px-3.5 py-2 rounded-xl bg-[#262934] hover:bg-indigo-600 text-gray-200 hover:text-white text-xs font-bold flex items-center gap-2 transition">
+                    <i class="fa-regular fa-newspaper text-blue-400"></i> <span data-i18n="news">News</span>
                 </button>
             </div>
-            <div id="web-profession-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+
+            <!-- Горизонтальная лента участников (ID совпадает с js/chat.js!) -->
+            <div id="chat-sidebar" class="mb-4"></div>
+
+            <!-- Шапка активного чата -->
+            <div class="border-t border-gray-200 dark:border-[#2a2d37] pt-4 pb-3 flex justify-between items-center">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="window.switchChatRoom('global')" title="Back to Global Chat">
+                    <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-xl shadow">🌍</div>
+                    <div class="flex flex-col">
+                        <span id="chat-header-title" class="font-bold text-lg text-gray-900 dark:text-white leading-tight" data-i18n="global_chat">Group Chat</span>
+                        <span id="chat-header-room" class="text-xs text-emerald-400 font-medium">ID: global</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <button onclick="window.toggleMarquee()" class="bg-[#262934] hover:bg-indigo-600 text-blue-400 hover:text-white px-3 py-1.5 rounded-lg text-xs font-extrabold transition" title="Toggle Auto-Translate">CC</button>
+                    <button onclick="window.openTrashModal()" class="p-2 text-gray-400 hover:text-red-500 transition" title="Manage Chat"><i class="fa-solid fa-trash-can text-lg"></i></button>
+                </div>
+            </div>
+
+            <!-- Окно сообщений -->
+            <div class="border border-gray-200 dark:border-[#2a2d37] rounded-2xl h-[440px] bg-gray-50 dark:bg-[#14161c] flex flex-col overflow-hidden">
+                <div class="chat-info-marquee-container bg-gray-100 dark:bg-[#1e2029] border-b border-gray-200 dark:border-[#2a2d37]">
+                    <div id="typing-marquee-container" class="overflow-hidden flex-grow flex items-center transition-opacity duration-300">
+                        <span class="chat-info-marquee-text" id="chat-info-marquee" data-i18n="ai_trans_active">AI Translation System Active...</span>
+                    </div>
+                </div>
+                <div id="chat-messages" class="chat-messages"></div>
+            </div>
+
+            <!-- Панель ввода + Ромб -->
+            <div class="mt-4 flex gap-3 items-center relative">
+                <div class="flex-grow flex items-center bg-gray-50 dark:bg-[#14161c] border border-gray-300 dark:border-[#2e3240] rounded-full px-3 py-1.5 focus-within:border-indigo-500 transition">
+                    <button onclick="window.toggleEmojiPicker('chat-input'); event.stopPropagation();" class="p-2 text-gray-400 hover:text-yellow-400 transition"><i class="fa-regular fa-face-smile text-xl"></i></button>
+                    <button onclick="window.openAttachModal()" class="p-2 text-gray-400 hover:text-blue-400 transition" title="Attach File"><i class="fa-solid fa-paperclip text-xl"></i></button>
+                    <input type="text" id="chat-input" data-i18n-placeholder="msg_placeholder" placeholder="Type message or click mic..." class="flex-grow bg-transparent text-gray-900 dark:text-white px-2 py-2 outline-none text-sm">
+                    <button onclick="window.toggleUniversalMic(event, 'chat-input')" class="p-2 text-gray-400 hover:text-[#00a884] transition" title="Voice / AI Dictation"><i class="fa-solid fa-microphone text-xl"></i></button>
+                </div>
+
+                <button onclick="window.currentMicInputTarget='chat-input'; window.sendFirebaseMsg()" class="bg-[#3730e6] hover:bg-indigo-500 text-white font-bold py-3 px-7 rounded-full transition shadow-lg">Send</button>
+
+                <!-- Фирменный ромб + -->
+                <div class="rhombus-wrapper">
+                    <div id="rhombus-btn" class="rhombus-btn" onclick="window.toggleRhombusMenu(event)"><i class="fa-solid fa-plus"></i></div>
+                    <div id="rhombus-actions" class="rhombus-menu" onclick="event.stopPropagation();">
+                        <div class="action-icon text-amber-400" onclick="window.openPlannerModal(); window.closeAllMenus();" title="Planner"><i class="fa-solid fa-calendar-check"></i></div>
+                        <div class="action-icon text-purple-400" onclick="window.showMyQR(); window.closeAllMenus();" title="My QR Code"><i class="fa-solid fa-qrcode"></i></div>
+                        <div class="action-icon text-blue-400" onclick="if(window.openEmailModal) window.openEmailModal(); window.closeAllMenus();" title="Send Email"><i class="fa-solid fa-envelope"></i></div>
+                        <div class="action-icon text-emerald-400" onclick="if(window.openLocationModal) window.openLocationModal(); window.closeAllMenus();" title="Location"><i class="fa-solid fa-location-dot"></i></div>
+                        <div class="action-icon text-sky-400" onclick="window.switchTab(5); window.closeAllMenus();" title="Data Center"><i class="fa-solid fa-server"></i></div>
+                        <div class="action-icon text-red-400" onclick="if(window.openTrashModal) window.openTrashModal(); window.closeAllMenus();" title="Manage Chat"><i class="fa-solid fa-trash-can"></i></div>
+                    </div>
+                </div>
+            </div>
         </section>
 
-        <section id="contacts" class="page-section hidden p-4 md:p-6 w-full max-w-4xl mx-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-address-book text-indigo-500"></i> <span data-i18n="nav_contacts">Contacts</span>
-                </h2>
+        <!-- 1. CALL (Аудио + Видеозвонок — БЕЗ шапки HELLO FRIENDS VOICE / Encrypted) -->
+        <section id="voice-translator" class="page-content bg-white dark:bg-[#1b1d24] rounded-2xl shadow-xl border border-gray-200 dark:border-[#2a2d37] overflow-hidden">
+            <!-- Компактная плашка перевода + быстрый переход -->
+            <div class="chat-info-marquee-container bg-[#14161c] border-b border-[#2a2d37]">
+                <button onclick="window.switchTab(0)" class="px-3 py-1 rounded-lg bg-[#262934] hover:bg-indigo-600 text-gray-300 hover:text-white text-xs font-bold flex items-center gap-1.5 shrink-0 transition">
+                    <i class="fa-solid fa-arrow-left"></i> Chat
+                </button>
+                <button onclick="window.toggleVoiceMarquee()" class="text-[#00a884] hover:text-white transition px-1.5 shrink-0" title="Live CC"><i class="fa-solid fa-closed-captioning text-xl"></i></button>
+                <div id="voice-marquee-container-anim" class="overflow-hidden flex-grow flex items-center transition-opacity duration-300">
+                    <span class="chat-info-marquee-text" id="voice-info-marquee" data-i18n="waiting_voice">Waiting for voice input...</span>
+                </div>
             </div>
-            
+
+            <!-- Два видеофрейма -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
+                <div class="bg-[#121318] rounded-2xl relative overflow-hidden border border-[#2a2d37] h-[240px] md:h-[310px]">
+                    <video id="direct-remote-video" class="w-full h-full object-cover hidden" autoplay playsinline></video>
+                    <div id="direct-remote-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+                        <i class="fa-solid fa-video-slash text-3xl mb-2"></i>
+                        <span class="text-xs" data-i18n="waiting_video">Waiting for video...</span>
+                    </div>
+                </div>
+                <div class="bg-[#121318] rounded-2xl relative overflow-hidden border border-[#00a884]/60 h-[240px] md:h-[310px]">
+                    <video id="direct-local-video" class="w-full h-full object-cover hidden" autoplay playsinline muted></video>
+                    <div id="direct-local-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+                        <i class="fa-solid fa-video-slash text-3xl mb-2"></i>
+                        <span class="text-xs">My Camera</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Аватары собеседников + зеркальные кнопки -->
+            <div class="flex justify-between items-center px-6 py-4 bg-[#14161c]/70 border-t border-[#2a2d37]">
+                <div class="flex items-center gap-4">
+                    <button onclick="window.toggleRemoteAudio()" class="w-10 h-10 rounded-full bg-[#262934] text-[#00a884] hover:bg-[#323646] flex items-center justify-center transition"><i id="icon-remote-mic" class="fa-solid fa-microphone"></i></button>
+                    <button onclick="window.toggleRemoteCamera()" class="w-10 h-10 rounded-full bg-[#262934] text-[#00a884] hover:bg-[#323646] flex items-center justify-center transition"><i id="icon-remote-cam" class="fa-solid fa-video"></i></button>
+                    <div class="flex items-center gap-3">
+                        <div class="w-14 h-14 relative">
+                            <img id="voice-friend-photo" src="https://ui-avatars.com/api/?name=User&background=262934&color=fff" class="w-full h-full rounded-full object-cover border-2 border-indigo-500">
+                            <span id="voice-friend-flag" class="absolute -bottom-1 -right-1 text-xs bg-[#1b1d24] rounded-full px-1">🌐</span>
+                        </div>
+                        <h3 id="voice-friend-name" class="text-white font-bold text-sm" data-i18n="select_contact">Select Contact</h3>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                    <div class="w-1.5 h-4 bg-indigo-500 rounded-full animate-bounce"></div>
+                    <div class="w-1.5 h-7 bg-[#00a884] rounded-full animate-bounce" style="animation-delay:0.12s"></div>
+                    <div class="w-1.5 h-4 bg-indigo-500 rounded-full animate-bounce" style="animation-delay:0.24s"></div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <h3 id="voice-me-name" class="text-white font-bold text-sm">You</h3>
+                        <div class="w-14 h-14 relative">
+                            <div class="pulse-ring"></div>
+                            <img id="voice-me-photo" src="" onclick="window.openPersonalLangModal()" class="w-full h-full rounded-full object-cover border-2 border-[#00a884] relative z-10 cursor-pointer" title="Change Language">
+                            <span id="voice-me-flag" class="absolute -bottom-1 -right-1 text-xs z-20 bg-[#1b1d24] rounded-full px-1"></span>
+                        </div>
+                    </div>
+                    <button onclick="window.toggleMyCamera()" class="w-10 h-10 rounded-full bg-[#262934] text-[#00a884] hover:bg-[#323646] flex items-center justify-center transition"><i id="icon-my-cam" class="fa-solid fa-video"></i></button>
+                    <button onclick="window.toggleMyAudio()" class="w-10 h-10 rounded-full bg-[#262934] text-[#00a884] hover:bg-[#323646] flex items-center justify-center transition"><i id="icon-my-mic" class="fa-solid fa-microphone"></i></button>
+                </div>
+            </div>
+
+            <!-- Панель ввода в звонке + отбой -->
+            <div class="p-4 bg-[#14161c] border-t border-[#2a2d37] flex items-center gap-2.5">
+                <button onclick="window.openAttachModal()" class="p-2 text-gray-400 hover:text-blue-400 transition"><i class="fa-solid fa-paperclip text-lg"></i></button>
+                <div class="flex-grow flex items-center bg-[#1b1d24] border border-[#2e3240] rounded-full px-4 py-2">
+                    <i class="fa-regular fa-face-smile text-gray-400 hover:text-white cursor-pointer mr-3 text-lg" onclick="window.toggleEmojiPicker('voice-chat-input'); event.stopPropagation();"></i>
+                    <input type="text" id="voice-chat-input" data-i18n-placeholder="msg_placeholder" placeholder="Type message or click mic..." class="bg-transparent text-white w-full outline-none text-sm">
+                </div>
+                <button onclick="window.toggleUniversalMic(event, 'voice-chat-input')" class="w-10 h-10 rounded-full bg-[#262934] text-[#00a884] hover:bg-[#323646] flex items-center justify-center transition"><i class="fa-solid fa-microphone"></i></button>
+                <button onclick="window.currentMicInputTarget='voice-chat-input'; window.sendFirebaseMsg()" class="w-10 h-10 rounded-full bg-[#3730e6] text-white hover:bg-indigo-500 flex items-center justify-center transition"><i class="fa-solid fa-paper-plane text-sm"></i></button>
+                <button onclick="window.hangUpCall()" class="w-11 h-11 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center transition shadow-lg ml-1" title="End Call"><i class="fa-solid fa-phone-slash"></i></button>
+            </div>
+        </section>
+
+        <!-- 2. CONFERENCE (Сетка 12+1 — БЕЗ шапки LIVE VIDEO TRANSLATION / LIVE REC) -->
+        <section id="conference" class="page-content bg-[#14161c] rounded-2xl shadow-xl border border-[#2a2d37] overflow-hidden">
+            <!-- Компактная рабочая плашка с переходом -->
+            <div class="flex items-center justify-between px-4 py-2.5 bg-[#1b1d24] border-b border-[#2a2d37]">
+                <button onclick="window.switchTab(0)" class="px-3 py-1.5 rounded-lg bg-[#262934] hover:bg-indigo-600 text-gray-200 text-xs font-bold flex items-center gap-2 transition">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Chat
+                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="window.openGroupInviteModal()" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-user-plus"></i> <span data-i18n="invite_users">Invite</span>
+                    </button>
+                    <button onclick="window.toggleMeetMarquee()" class="px-3 py-1.5 rounded-lg bg-[#262934] hover:bg-[#323646] text-[#00a884] text-xs font-extrabold transition" title="Toggle Video CC">CC</button>
+                </div>
+            </div>
+
+            <!-- Сетка 12 + 1 -->
+            <div class="p-4 overflow-y-auto min-h-[420px]">
+                <div class="video-grid" id="conference-grid"></div>
+            </div>
+
+            <!-- Плавающий док управления -->
+            <div class="p-4 bg-[#1b1d24] border-t border-[#2a2d37] flex flex-wrap justify-center items-center gap-3">
+                <button onclick="window.openAttachModal()" class="p-2 text-gray-400 hover:text-blue-400 transition"><i class="fa-solid fa-paperclip text-lg"></i></button>
+                <div class="flex items-center bg-[#14161c] border border-[#2e3240] rounded-full px-4 py-2 w-full sm:w-72">
+                    <i class="fa-regular fa-face-smile text-gray-400 hover:text-white cursor-pointer mr-2" onclick="window.toggleEmojiPicker('conf-chat-input'); event.stopPropagation();"></i>
+                    <input type="text" id="conf-chat-input" data-i18n-placeholder="meet_msg_placeholder" placeholder="Message..." class="bg-transparent text-white w-full outline-none text-sm">
+                </div>
+                <button onclick="window.currentMicInputTarget='conf-chat-input'; window.sendFirebaseMsg()" class="w-10 h-10 rounded-full bg-[#3730e6] hover:bg-indigo-500 text-white flex items-center justify-center transition"><i class="fa-solid fa-paper-plane text-sm"></i></button>
+                <div class="hidden sm:block w-px h-7 bg-[#2e3240] mx-1"></div>
+                <button onclick="window.toggleUniversalMic(event, 'conf-chat-input')" class="w-11 h-11 rounded-full bg-[#262934] hover:bg-[#323646] text-gray-200 flex items-center justify-center transition"><i class="fa-solid fa-microphone"></i></button>
+                <button id="conf-cam-btn" onclick="window.toggleMyCamera(this)" class="w-11 h-11 rounded-full bg-[#3730e6] hover:bg-indigo-500 text-white flex items-center justify-center transition"><i class="fa-solid fa-video-slash"></i></button>
+                <button onclick="window.toggleMeetMarquee()" class="w-11 h-11 rounded-full bg-indigo-600/20 border border-indigo-500/40 text-indigo-400 hover:bg-indigo-600 hover:text-white flex items-center justify-center transition"><i class="fa-solid fa-closed-captioning"></i></button>
+                <button onclick="window.switchTab(0)" class="w-12 h-12 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center transition shadow-lg"><i class="fa-solid fa-phone-slash"></i></button>
+            </div>
+        </section>
+
+        <!-- 3. PROFESSION (4 колонки) -->
+        <section id="profession" class="page-content bg-white dark:bg-[#1b1d24] rounded-2xl shadow-xl border border-gray-200 dark:border-[#2a2d37] p-6 md:p-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-7 gap-4 border-b border-gray-200 dark:border-[#2a2d37] pb-5">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white">Professional Community</h2>
+                    <p class="text-gray-400 text-sm mt-1">Discover and connect with talents worldwide.</p>
+                </div>
+                <button onclick="window.openEditCV()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-2xl shadow-lg flex items-center gap-2 uppercase text-xs tracking-wider transition">
+                    <i class="fa-solid fa-file-signature text-base"></i> <span data-i18n="edit_my_cv">Edit My CV</span>
+                </button>
+            </div>
+            <div id="profession-list"></div>
+        </section>
+
+        <!-- 4. CONTACTS (2 колонки + быстрые звонки) -->
+        <section id="contacts" class="page-content bg-white dark:bg-[#1b1d24] rounded-2xl shadow-xl border border-gray-200 dark:border-[#2a2d37] p-6 md:p-8">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5 mb-5">
+                <i class="fa-solid fa-address-book text-indigo-400"></i> <span data-i18n="contacts">Contacts</span>
+            </h2>
             <div class="relative w-full max-w-md mb-6">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input type="text" id="contacts-search-input" onkeyup="filterContacts(this.value)" placeholder="Search by name or phone..." data-i18n-placeholder="search_ph" class="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl outline-none focus:border-indigo-500 font-medium text-sm shadow-inner transition-colors text-gray-900 dark:text-white">
+                <input type="text" id="contacts-search-input" onkeyup="window.renderDesktopContacts(this.value)" placeholder="Search..." class="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-[#14161c] border border-gray-200 dark:border-[#2e3240] rounded-xl outline-none focus:border-indigo-500 text-sm text-gray-900 dark:text-white">
             </div>
-            
-            <div id="footer-contacts-container" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+            <div id="desktop-contacts-container" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
         </section>
 
-        <section id="archive" class="page-section bg-white dark:bg-slate-800 md:rounded-xl shadow-md p-4 md:p-8 transition-colors duration-300">
-            <h2 class="text-2xl font-bold mb-4 border-b dark:border-slate-700 pb-2">History & Archive</h2>
-            <p id="empty-archive-msg" class="text-gray-500 dark:text-gray-400 italic">Archive is empty. Receipts and emails will appear here.</p>
-            <div id="archive-list" class="flex flex-col gap-4 mt-4"></div>
+        <!-- 5. ARCHIVE / DATA CENTER (совместим с js/archive.js и js/email.js) -->
+        <section id="archive" class="page-content bg-white dark:bg-[#1b1d24] rounded-2xl shadow-xl border border-gray-200 dark:border-[#2a2d37] p-6 md:p-8">
+            <div class="flex justify-between items-center mb-5 border-b border-gray-200 dark:border-[#2a2d37] pb-4">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
+                    <i class="fa-solid fa-server text-blue-400"></i> <span data-i18n="cloud_repo">History & Archive</span>
+                </h2>
+                <span class="text-gray-400 text-xs font-mono bg-[#262934] px-3 py-1.5 rounded-lg border border-[#323646]">1.2 GB / 15 GB</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 mb-6 max-w-md">
+                <button onclick="window.switchArchiveTab('docs')" class="bg-[#262934] p-3 rounded-2xl border border-[#323646] hover:border-indigo-500 flex flex-col items-center transition">
+                    <i class="fa-solid fa-file-lines text-gray-300 text-lg mb-1"></i>
+                    <span class="text-[11px] font-bold uppercase text-white">Docs</span>
+                </button>
+                <button onclick="window.switchArchiveTab('media')" class="bg-[#262934] p-3 rounded-2xl border border-[#323646] hover:border-indigo-500 flex flex-col items-center transition">
+                    <i class="fa-solid fa-image text-gray-300 text-lg mb-1"></i>
+                    <span class="text-[11px] font-bold uppercase text-white">Media</span>
+                </button>
+                <button onclick="window.switchArchiveTab('mail')" class="bg-[#262934] p-3 rounded-2xl border border-[#00a884] flex flex-col items-center relative transition">
+                    <i class="fa-solid fa-envelope text-[#00a884] text-lg mb-1"></i>
+                    <span class="text-[11px] font-bold uppercase text-white">Mail</span>
+                    <div id="mail-badge" class="hidden absolute top-2 right-2 w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
+                </button>
+            </div>
+
+            <h3 id="archive-section-title" class="text-xs text-[#00a884] uppercase font-bold mb-3">Corporate Mailbox</h3>
+
+            <div id="email-list-view" class="w-full">
+                <div id="archive-list" class="flex flex-col gap-3">
+                    <p id="empty-archive" class="text-sm text-gray-400 italic">Archive is empty. Receipts and emails will appear here.</p>
+                </div>
+            </div>
+
+            <div id="email-reader-view" class="hidden flex-col w-full">
+                <button onclick="window.backToEmailList()" class="mb-4 text-[#00a884] flex items-center gap-2 hover:text-white text-sm font-bold"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                <div class="bg-[#14161c] rounded-2xl p-5 border border-[#2e3240]">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 id="email-read-subject" class="text-white font-bold text-lg">Subject</h3>
+                        <button id="email-read-action-btn" class="text-gray-400 hover:text-white p-1"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-400 border-b border-[#2e3240] pb-3 mb-4">
+                        <span id="email-read-from">From</span>
+                        <span id="email-read-date">Date</span>
+                    </div>
+                    <div id="email-read-body" class="text-gray-200 text-sm whitespace-pre-wrap"></div>
+                </div>
+            </div>
         </section>
-        
     </main>
 </div>
 
-<div id="conference-overlay" class="call-overlay bg-gray-100 dark:bg-[#0f172a]">
-    <div class="p-4 flex justify-between items-center bg-white/80 dark:bg-black/50 border-b border-gray-300 dark:border-white/5 backdrop-blur-md shrink-0 shadow-sm z-20">
-        <div class="font-bold text-indigo-600 dark:text-[#00C4CC] tracking-widest text-lg">LIVE VIDEO TRANSLATION</div>
-        <div class="text-red-500 flex items-center gap-2 text-xs font-bold bg-red-100 dark:bg-red-500/10 px-3 py-1 rounded-full border border-red-200 dark:border-red-500/20">
-            <span class="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span> LIVE REC
+<!-- ДВУХКОЛОНОЧНАЯ КАРТОЧКА КОНТАКТА (Десктопный дизайн + мобильная логика) -->
+<div id="web-profile-overlay" class="fixed inset-0 z-[10000] hidden items-center justify-center gap-6 md:gap-8 p-4 bg-black/80" onclick="if(event.target===this) window.closeAvatarModal()">
+    <div class="bg-[#1b1d24] text-white w-full max-w-sm rounded-[2rem] p-7 shadow-2xl border border-[#2e3240] relative" onclick="event.stopPropagation()">
+        <button onclick="window.closeAvatarModal()" class="absolute top-5 right-5 text-gray-400 hover:text-red-500 text-2xl transition">&times;</button>
+        <div class="flex flex-col items-center mb-5">
+            <div class="w-28 h-28 rounded-full p-1 border-4 border-indigo-500 shadow-xl mb-3">
+                <img id="modal-user-photo" src="" class="w-full h-full rounded-full object-cover">
+            </div>
+            <h2 id="modal-user-name" class="text-2xl font-black">Name</h2>
+            <span id="modal-user-id" class="text-[11px] text-gray-400 font-mono mt-0.5"></span>
         </div>
-    </div>
-    
-    <div id="conference-grid" class="grid-conf overflow-y-auto flex-grow p-4 md:p-8"></div>
-    
-    <div id="conf-marquee-container" class="mx-auto w-[90%] max-w-2xl bg-white/90 dark:bg-black/80 rounded-2xl p-3 mb-4 shadow-md border border-gray-300 dark:border-gray-700 items-center hidden z-50 relative">
-        <span class="text-indigo-600 dark:text-[#00C4CC] font-bold text-xs shrink-0 mr-3 border-r border-gray-300 dark:border-gray-600 pr-3">Live CC:</span>
-        <marquee id="conf-marquee" class="text-gray-800 dark:text-gray-200 font-medium text-sm flex items-center"></marquee>
-    </div>
-
-    <div class="w-full shrink-0 mt-auto pb-8 pt-4 flex justify-center z-50 bg-gradient-to-t from-gray-100 dark:from-[#0f172a] to-transparent">
-        <div class="flex items-center gap-3 bg-white/95 dark:bg-[#1a1e23]/95 backdrop-blur-md px-6 py-3 rounded-full border border-gray-300 dark:border-gray-700 shadow-2xl">
-            <button onclick="openAttachmentModal()" class="text-gray-500 hover:text-blue-500 transition-colors px-2" title="Attach File"><i class="fa-solid fa-paperclip text-xl"></i></button>
-            
-            <input type="text" id="conf-text-input" placeholder="Message..." class="bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white px-4 py-3 rounded-full outline-none w-40 transition-colors" onkeypress="if(event.key === 'Enter') sendConfMessage()">
-            
-            <button id="conf-send-btn" onclick="sendConfMessage()" class="text-indigo-600 dark:text-[#00C4CC] hover:scale-110 transition-transform"><i class="fa-solid fa-paper-plane text-xl"></i></button>
-            
-            <div class="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-1"></div>
-            <button id="main-conf-mic-btn" onclick="toggleConfMic(this)" class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-red-500 hover:text-white text-gray-700 dark:text-white transition-all shadow-md flex items-center justify-center"><i class="fa-solid fa-microphone text-lg"></i></button>
-            <button id="conf-cam-btn" onclick="toggleConfCam(this)" class="w-12 h-12 rounded-full bg-indigo-600 dark:bg-[#00C4CC] flex items-center justify-center text-white dark:text-black transition-all shadow-md"><i class="fa-solid fa-video text-lg"></i></button>
-            <button onclick="toggleConfCC(this)" id="conf-cc-btn" class="w-12 h-12 rounded-full bg-indigo-600 dark:bg-[#00C4CC] flex items-center justify-center text-white dark:text-black transition-all shadow-md"><i class="fa-solid fa-closed-captioning text-lg"></i></button>
-            <button onclick="closeConferenceRoom()" class="w-14 h-14 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center text-white transition-all shadow-[0_0_15px_rgba(239,68,68,0.5)] hover:scale-105 ml-1"><i class="fa-solid fa-phone-slash text-xl"></i></button>
+        <div class="space-y-3 text-sm font-semibold">
+            <div class="flex items-center gap-3 py-2 border-b border-white/5"><i class="fa-solid fa-globe text-indigo-400 w-5 text-center"></i><span class="text-gray-400 w-24 uppercase text-[10px] tracking-widest">Country</span><span id="modal-user-country"></span></div>
+            <div class="flex items-center gap-3 py-2 border-b border-white/5"><i class="fa-solid fa-language text-indigo-400 w-5 text-center"></i><span class="text-gray-400 w-24 uppercase text-[10px] tracking-widest">Languages</span><span id="modal-user-langs" class="truncate"></span></div>
+            <div class="flex items-center gap-3 py-2 border-b border-white/5"><i class="fa-solid fa-users text-indigo-400 w-5 text-center"></i><span class="text-gray-400 w-24 uppercase text-[10px] tracking-widest">Population</span><span id="modal-user-pop"></span></div>
+            <div class="flex items-center gap-3 py-2"><i class="fa-solid fa-water text-indigo-400 w-5 text-center"></i><span class="text-gray-400 w-24 uppercase text-[10px] tracking-widest">Seas</span><span id="modal-user-seas" class="truncate"></span></div>
         </div>
-    </div>
-</div>
-
-<div id="voice-room-modal" class="fixed inset-0 bg-[#f8f9fa] dark:bg-slate-900 hidden flex-col z-[400] font-sans">
-
-    <div class="flex justify-between items-center p-6 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 shadow-sm">
-        <h2 class="text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-widest text-sm">HELLO FRIENDS VOICE</h2>
-        <div class="flex items-center gap-2 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800/50 px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-sm">
-            <i class="fa-solid fa-lock"></i> Encrypted
+        <div class="mt-5 pt-4 border-t border-white/5">
+            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">About</p>
+            <p id="modal-user-about" class="text-xs text-gray-300 italic leading-relaxed"></p>
         </div>
     </div>
 
-    <div class="flex-1 flex items-center justify-center gap-10 px-4 mt-[-5vh]">
-        <div class="flex flex-col items-center gap-4">
-            <div class="relative">
-                <img src="https://ui-avatars.com/api/?name=U" id="voice-partner-avatar" onclick="if(typeof openChatLangModal === 'function') openChatLangModal(document.getElementById('voice-partner-name').innerText)" class="w-32 h-32 rounded-full object-cover border-4 border-indigo-100 dark:border-indigo-900 shadow-lg cursor-pointer hover:opacity-80 transition" title="Change Language">
-            </div>
-            <div class="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                <span id="voice-partner-name">Partner</span>
-                <img id="voice-partner-flag" src="https://flagcdn.com/w20/un.png" class="w-6 h-4 object-cover shadow-sm rounded-sm">
-            </div>
-        </div>
-
-        <div class="flex items-center gap-1.5 opacity-60">
-            <div class="w-2 h-8 bg-indigo-400 rounded-full animate-[pulse_0.8s_ease-in-out_infinite]"></div>
-            <div class="w-2 h-14 bg-indigo-500 rounded-full animate-[pulse_0.8s_ease-in-out_infinite_0.2s]"></div>
-            <div class="w-2 h-8 bg-indigo-400 rounded-full animate-[pulse_0.8s_ease-in-out_infinite_0.4s]"></div>
-        </div>
-
-        <div class="flex flex-col items-center gap-4">
-            <div class="relative">
-                <img src="https://ui-avatars.com/api/?name=Me" id="voice-me-avatar" onclick="if(typeof openChatLangModal === 'function') openChatLangModal('Me')" class="w-32 h-32 rounded-full object-cover border-4 border-blue-500 shadow-xl shadow-blue-500/20 cursor-pointer hover:opacity-80 transition" title="Change Language">
-            </div>
-            <div class="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                <span id="voice-me-name">You</span>
-                <img id="voice-me-flag" src="https://flagcdn.com/w20/un.png" class="w-6 h-4 object-cover shadow-sm rounded-sm">
-            </div>
-        </div>
-    </div>
-
-    <div class="w-full bg-white dark:bg-slate-800 p-3 border-t border-gray-200 dark:border-slate-700 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] z-50">
-        <div class="max-w-4xl mx-auto flex flex-col gap-2">
-            
-            <div id="vr-cc-container" class="w-full bg-gray-50 dark:bg-slate-900 rounded-md h-8 flex items-center overflow-hidden relative border border-gray-100 dark:border-slate-700">
-                <span class="text-[10px] text-blue-500 font-bold px-2 absolute left-0 bg-gray-50 dark:bg-slate-900 z-10 h-full flex items-center shadow-[2px_0_5px_rgba(0,0,0,0.05)] uppercase tracking-wider">
-                    Live CC:
-                </span>
-                <div class="flex-1 overflow-hidden ml-16 relative h-full flex items-center">
-                    <span id="web-vr-marquee" class="text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap absolute left-0">
-                        Waiting for voice translation...
-                    </span>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-full px-4 py-2 shadow-inner">
-                <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"><i class="fa-regular fa-face-smile text-xl"></i></button>
-                
-                <button onclick="if(typeof openAttachmentModal==='function') openAttachmentModal()" class="text-gray-400 hover:text-blue-500 transition px-1">
-                    <i class="fa-solid fa-paperclip text-xl"></i>
-                </button>
-
-                <input type="text" id="vr-chat-input" placeholder="Type message or click mic..." class="flex-1 bg-transparent outline-none text-sm text-gray-700 dark:text-white px-2" onkeypress="if(event.key === 'Enter') window.sendVrMessage()">
-                
-                <button id="vr-mic-btn" onclick="window.startVrDictation()" class="text-gray-400 hover:text-green-500 transition">
-                    <i class="fa-solid fa-microphone text-xl"></i>
-                </button>
-                
-                <button onclick="window.sendVrMessage()" class="bg-indigo-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-indigo-600 transition shadow-sm">
-                    <i class="fa-solid fa-paper-plane text-xs"></i>
-                </button>
-                
-                <button onclick="window.toggleVrCC()" class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-blue-600 transition shadow-sm">
-                    <span class="text-[9px] font-bold">CC</span>
-                </button>
-                
-                <button onclick="window.leaveWebVoiceRoom()" class="bg-red-500 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-600 shadow-md ml-2 transition hover:scale-105" title="Leave Voice Room">
-                    <i class="fa-solid fa-phone-slash text-sm"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="search-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] opacity-0 transition-opacity duration-300 backdrop-blur-sm" onclick="if(event.target===this) closeSearchModal()">
-    <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 w-full max-w-xl shadow-2xl transform scale-95 transition-transform duration-300 relative border border-gray-100 dark:border-slate-700" onclick="event.stopPropagation();">
-        <button onclick="closeSearchModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
-        
-        <h2 class="text-lg font-bold mb-5 text-gray-800 dark:text-white flex items-center gap-2"><i class="fa-solid fa-globe text-blue-500"></i> Global Omni-Search</h2>
-        
-        <div class="relative w-full mb-6">
-            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-            <input type="text" id="global-search-input" onkeyup="performLiveSearch()" placeholder="Search people, places, services..." data-i18n-placeholder="search_ph" class="w-full pl-11 pr-10 py-3 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:border-blue-500 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white transition-colors">
-            <i class="fa-solid fa-circle-xmark absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hidden hover:text-red-500 transition text-xl" id="clear-search-btn" onclick="resetGlobalSearch()"></i>
-        </div>
-
-        <div id="search-suggestions" class="space-y-5">
-            <div>
-                <p class="text-[10px] font-bold text-yellow-500 uppercase tracking-wider mb-2 flex items-center gap-1"><i class="fa-solid fa-shield-halved"></i> PEOPLE & SKILLS</p>
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="handleSmartSearch('Engineer', 'text')" class="px-3 py-1.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-slate-600 transition flex items-center"><i class="fa-solid fa-laptop text-blue-400 mr-2"></i> Engineer</button>
-                    <button onclick="handleSmartSearch('Designer', 'text')" class="px-3 py-1.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-slate-600 transition flex items-center"><i class="fa-solid fa-palette text-red-400 mr-2"></i> Designer</button>
-                    <button onclick="handleSmartSearch('Marketing', 'text')" class="px-3 py-1.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-slate-600 transition flex items-center"><i class="fa-solid fa-chart-line text-purple-400 mr-2"></i> Marketing</button>
-                </div>
-            </div>
-
-            <div>
-                <p class="text-[10px] font-bold text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1"><i class="fa-solid fa-earth-americas"></i> PLACES & LANGUAGES</p>
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="handleSmartSearch('Germany', 'text')" class="px-3 py-1.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-600 transition flex items-center"><span class="text-[10px] text-gray-400 font-bold mr-2">DE</span> Germany</button>
-                    <button onclick="handleSmartSearch('Italy', 'text')" class="px-3 py-1.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-600 transition flex items-center"><span class="text-[10px] text-gray-400 font-bold mr-2">IT</span> Italy</button>
-                    <button onclick="handleSmartSearch('English', 'text')" class="px-3 py-1.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-600 transition flex items-center"><i class="fa-solid fa-language text-indigo-500 mr-2"></i> English</button>
-                </div>
-            </div>
-
-            <div>
-                <p class="text-[10px] font-bold text-teal-500 uppercase tracking-wider mb-2 flex items-center gap-1"><i class="fa-solid fa-credit-card"></i> SERVICES & ACTIONS</p>
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="handleSmartSearch('', 'transfer')" class="px-3 py-1.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-lg text-sm text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-800/80 transition flex items-center"><i class="fa-solid fa-money-bill-transfer text-green-500 mr-2"></i> Send Money</button>
-                    <button onclick="handleSmartSearch('', 'email')" class="px-3 py-1.5 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800/50 rounded-lg text-sm text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-800/80 transition flex items-center"><i class="fa-solid fa-envelope text-purple-500 mr-2"></i> Compose Email</button>
-                </div>
-            </div>
-
-            <div>
-                <p class="text-[10px] font-bold text-cyan-500 uppercase tracking-wider mb-2 flex items-center gap-1"><i class="fa-solid fa-globe"></i> WEB QUERIES</p>
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="handleSmartSearch('Exchange Rates', 'web')" class="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-lg text-sm text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-800/80 transition flex items-center"><i class="fa-solid fa-rotate text-blue-400 mr-2"></i> Exchange Rates</button>
-                    <button onclick="handleSmartSearch('World News', 'web')" class="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-lg text-sm text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-800/80 transition flex items-center"><i class="fa-solid fa-newspaper text-blue-400 mr-2"></i> World News</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="search-results-area" class="w-full flex-col gap-2 mt-4 hidden overflow-y-auto max-h-[40vh] border-t border-gray-100 dark:border-slate-700 pt-4"></div>
-        <iframe id="search-result-frame" class="w-full h-[40vh] mt-4 rounded-xl border border-gray-200 dark:border-slate-700 hidden" src="about:blank"></iframe>
-
-        <button onclick="doGoogleSearch()" class="mt-6 w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800 py-3 rounded-xl text-sm font-semibold transition-colors flex justify-center items-center gap-2">
-            <span class="text-gray-500 dark:text-gray-400">Search Web:</span>
-            <span class="font-bold text-blue-500">G</span><span class="font-bold text-red-500">o</span><span class="font-bold text-yellow-500">o</span><span class="font-bold text-blue-500">g</span><span class="font-bold text-green-500">l</span><span class="font-bold text-red-500">e</span>
-        </button>
-    </div>
-</div>
-
-<div id="web-profile-overlay" class="fixed inset-0 z-[10000] hidden items-center justify-center gap-6 md:gap-10 p-4 bg-black/80 transition-all duration-500 overflow-hidden" onclick="if(event.target===this) closeUserProfile()">
-    
-    <div id="profile-left-panel" class="bg-white dark:bg-slate-800 text-gray-900 dark:text-white w-full max-w-sm rounded-[2rem] p-8 shadow-2xl relative transform -translate-x-full transition-transform duration-500" onclick="event.stopPropagation()">
-        <button onclick="closeUserProfile()" class="absolute top-6 right-6 text-gray-400 hover:text-red-500 text-3xl transition-colors">&times;</button>
-        <div class="flex flex-col items-center mb-6">
-            <div class="w-28 h-28 rounded-full p-1 border-4 border-indigo-500 shadow-xl mb-4"><img id="modal-user-photo" src="" class="w-full h-full rounded-full object-cover"></div>
-            <h2 id="modal-user-name" class="text-2xl font-black tracking-tight">Name</h2>
-        </div>
-        <div class="space-y-4 text-sm font-bold">
-            <div class="flex items-center gap-4 py-2 border-b border-gray-100 dark:border-white/5"><i class="fa-solid fa-globe text-indigo-500 w-6 text-center text-xl"></i><span class="text-gray-400 w-24 uppercase text-[10px] tracking-widest" data-i18n="country">Country</span><span id="modal-user-country" class="flex items-center gap-2"></span></div>
-            <div class="flex items-center gap-4 py-2 border-b border-gray-100 dark:border-white/5"><i class="fa-solid fa-language text-indigo-500 w-6 text-center text-xl"></i><span class="text-gray-400 w-24 uppercase text-[10px] tracking-widest" data-i18n="languages">Languages</span><span id="modal-user-langs" class="truncate max-w-[150px]"></span></div>
-            <div class="flex items-center gap-4 py-2 border-b border-gray-100 dark:border-white/5"><i class="fa-solid fa-users text-indigo-500 w-6 text-center text-xl"></i><span class="text-gray-400 w-24 uppercase text-[10px] tracking-widest" data-i18n="population">Population</span><span id="modal-user-pop"></span></div>
-            <div class="flex items-center gap-4 py-2"><i class="fa-solid fa-water text-indigo-500 w-6 text-center text-xl"></i><span class="text-gray-400 w-24 uppercase text-[10px] tracking-widest" data-i18n="seas">Seas</span><span id="modal-user-seas" class="truncate max-w-[150px]"></span></div>
-        </div>
-        <div class="mt-6 pt-4 border-t border-gray-100 dark:border-white/5"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2" data-i18n="about_me">About</p><p id="modal-user-about" class="text-xs leading-relaxed text-gray-500 italic"></p></div>
-    </div>
-
-    <div id="profile-right-panel" class="w-full max-w-sm flex flex-col gap-3 transform translate-x-full transition-transform duration-500" onclick="event.stopPropagation()">
-        
+    <div class="w-full max-w-sm flex flex-col gap-3" onclick="event.stopPropagation()">
         <div class="grid grid-cols-2 gap-3">
-            <button id="btn-priv-chat" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
-                <i class="fa-solid fa-lock text-green-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]"></i>
-                <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_chat">Private Chat</span>
+            <button id="btn-priv-chat" class="glass-panel square-btn hover:bg-[#323646] cursor-pointer shadow-lg">
+                <i class="fa-solid fa-lock text-emerald-400 text-3xl"></i>
+                <span class="text-white font-bold text-sm" data-i18n="btn_private_chat">Private Chat</span>
             </button>
-            <button id="btn-voice-msg" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
-                <i class="fa-solid fa-microphone text-blue-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]"></i>
-                <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_voice">Sprachraum</span>
+            <button id="btn-video-call" class="glass-panel square-btn hover:bg-[#323646] cursor-pointer shadow-lg">
+                <i class="fa-solid fa-video text-blue-400 text-3xl"></i>
+                <span class="text-white font-bold text-sm" data-i18n="btn_voice_msg">Video Call</span>
             </button>
-            <button id="btn-app-audio" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
-                <i class="fa-solid fa-headset text-purple-400 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]"></i>
-                <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_app_audio">App Audio</span>
+            <button id="btn-app-audio" class="glass-panel square-btn hover:bg-[#323646] cursor-pointer shadow-lg">
+                <i class="fa-solid fa-headset text-purple-400 text-3xl"></i>
+                <span class="text-white font-bold text-sm" data-i18n="btn_app_audio">App Audio</span>
             </button>
-            <button id="btn-app-video" class="glass-panel square-btn hover:bg-white/10 group cursor-pointer shadow-lg">
-                <i class="fa-solid fa-video text-pink-500 text-3xl group-hover:scale-110 transition drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]"></i>
-                <span class="text-white font-bold text-sm tracking-wide" data-i18n="action_video">App Video</span>
+            <button id="btn-video-conf" class="glass-panel square-btn hover:bg-[#323646] cursor-pointer shadow-lg">
+                <i class="fa-solid fa-users text-pink-500 text-3xl"></i>
+                <span class="text-white font-bold text-sm" data-i18n="btn_app_video">Conference</span>
             </button>
         </div>
-        
-        <button id="btn-ext-call" class="glass-panel rounded-2xl py-4 flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer shadow-lg mt-1">
-            <span class="text-white font-bold text-base tracking-wide" data-i18n="action_cellular">Phone Call</span>
-        </button>
-        
-        <button id="btn-full-cv" class="bg-[#10b981]/10 border border-[#10b981]/40 backdrop-blur-md rounded-2xl p-4 flex items-center justify-center gap-3 hover:bg-[#10b981]/20 transition-all cursor-pointer shadow-lg mt-1 group">
-            <i class="fa-solid fa-user-tie text-emerald-400 text-xl group-hover:scale-110 transition"></i>
-            <span class="text-emerald-400 font-bold text-sm tracking-wide uppercase" data-i18n="view_cv">View Full CV</span>
+        <button id="btn-ext-call" class="glass-panel rounded-2xl py-4 text-white font-bold text-base hover:bg-[#323646] transition shadow-lg">Cellular Call</button>
+        <button id="btn-full-cv" class="bg-emerald-500/10 border border-emerald-500/40 rounded-2xl p-4 flex items-center justify-center gap-3 hover:bg-emerald-500/20 transition shadow-lg">
+            <i class="fa-solid fa-user-tie text-emerald-400 text-xl"></i>
+            <span class="text-emerald-400 font-bold text-sm uppercase">View Full CV</span>
         </button>
     </div>
 </div>
 
-<div id="trash-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200]">
-    <div class="bg-white dark:bg-slate-800 w-[320px] rounded-[30px] shadow-2xl p-6 relative border border-gray-100 dark:border-slate-700">
-        <button onclick="closeTrashModal()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-600 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
-        <div class="flex items-center justify-center gap-2 mb-6 mt-1">
-            <i class="fa-regular fa-trash-can text-red-400 text-xl"></i><h3 class="text-lg font-bold text-gray-800 dark:text-white">Smart Trash</h3>
-        </div>
-        <div class="flex flex-col gap-3">
-            <button onclick="smartArchive(); closeTrashModal();" class="w-full flex items-center justify-start gap-4 py-3.5 px-5 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 text-blue-500 rounded-2xl text-[13px] font-semibold transition-colors"><i class="fa-solid fa-box-archive text-lg w-5 text-center"></i> Send to Archive</button>
-            <button onclick="actionClearHistory()" class="w-full flex items-center justify-start gap-4 py-3.5 px-5 bg-yellow-50 dark:bg-yellow-500/10 hover:bg-yellow-100 text-yellow-600 rounded-2xl text-[13px] font-semibold transition-colors"><i class="fa-solid fa-broom text-lg w-5 text-center"></i> Clear Chat</button>
-            <button onclick="actionDeleteForever()" class="w-full flex items-center justify-start gap-4 py-3.5 px-5 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 text-red-500 rounded-2xl text-[13px] font-semibold transition-colors"><i class="fa-solid fa-fire text-lg w-5 text-center"></i> Delete Completely</button>
-        </div>
-    </div>
-</div>
+<!-- МОДАЛЬНЫЕ ОКНА ЭКОСИСТЕМЫ (точные ID для мобильных JS-модулей) -->
 
-<div id="archive-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[200]">
-    <div class="bg-white dark:bg-slate-900 w-[360px] h-[600px] rounded-[30px] shadow-2xl relative border border-gray-200 dark:border-slate-700 flex flex-col overflow-hidden text-gray-800 dark:text-white">
-        <div class="p-5 flex justify-between items-center border-b border-gray-100 dark:border-slate-800">
-            <div class="flex items-center gap-3"><i class="fa-solid fa-server text-blue-500 dark:text-blue-400 text-xl"></i><h2 class="text-lg font-extrabold tracking-wide">Cloud-Speicher</h2></div>
-            <div class="bg-gray-100 dark:bg-slate-800 px-3 py-1 rounded-full text-[10px] font-bold text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700">1.2 GB / 15 GB</div>
-            <button onclick="closeArchiveModal()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-600 dark:hover:text-white transition"><i class="fa-solid fa-xmark text-xl"></i></button>
-        </div>
-        <div class="flex justify-between gap-2 p-4">
-            <button onclick="switchArchiveTab('docs')" id="tab-docs" class="flex-1 flex flex-col items-center justify-center py-3 bg-gray-50 dark:bg-slate-800 rounded-2xl text-gray-400 font-bold text-xs transition border border-transparent hover:bg-gray-100 dark:hover:bg-slate-700"><i class="fa-solid fa-file-lines text-lg mb-1 text-gray-300 dark:text-gray-500"></i> DOCS</button>
-            <button onclick="switchArchiveTab('media')" id="tab-media" class="flex-1 flex flex-col items-center justify-center py-3 bg-gray-50 dark:bg-slate-800 rounded-2xl text-gray-400 font-bold text-xs transition border border-transparent hover:bg-gray-100 dark:hover:bg-slate-700"><i class="fa-solid fa-image text-lg mb-1 text-gray-300 dark:text-gray-500"></i> MEDIA</button>
-            <button onclick="switchArchiveTab('mail')" id="tab-mail" class="flex-1 flex flex-col items-center justify-center py-3 bg-white dark:bg-slate-800 rounded-2xl text-green-500 dark:text-green-400 font-bold text-xs transition border border-green-500 shadow-[0_0_10px_rgba(34,197,94,0.2)]"><i class="fa-solid fa-envelope text-lg mb-1"></i> MAIL</button>
-        </div>
-        <div class="px-5 pb-2 text-[10px] font-bold text-green-500 uppercase tracking-wider">Corporate Mailbox</div>
-        <div id="archive-content" class="flex-1 overflow-y-auto px-4 pb-4 flex flex-col gap-3"></div>
-    </div>
-</div>
-
-<div id="location-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] opacity-0 transition-opacity duration-300 backdrop-blur-sm" onclick="if(event.target===this) closeLocationModal()">
-    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-lg h-[60vh] flex flex-col shadow-2xl transform scale-95 transition-transform duration-300 relative border border-gray-100 dark:border-slate-700 mx-4" onclick="event.stopPropagation();">
-        <button onclick="closeLocationModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors z-50"><i class="fa-solid fa-xmark text-xl"></i></button>
-        <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4 shrink-0"><i class="fa-solid fa-location-dot text-red-500"></i> My Location</h2>
-        <div id="location-map" class="w-full grow bg-gray-100 dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 p-2 overflow-hidden"></div>
-    </div>
-</div>
-
-<div id="unified-lang-modal" class="fixed inset-0 z-[99999] hidden flex-col items-center justify-center bg-black/60 px-4 opacity-0 transition-opacity duration-300 backdrop-blur-sm" onclick="if(event.target===this) window.closeModal('unified-lang-modal')">
-    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-6 w-full max-w-sm transform scale-95 transition-transform duration-300 border border-gray-100 dark:border-slate-700" onclick="event.stopPropagation()">
-        <button onclick="window.closeModal('unified-lang-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
-        
-        <h3 class="text-lg font-bold mb-4 text-center text-gray-900 dark:text-white flex items-center justify-center gap-2">
-            <i class="fa-solid fa-language text-blue-500"></i> Language Settings
-        </h3>
-        
-        <div class="flex gap-1 bg-gray-100 dark:bg-slate-900 p-1.5 rounded-xl mb-4 border border-gray-200 dark:border-slate-700 shadow-inner">
-            <button id="tab-lang-text" onclick="window.switchLangTab('text')" class="flex-1 py-2 rounded-lg bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 text-sm font-bold shadow-sm transition flex items-center justify-center gap-2">
-                <i class="fa-solid fa-keyboard"></i> Text
-            </button>
-            <button id="tab-lang-mic" onclick="window.switchLangTab('mic')" class="flex-1 py-2 rounded-lg bg-transparent text-gray-500 dark:text-gray-400 text-sm font-bold hover:text-gray-700 dark:hover:text-gray-200 transition flex items-center justify-center gap-2">
-                <i class="fa-solid fa-microphone"></i> Mic
-            </button>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1" id="unified-lang-list">
-            </div>
-        
-        <button onclick="window.closeModal('unified-lang-modal')" class="w-full mt-5 py-3 bg-gray-100 dark:bg-slate-700 rounded-xl font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors shadow-sm">Confirm</button>
-    </div>
-</div>
-
-<div id="qr-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[200]">
-    <div class="bg-white dark:bg-slate-800 w-[300px] rounded-[30px] shadow-2xl p-6 relative border border-gray-100 dark:border-slate-700 text-center">
-        <button onclick="closeModal('qr-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
-        <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-1">Your QR Code</h3>
-        <p class="text-xs text-gray-500 mb-4">Scan to connect securely</p>
-        <div class="bg-white p-2 rounded-2xl shadow-inner border border-gray-100 mx-auto w-48 h-48 flex items-center justify-center mb-4">
-            <i class="fa-solid fa-qrcode text-[140px] text-gray-800"></i>
-        </div>
-        <button onclick="alert('QR Code saved!')" class="w-full py-3 bg-purple-50 dark:bg-purple-500/10 hover:bg-purple-100 text-purple-600 rounded-2xl text-[13px] font-bold transition-colors">
-            <i class="fa-solid fa-download mr-2"></i> Save Image
-        </button>
-    </div>
-</div>
-
-<div id="guide-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[200]">
-    <div class="bg-white dark:bg-slate-800 w-[320px] rounded-[30px] shadow-2xl p-6 relative border border-gray-100 dark:border-slate-700">
-        <button onclick="closeModal('guide-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
-        <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4"><i class="fa-solid fa-map-location-dot text-yellow-500 mr-2"></i> Travel Guide</h3>
-        <div class="grid grid-cols-2 gap-3">
-            <button class="flex flex-col items-center p-3 bg-gray-50 dark:bg-slate-700 hover:bg-yellow-50 rounded-2xl border border-gray-100 dark:border-slate-600 transition"><span class="text-2xl mb-1">🇦🇿</span><span class="text-[10px] font-bold">Azerbaijan</span></button>
-            <button class="flex flex-col items-center p-3 bg-gray-50 dark:bg-slate-700 hover:bg-yellow-50 rounded-2xl border border-gray-100 dark:border-slate-600 transition"><span class="text-2xl mb-1">🇩🇪</span><span class="text-[10px] font-bold">Germany</span></button>
-            <button class="flex flex-col items-center p-3 bg-gray-50 dark:bg-slate-700 hover:bg-yellow-50 rounded-2xl border border-gray-100 dark:border-slate-600 transition"><span class="text-2xl mb-1">🇮🇹</span><span class="text-[10px] font-bold">Italy</span></button>
-            <button class="flex flex-col items-center p-3 bg-gray-50 dark:bg-slate-700 hover:bg-yellow-50 rounded-2xl border border-gray-100 dark:border-slate-600 transition"><span class="text-2xl mb-1">🇷🇺</span><span class="text-[10px] font-bold">Russia</span></button>
+<!-- Прикрепление файлов -->
+<div id="attach-modal" class="app-modal" onclick="if(event.target===this) window.closeAttachModal();">
+    <div class="app-modal-content max-w-sm">
+        <div class="close-sheet-btn" onclick="window.closeAttachModal()"><i class="fa-solid fa-xmark"></i></div>
+        <h2 class="text-lg font-bold mb-5 text-center" data-i18n="attach_file">Attach File</h2>
+        <div class="grid grid-cols-3 gap-3">
+            <button class="bg-blue-600 text-white rounded-2xl flex flex-col justify-center items-center gap-1.5 aspect-square hover:scale-105 transition" onclick="document.getElementById('hf-upload-photo').click(); window.closeAttachModal();"><i class="fa-solid fa-image text-2xl"></i><span class="text-[11px] font-bold">Photo</span></button>
+            <button class="bg-red-600 text-white rounded-2xl flex flex-col justify-center items-center gap-1.5 aspect-square hover:scale-105 transition" onclick="document.getElementById('hf-upload-video').click(); window.closeAttachModal();"><i class="fa-solid fa-video text-2xl"></i><span class="text-[11px] font-bold">Video</span></button>
+            <button class="bg-amber-600 text-white rounded-2xl flex flex-col justify-center items-center gap-1.5 aspect-square hover:scale-105 transition" onclick="document.getElementById('hf-upload-audio').click(); window.closeAttachModal();"><i class="fa-solid fa-headphones text-2xl"></i><span class="text-[11px] font-bold">Audio</span></button>
+            <button class="bg-purple-600 text-white rounded-2xl flex flex-col justify-center items-center gap-1.5 aspect-square hover:scale-105 transition" onclick="document.getElementById('hf-upload-doc').click(); window.closeAttachModal();"><i class="fa-solid fa-file-lines text-2xl"></i><span class="text-[11px] font-bold">Document</span></button>
+            <button class="bg-emerald-600 text-white rounded-2xl flex flex-col justify-center items-center gap-1.5 aspect-square hover:scale-105 transition" onclick="window.sendLocationToChat(); window.closeAttachModal();"><i class="fa-solid fa-location-dot text-2xl"></i><span class="text-[11px] font-bold">Location</span></button>
+            <button class="bg-sky-600 text-white rounded-2xl flex flex-col justify-center items-center gap-1.5 aspect-square hover:scale-105 transition" onclick="document.getElementById('hf-upload-camera').click(); window.closeAttachModal();"><i class="fa-solid fa-camera text-2xl"></i><span class="text-[11px] font-bold">Camera</span></button>
         </div>
     </div>
 </div>
 
-<div id="security-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[200]">
-    <div class="bg-white dark:bg-slate-800 w-[320px] rounded-[30px] shadow-2xl p-6 relative border border-gray-100 dark:border-slate-700">
-        <button onclick="closeModal('security-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
-        <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4"><i class="fa-solid fa-shield-halved text-slate-500 mr-2"></i> Security</h3>
-        <div class="bg-gray-50 dark:bg-slate-700 p-4 rounded-2xl flex justify-between items-center border border-gray-100 dark:border-slate-600">
+<!-- Полный экран картинки -->
+<div id="fullscreen-image-modal" class="app-modal" style="background:rgba(0,0,0,0.95);" onclick="if(event.target===this) window.closeFullscreenImage();">
+    <div class="close-sheet-btn" style="top:20px; right:20px;" onclick="window.closeFullscreenImage()"><i class="fa-solid fa-xmark"></i></div>
+    <img id="fullscreen-img-src" src="" class="max-w-[92%] max-h-[86vh] object-contain rounded-xl shadow-2xl">
+</div>
+
+<!-- Просмотр CV -->
+<div id="view-cv-modal" class="app-modal" onclick="if(event.target===this) window.closeViewCVModal();">
+    <div class="app-modal-content max-w-lg" onclick="event.stopPropagation();">
+        <div class="close-sheet-btn" onclick="window.closeViewCVModal()"><i class="fa-solid fa-xmark"></i></div>
+        <div class="flex items-center gap-4 mb-5">
+            <img id="cv-view-img" src="" class="w-16 h-16 rounded-full object-cover border-2 border-[#00a884]">
             <div>
-                <div class="text-[13px] font-bold text-gray-800 dark:text-white">Two-Factor Auth</div>
-                <div class="text-[10px] text-gray-500">Protect account with 2FA</div>
+                <h3 id="cv-view-name" class="text-2xl font-bold"></h3>
+                <span id="cv-view-prof" class="text-indigo-400 font-bold text-sm"></span>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="toggle-2fa">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-            </label>
+        </div>
+        <div id="cv-view-content" class="flex flex-col gap-3 text-sm mb-5 overflow-y-auto pr-1"></div>
+        <div class="flex flex-col gap-2 w-full mt-auto" id="cv-action-buttons"></div>
+    </div>
+</div>
+
+<!-- Выбор языка чата -->
+<div id="personal-lang-modal" class="app-modal" onclick="if(event.target===this) window.closePersonalLangModal();">
+    <div class="app-modal-content max-w-sm" onclick="event.stopPropagation();">
+        <div class="close-sheet-btn" onclick="window.closePersonalLangModal()"><i class="fa-solid fa-xmark"></i></div>
+        <h2 class="text-lg font-bold mb-4 text-center"><i class="fa-solid fa-language text-[#00a884] mr-2"></i> <span data-i18n="chat_lang">Chat Language</span></h2>
+        <div class="flex flex-col gap-2 overflow-y-auto max-h-[55vh]" id="personal-lang-list"></div>
+    </div>
+</div>
+
+<!-- Мой профиль (без дубля флага и с подписями полей) -->
+<div id="edit-profile-modal" class="app-modal" onclick="if(event.target===this) window.closeProfileModal();">
+    <div class="app-modal-content max-w-md" onclick="event.stopPropagation();">
+        <div class="close-sheet-btn" onclick="window.closeProfileModal()"><i class="fa-solid fa-xmark"></i></div>
+        <h2 id="profile-modal-title" class="text-xl font-bold text-center mb-1" data-i18n="edit_title">My Profile</h2>
+        <p id="profile-modal-subtitle" class="text-xs text-gray-400 text-center mb-5" data-i18n="reg_subtitle">Complete Registration</p>
+
+        <div class="flex flex-col items-center mb-5">
+            <div class="relative w-20 h-20">
+                <img id="edit-preview-photo" src="" class="w-full h-full rounded-full object-cover border-2 border-[#00a884]">
+                <button onclick="document.getElementById('photo-upload-input').click()" class="absolute bottom-0 right-0 bg-[#00a884] text-[#111b21] rounded-full w-7 h-7 flex justify-center items-center border-2 border-[#1b1d24]"><i class="fa-solid fa-camera text-[10px]"></i></button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+                <label class="form-label" data-i18n="reg_name">Full Name</label>
+                <input type="text" id="edit-name" class="form-input-box !mb-0" placeholder="Name">
+            </div>
+            <div>
+                <label class="form-label" data-i18n="reg_country">Country</label>
+                <div class="relative h-[44px] bg-[#121318] border border-[#323646] rounded-xl flex items-center px-2.5">
+                    <img id="edit-flag-icon" src="https://flagcdn.com/w40/un.png" class="w-5 h-3.5 rounded-sm object-cover mr-2 shrink-0">
+                    <select id="edit-country-select" class="bg-transparent text-white w-full outline-none text-xs appearance-none cursor-pointer" onchange="window.handleCountryChange(this)">
+                        <option value="un" data-name="Global" data-emoji="🌐" data-lang="en">Global</option>
+                        <option value="az" data-name="Azerbaijan" data-emoji="🇦🇿" data-lang="az">Azerbaijan</option>
+                        <option value="kz" data-name="Kazakhstan" data-emoji="🇰🇿" data-lang="kk">Kazakhstan</option>
+                        <option value="ru" data-name="Russia" data-emoji="🇷🇺" data-lang="ru">Russia</option>
+                        <option value="tr" data-name="Turkey" data-emoji="🇹🇷" data-lang="tr">Turkey</option>
+                        <option value="gb" data-name="United Kingdom" data-emoji="🇬🇧" data-lang="en">UK</option>
+                        <option value="us" data-name="United States" data-emoji="🇺🇸" data-lang="en">USA</option>
+                        <option value="de" data-name="Germany" data-emoji="🇩🇪" data-lang="de">Germany</option>
+                        <option value="it" data-name="Italy" data-emoji="🇮🇹" data-lang="it">Italy</option>
+                        <option value="ae" data-name="UAE" data-emoji="🇦🇪" data-lang="ar">UAE</option>
+                        <option value="fr" data-name="France" data-emoji="🇫🇷" data-lang="fr">France</option>
+                        <option value="jp" data-name="Japan" data-emoji="🇯🇵" data-lang="ja">Japan</option>
+                        <option value="es" data-name="Spain" data-emoji="🇪🇸" data-lang="es">Spain</option>
+                        <option value="cn" data-name="China" data-emoji="🇨🇳" data-lang="zh">China</option>
+                        <option value="pt" data-name="Portugal" data-emoji="🇵🇹" data-lang="pt">Portugal</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+                <label class="form-label" data-i18n="reg_phone">Phone Number</label>
+                <input type="tel" id="edit-phone" class="form-input-box !mb-0" placeholder="+1...">
+            </div>
+            <div>
+                <label class="form-label" data-i18n="languages_spoken">Languages</label>
+                <input type="text" id="edit-profile-langs" class="form-input-box !mb-0" placeholder="EN, RU, AZ...">
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" data-i18n="reg_email">Email Address</label>
+            <input type="email" id="edit-email" class="form-input-box !mb-0" placeholder="name@example.com">
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label" data-i18n="about_me">About Me</label>
+            <textarea id="edit-profile-bio" class="form-input-box !mb-0 resize-none" rows="2" placeholder="Tell us about yourself..."></textarea>
+        </div>
+
+        <button onclick="window.saveProfileData()" class="btn-primary"><span data-i18n="reg_save">Save Profile</span></button>
+    </div>
+</div>
+
+<!-- Редактирование CV -->
+<div id="edit-cv-modal" class="app-modal" onclick="if(event.target===this) window.closeEditCV();">
+    <div class="app-modal-content max-w-lg" onclick="event.stopPropagation();">
+        <div class="close-sheet-btn" onclick="window.closeEditCV()"><i class="fa-solid fa-xmark"></i></div>
+        <h3 class="text-xl font-bold text-center mb-1" data-i18n="prof_cv">Professional CV</h3>
+        <p class="text-xs text-gray-400 text-center mb-4" data-i18n="business_contacts">Business contact details</p>
+        <div class="overflow-y-auto pr-1 space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+                <div><label class="form-label" data-i18n="profession">Profession</label><input type="text" id="cv-edit-prof" class="form-input-box !mb-0" placeholder="Developer"></div>
+                <div><label class="form-label" data-i18n="languages_spoken">Languages</label><input type="text" id="cv-edit-langs" class="form-input-box !mb-0" placeholder="English, German..."></div>
+            </div>
+            <div>
+                <label class="form-label" data-i18n="business_location">Business Location</label>
+                <div class="relative h-11 bg-[#121318] border border-[#323646] rounded-xl flex items-center px-3">
+                    <img id="cv-edit-flag-icon" src="https://flagcdn.com/w40/un.png" class="w-5 h-3.5 rounded-sm mr-2">
+                    <select id="cv-edit-country-select" onchange="window.handleCVCountryChange(this)" class="bg-transparent text-white w-full outline-none text-xs appearance-none cursor-pointer">
+                        <option value="un" data-name="Global">Select Country</option>
+                        <option value="az" data-name="Azerbaijan">Azerbaijan</option>
+                        <option value="kz" data-name="Kazakhstan">Kazakhstan</option>
+                        <option value="ru" data-name="Russia">Russia</option>
+                        <option value="tr" data-name="Turkey">Turkey</option>
+                        <option value="gb" data-name="United Kingdom">United Kingdom</option>
+                        <option value="us" data-name="United States">United States</option>
+                        <option value="de" data-name="Germany">Germany</option>
+                        <option value="it" data-name="Italy">Italy</option>
+                        <option value="ae" data-name="UAE">UAE</option>
+                        <option value="fr" data-name="France">France</option>
+                        <option value="jp" data-name="Japan">Japan</option>
+                        <option value="es" data-name="Spain">Spain</option>
+                        <option value="cn" data-name="China">China</option>
+                        <option value="pt" data-name="Portugal">Portugal</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div><label class="form-label" data-i18n="business_phone">Business Phone</label><input type="text" id="cv-edit-phone" class="form-input-box !mb-0" placeholder="+1..."></div>
+                <div><label class="form-label" data-i18n="business_email">Business Email</label><input type="email" id="cv-edit-email" class="form-input-box !mb-0" placeholder="mail@pro.com"></div>
+            </div>
+            <div><label class="form-label" data-i18n="core_skills">Core Skills</label><textarea id="cv-edit-skills" class="form-input-box !mb-0 resize-none" rows="2"></textarea></div>
+            <div><label class="form-label" data-i18n="work_exp">Work Experience</label><textarea id="cv-edit-exp" class="form-input-box !mb-0 resize-none" rows="2"></textarea></div>
+            <div><label class="form-label" data-i18n="education">Education</label><textarea id="cv-edit-edu" class="form-input-box !mb-0 resize-none" rows="2"></textarea></div>
+            <div><label class="form-label" data-i18n="about_cv">About Me (CV)</label><textarea id="cv-edit-bio" class="form-input-box !mb-0 resize-none" rows="2"></textarea></div>
+        </div>
+        <button onclick="window.saveCVData()" class="btn-primary mt-4"><span data-i18n="save_cv">Save CV</span></button>
+    </div>
+</div>
+
+<!-- Почта -->
+<div id="email-modal" class="app-modal" onclick="if(event.target===this) window.closeEmailModal();">
+    <div class="app-modal-content max-w-md" onclick="event.stopPropagation();">
+        <div class="close-sheet-btn" onclick="window.closeEmailModal()"><i class="fa-solid fa-xmark"></i></div>
+        <h2 class="text-xl font-bold mb-4"><i class="fa-solid fa-envelope text-indigo-400 mr-2"></i> <span data-i18n="email_title">Send Email</span></h2>
+        <form class="w-full flex flex-col" id="email-form-element" onsubmit="window.sendEmailForm(event)">
+            <input type="hidden" name="from_name" value="Hello Friends User">
+            <input type="hidden" name="name" value="Hello Friends">
+            <input type="email" name="to_email" id="email-to" class="form-input-box" placeholder="Recipient (To)" required>
+            <input type="text" name="subject" id="email-subject" class="form-input-box" placeholder="Subject" required>
+            <div class="relative mb-3">
+                <textarea name="message" id="email-text" class="form-input-box !mb-0 resize-none pr-9" placeholder="Write your message here..." rows="4" required></textarea>
+                <div class="absolute right-3 top-3 flex flex-col gap-3">
+                    <i class="fa-solid fa-paperclip text-gray-400 hover:text-[#00a884] cursor-pointer" onclick="document.getElementById('email-attach-input').click()"></i>
+                    <i class="fa-regular fa-face-smile text-gray-400 hover:text-white cursor-pointer" onclick="window.toggleEmojiPicker('email-text')"></i>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-1">
+                <button type="button" class="btn-primary !bg-[#262934] !text-white flex-1" onclick="document.getElementById('email-form-element').reset();">Clear</button>
+                <button type="submit" class="btn-primary flex-1"><i class="fa-solid fa-paper-plane"></i> Send</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Локация -->
+<div id="location-modal" class="app-modal" onclick="if(event.target===this) window.closeLocationModal();">
+    <div class="app-modal-content max-w-lg h-[60vh]" onclick="event.stopPropagation();">
+        <div class="close-sheet-btn" onclick="window.closeLocationModal()"><i class="fa-solid fa-xmark"></i></div>
+        <h2 class="text-lg font-bold mb-3"><i class="fa-solid fa-location-dot text-red-500 mr-2"></i> Location</h2>
+        <div id="location-map" class="w-full grow bg-[#121318] rounded-2xl flex flex-col items-center justify-center text-gray-400 text-sm overflow-hidden"></div>
+    </div>
+</div>
+
+<!-- Кошелёк -->
+<div id="transfer-modal" class="app-modal" onclick="if(event.target===this) window.closeBankTransferModal();">
+    <div class="app-modal-content max-w-md" onclick="event.stopPropagation();">
+        <div class="close-sheet-btn" onclick="window.closeBankTransferModal()"><i class="fa-solid fa-xmark"></i></div>
+        <h2 class="text-xl font-bold text-center mb-4"><i class="fa-solid fa-wallet text-[#00a884] mr-2"></i> Wallet</h2>
+        <div class="flex gap-1 bg-[#121318] p-1 rounded-xl mb-4 border border-[#2e3240]">
+            <button id="tab-btn-card" type="button" class="flex-1 py-2 rounded-lg bg-[#262934] text-white text-xs font-bold" onclick="window.switchWalletTab('card')">💳 Card-to-Card</button>
+            <button id="tab-btn-intl" type="button" class="flex-1 py-2 rounded-lg text-gray-400 text-xs font-bold" onclick="window.switchWalletTab('intl')">🌍 International</button>
+        </div>
+        <form id="frame-card" class="flex flex-col gap-3" onsubmit="window.processMoneyTransfer(event, 'card')">
+            <select id="transfer-source-card" class="form-input-box !mb-0"><option value="visa">💳 Visa •••• 4242</option><option value="mc">💳 Mastercard •••• 8810</option></select>
+            <select id="transfer-recipient-card" class="form-input-box !mb-0" required></select>
+            <input type="number" id="transfer-amount-card" class="form-input-box !mb-0" placeholder="Amount ($)" required min="1" step="0.01" oninput="window.updateTransferFeeUI('card')">
+            <div class="bg-[#121318] border border-[#2e3240] rounded-xl p-3 text-sm space-y-1">
+                <div class="flex justify-between"><span class="text-gray-400">Amount:</span><span id="tf-amt-card">$0.00</span></div>
+                <div class="flex justify-between"><span class="text-gray-400">HF Fee:</span><span class="text-red-400">$0.01</span></div>
+                <div class="flex justify-between font-bold border-t border-[#2e3240] pt-1"><span>Total:</span><span id="tf-total-card" class="text-[#00a884]">$0.00</span></div>
+            </div>
+            <button type="submit" id="tf-submit-card" class="btn-primary">Send Money</button>
+        </form>
+        <form id="frame-intl" class="hidden flex-col gap-3" onsubmit="window.processMoneyTransfer(event, 'intl')">
+            <select id="intl-provider" class="form-input-box !mb-0"><option value="Western Union">Western Union</option><option value="Zolotaya Korona">Zolotaya Korona</option><option value="MoneyGram">MoneyGram</option><option value="SWIFT">SWIFT</option></select>
+            <select id="transfer-recipient-intl" class="form-input-box !mb-0" required></select>
+            <input type="number" id="transfer-amount-intl" class="form-input-box !mb-0" placeholder="Amount ($)" required min="1" step="0.01" oninput="window.updateTransferFeeUI('intl')">
+            <div class="bg-[#121318] border border-[#2e3240] rounded-xl p-3 text-sm space-y-1">
+                <div class="flex justify-between"><span class="text-gray-400">Amount:</span><span id="tf-amt-intl">$0.00</span></div>
+                <div class="flex justify-between"><span class="text-gray-400">HF Fee:</span><span class="text-red-400">$0.01</span></div>
+                <div class="flex justify-between font-bold border-t border-[#2e3240] pt-1"><span>Total:</span><span id="tf-total-intl" class="text-[#00a884]">$0.00</span></div>
+            </div>
+            <button type="submit" id="tf-submit-intl" class="btn-primary">Send International</button>
+        </form>
+    </div>
+</div>
+
+<!-- Корзина -->
+<div id="trash-modal" class="app-modal" onclick="if(event.target===this) window.closeTrashModal();">
+    <div class="app-modal-content max-w-xs" onclick="event.stopPropagation();">
+        <div class="close-sheet-btn" onclick="window.closeTrashModal()"><i class="fa-solid fa-xmark"></i></div>
+        <h2 class="text-lg font-bold mb-5 text-center" data-i18n="manage_chat_title">Manage Chat</h2>
+        <div class="flex flex-col gap-2.5">
+            <button class="btn-primary !bg-[#262934] !text-white" onclick="window.actionArchiveChat()"><i class="fa-solid fa-box-archive"></i> Archive Chat</button>
+            <button class="btn-primary !bg-amber-600 !text-white" onclick="window.actionClearHistory()"><i class="fa-solid fa-eraser"></i> Clear History</button>
+            <button class="btn-primary !bg-red-600 !text-white" onclick="window.actionDeleteForever()"><i class="fa-solid fa-trash-can"></i> Delete Forever</button>
         </div>
     </div>
 </div>
 
-<div id="blacklist-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[200]">
-    <div class="bg-white dark:bg-slate-800 w-[320px] rounded-[30px] shadow-2xl p-6 relative border border-gray-100 dark:border-slate-700">
-        <button onclick="closeModal('blacklist-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
-        <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4"><i class="fa-solid fa-user-slash text-red-500 mr-2"></i> Blacklist</h3>
-        <div id="blacklist-content" class="flex flex-col gap-3">
-            <div id="blocked-user-demo" class="flex items-center justify-between bg-red-50 dark:bg-red-900/10 p-3 rounded-2xl border border-red-100 dark:border-red-900/30">
-                <div class="flex items-center gap-3">
-                    <img src="https://ui-avatars.com/api/?name=Spammer&background=ef4444&color=fff" class="w-10 h-10 rounded-full">
+<!-- Email Store -->
+<div id="email-store-modal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/80" onclick="if(event.target===this) window.closeEmailStore();">
+    <div class="bg-[#1b1d24] w-[90%] max-w-sm rounded-2xl border border-[#2e3240] overflow-hidden" onclick="event.stopPropagation();">
+        <div class="bg-[#262934] p-4 flex justify-between items-center border-b border-[#2e3240]">
+            <span class="font-bold flex items-center gap-2"><i class="fa-solid fa-store text-[#00a884]"></i> Email Store</span>
+            <button onclick="window.closeEmailStore()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-5 flex flex-col items-center">
+            <h3 class="font-bold mb-1">Corporate Email</h3>
+            <p class="text-gray-400 text-xs text-center mb-4">Link a custom address to your Hello Friends account.</p>
+            <div class="w-full flex items-center bg-[#121318] border border-[#323646] rounded-xl overflow-hidden">
+                <input type="text" id="new-email-prefix" placeholder="ceo, sales..." class="bg-transparent text-white p-3 w-full outline-none text-sm text-right">
+                <div class="bg-[#262934] text-gray-400 p-3 text-xs font-bold">@hellofriends.chat</div>
+            </div>
+        </div>
+        <div class="p-4 bg-[#262934] border-t border-[#2e3240]">
+            <button onclick="window.buyCorporateEmail()" class="btn-primary">Activate Email ($0.01)</button>
+        </div>
+    </div>
+</div>
+
+<!-- Действия архива -->
+<div id="archive-action-modal" class="fixed inset-0 z-[10015] hidden items-center justify-center bg-black/60" onclick="if(event.target===this) window.closeArchiveActionMenu();">
+    <div id="archive-action-content" class="bg-[#1b1d24] w-[300px] rounded-2xl p-4 border border-[#2e3240] space-y-2" onclick="event.stopPropagation();">
+        <h3 id="action-modal-title" class="font-bold text-center text-sm truncate mb-2">File Action</h3>
+        <button onclick="window.archiveAction('save')" class="w-full flex items-center gap-3 bg-[#262934] py-2.5 px-4 rounded-xl text-sm font-bold hover:bg-[#323646]"><i class="fa-solid fa-download text-[#00a884]"></i> Save</button>
+        <button onclick="window.archiveAction('copy')" class="w-full flex items-center gap-3 bg-[#262934] py-2.5 px-4 rounded-xl text-sm font-bold hover:bg-[#323646]"><i class="fa-solid fa-copy text-blue-400"></i> Copy Text</button>
+        <button onclick="window.archiveAction('delete')" class="w-full flex items-center gap-3 bg-[#262934] py-2.5 px-4 rounded-xl text-sm font-bold text-red-400 hover:bg-red-950"><i class="fa-solid fa-trash-can"></i> Delete</button>
+    </div>
+</div>
+
+<!-- Админ-панель -->
+<div id="admin-modal" class="app-modal" onclick="if(event.target===this) window.closeAdminModal();">
+    <div class="app-modal-content max-w-sm" onclick="event.stopPropagation();">
+        <div class="close-sheet-btn" onclick="window.closeAdminModal()"><i class="fa-solid fa-xmark"></i></div>
+        <h2 class="text-xl font-bold mb-5 text-center"><i class="fa-solid fa-crown text-purple-400 mr-2"></i> Admin Panel</h2>
+        <select id="admin-user-select" class="form-input-box"></select>
+        <button class="btn-primary !bg-purple-500 !text-white mb-2.5" onclick="window.adminLogin()">Login as User</button>
+        <button class="btn-primary !bg-red-600 !text-white" onclick="window.adminDeleteUser(this)">Eradicate User</button>
+    </div>
+</div>
+
+<!-- СКРИПТ-МОСТ ДЛЯ ДЕСКТОПНОЙ ВЕРСИИ -->
+<script>
+    const SMART_GEO = {
+        az: { pop: '~10.2 M', seas: 'Caspian Sea' },
+        de: { pop: '~83.2 M', seas: 'North Sea, Baltic Sea' },
+        us: { pop: '~333.3 M', seas: 'Atlantic, Pacific, Arctic' },
+        gb: { pop: '~67.7 M', seas: 'North Sea, Irish Sea' },
+        it: { pop: '~58.9 M', seas: 'Mediterranean, Adriatic' },
+        ru: { pop: '~144.2 M', seas: 'Baltic, Black, Pacific' },
+        tr: { pop: '~85.3 M', seas: 'Black, Aegean, Mediterranean' },
+        kz: { pop: '~20.0 M', seas: 'Caspian Sea' },
+        ae: { pop: '~9.5 M', seas: 'Persian Gulf' },
+        fr: { pop: '~68.0 M', seas: 'Atlantic, Mediterranean' },
+        es: { pop: '~48.3 M', seas: 'Atlantic, Mediterranean' },
+        jp: { pop: '~124.5 M', seas: 'Pacific Ocean, Sea of Japan' },
+        cn: { pop: '~1.41 B', seas: 'East & South China Sea' },
+        pt: { pop: '~10.4 M', seas: 'Atlantic Ocean' }
+    };
+
+    window.loginWithEmail = function() {
+        const email = document.getElementById('auth-email').value.trim();
+        const password = document.getElementById('auth-password').value.trim();
+        if (!email || !password) return alert("Enter email and password!");
+        document.getElementById('auth-spinner').style.display = 'flex';
+        document.getElementById('auth-login-box').style.display = 'none';
+        firebase.auth().signInWithEmailAndPassword(email, password).catch(err => {
+            alert("Error: " + err.message);
+            document.getElementById('auth-spinner').style.display = 'none';
+            document.getElementById('auth-login-box').style.display = 'flex';
+        });
+    };
+
+    window.registerWithEmail = function() {
+        const email = document.getElementById('auth-email').value.trim();
+        const password = document.getElementById('auth-password').value.trim();
+        if (!email || password.length < 6) return alert("Email and password (min 6 chars)!");
+        document.getElementById('auth-spinner').style.display = 'flex';
+        document.getElementById('auth-login-box').style.display = 'none';
+        firebase.auth().createUserWithEmailAndPassword(email, password).catch(err => {
+            alert("Error: " + err.message);
+            document.getElementById('auth-spinner').style.display = 'none';
+            document.getElementById('auth-login-box').style.display = 'flex';
+        });
+    };
+
+    window.signInWithGoogle = function() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        document.getElementById('auth-spinner').style.display = 'flex';
+        document.getElementById('auth-login-box').style.display = 'none';
+        firebase.auth().signInWithPopup(provider).catch(err => {
+            alert("Auth Error: " + err.message);
+            document.getElementById('auth-spinner').style.display = 'none';
+            document.getElementById('auth-login-box').style.display = 'flex';
+        });
+    };
+
+    window.signOutGoogle = function() {
+        firebase.auth().signOut().then(() => { localStorage.clear(); location.reload(); });
+    };
+
+    window.toggleTheme = function() {
+        document.documentElement.classList.toggle('dark');
+        localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        window.closeAllMenus();
+    };
+
+    window.closeAllMenus = function() {
+        document.getElementById('header-dropdown')?.classList.remove('active');
+        document.getElementById('rhombus-actions')?.classList.remove('active');
+        document.getElementById('rhombus-btn')?.classList.remove('active');
+        document.getElementById('universal-mic-popup')?.classList.remove('active');
+        if (window.closeEmojiPicker) window.closeEmojiPicker();
+    };
+    window.closeDropdown = window.closeAllMenus;
+    window.toggleHeaderMenu = function(e) { e.stopPropagation(); document.getElementById('header-dropdown')?.classList.toggle('active'); };
+    window.toggleRhombusMenu = function(e) {
+        e.stopPropagation();
+        document.getElementById('rhombus-actions')?.classList.toggle('active');
+        document.getElementById('rhombus-btn')?.classList.toggle('active');
+    };
+    document.body.addEventListener('click', () => window.closeAllMenus());
+
+    window.currentMicInputTarget = 'chat-input';
+    window.toggleUniversalMic = function(e, inputId) {
+        e.stopPropagation();
+        window.currentMicInputTarget = inputId;
+        const popup = document.getElementById('universal-mic-popup');
+        if (popup) popup.classList.toggle('active');
+    };
+
+    // Переключение 6 десктопных вкладок
+    window.switchTab = function(index) {
+        const screens = ['message', 'voice-translator', 'conference', 'profession', 'contacts', 'archive'];
+        const navBtns = document.querySelectorAll('#main-nav .nav-item');
+        window.closeAllMenus();
+        document.querySelectorAll('.app-modal').forEach(m => m.classList.remove('active'));
+        document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+        navBtns.forEach(b => b.classList.remove('active'));
+
+        if (index === 2) {
+            if (window.currentRoomId !== 'video_room_global') window.lastSavedChatRoom = window.currentRoomId;
+            if (window.switchChatRoom) window.switchChatRoom('video_room_global');
+        } else if (index === 0 || index === 1) {
+            if (window.currentRoomId === 'video_room_global' && window.switchChatRoom) {
+                window.switchChatRoom(window.lastSavedChatRoom || 'global');
+            }
+        }
+
+        document.getElementById(screens[index])?.classList.add('active');
+        if (navBtns[index]) navBtns[index].classList.add('active');
+        window.currentIndex = index;
+
+        if (index === 3 && window.renderProfessionList) window.renderProfessionList();
+        if (index === 4 && window.renderDesktopContacts) window.renderDesktopContacts();
+        if (window.syncMicLangUI) setTimeout(window.syncMicLangUI, 150);
+    };
+
+    // Двухколоночная карточка контакта вместо мобильной шторки
+    window.closeAvatarModal = function() {
+        const el = document.getElementById('web-profile-overlay');
+        if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
+    };
+
+    window.openAvatarModal = function(id) {
+        window.closeAllMenus();
+        if (id === 'me' || (window.myProfileInfo && id === window.myProfileInfo.id)) {
+            if (window.openPersonalLangModal) window.openPersonalLangModal();
+            return;
+        }
+        const p = (window.participants || []).find(part => part.id === id);
+        if (!p || id === 'ai') return;
+
+        const geo = SMART_GEO[p.flagCode] || { pop: 'Global', seas: 'International' };
+        document.getElementById('modal-user-photo').src = p.photo || 'https://ui-avatars.com/api/?name=U';
+        document.getElementById('modal-user-name').innerText = (p.name || 'User').split(' ')[0];
+        document.getElementById('modal-user-id').innerText = 'ID: ' + p.id;
+        document.getElementById('modal-user-country').innerText = `${p.flag || '🌐'} ${p.country || 'Global'}`;
+        document.getElementById('modal-user-langs').innerText = p.profileLangs || p.languages || p.langCode || 'Auto';
+        document.getElementById('modal-user-pop').innerText = geo.pop;
+        document.getElementById('modal-user-seas').innerText = geo.seas;
+        document.getElementById('modal-user-about').innerText = p.bio || p.desc || p.profession || 'Hello Friends member';
+
+        document.getElementById('btn-priv-chat').onclick = () => { window.closeAvatarModal(); window.switchTab(0); window.switchChatRoom(p.id); };
+        document.getElementById('btn-video-call').onclick = () => { window.closeAvatarModal(); if (window.makeCallFromContact) window.makeCallFromContact(p.id, 'video'); };
+        document.getElementById('btn-app-audio').onclick = () => { window.closeAvatarModal(); window.switchChatRoom(p.id); if (window.makeCallFromContact) window.makeCallFromContact(p.id, 'voice'); };
+        document.getElementById('btn-video-conf').onclick = () => { window.closeAvatarModal(); window.currentTargetUser = p; window.switchTab(2); };
+        document.getElementById('btn-ext-call').onclick = () => { window.closeAvatarModal(); if (p.phone) window.location.href = 'tel:' + p.phone.replace(/\s+/g, ''); else alert('Phone number hidden'); };
+        document.getElementById('btn-full-cv').onclick = () => { window.closeAvatarModal(); if (window.openViewCVModal) window.openViewCVModal(p.id); };
+
+        const overlay = document.getElementById('web-profile-overlay');
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+    };
+
+    // 4-колоночная витрина Profession
+    window.renderProfessionList = function() {
+        const container = document.getElementById('profession-list');
+        if (!container || !window.myProfileInfo) return;
+        const users = [window.myProfileInfo, ...(window.participants || []).filter(p => p.id !== 'ai' && !p.id.startsWith('guest'))];
+        container.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">` + users.map(p => {
+            const isMe = p.id === window.myProfileInfo.id;
+            const clickProfile = isMe ? `window.openMyProfile()` : `window.openAvatarModal('${p.id}')`;
+            const clickCV = isMe ? `window.openViewCVModal('me')` : `window.openViewCVModal('${p.id}')`;
+            return `
+            <div class="bg-[#14161c] border border-[#2a2d37] hover:border-indigo-500 rounded-2xl p-5 flex flex-col items-center text-center transition shadow-md">
+                <img src="${p.photo}" onclick="${clickProfile}" class="w-20 h-20 rounded-full object-cover border-2 border-indigo-500 mb-3 cursor-pointer">
+                <h3 class="text-white font-bold text-base">${(p.name || 'User').split(' ')[0]}</h3>
+                <p class="text-xs text-indigo-400 font-semibold uppercase tracking-wide mt-1 mb-4">${p.flag || '🌐'} ${p.profession || 'Professional'}</p>
+                <button onclick="${clickCV}" class="w-full py-2.5 rounded-xl bg-[#262934] hover:bg-indigo-600 text-gray-200 hover:text-white text-xs font-bold uppercase transition">View CV</button>
+            </div>`;
+        }).join('') + `</div>`;
+    };
+
+    // 2-колоночный список Contacts
+    window.renderDesktopContacts = function(query = '') {
+        const container = document.getElementById('desktop-contacts-container');
+        if (!container) return;
+        const q = (query || '').toLowerCase();
+        const users = (window.participants || []).filter(p => p.id !== 'ai' && (!q || (p.name || '').toLowerCase().includes(q) || (p.phone || '').includes(q)));
+        if (!users.length) {
+            container.innerHTML = `<p class="text-gray-400 text-sm col-span-2">No contacts found.</p>`;
+            return;
+        }
+        container.innerHTML = users.map(p => `
+            <div class="bg-[#14161c] border border-[#2a2d37] hover:border-indigo-500/60 rounded-2xl p-3.5 flex items-center justify-between transition">
+                <div class="flex items-center gap-3.5 cursor-pointer flex-grow" onclick="window.openAvatarModal('${p.id}')">
+                    <img src="${p.photo}" class="w-12 h-12 rounded-full object-cover border border-[#323646]">
                     <div>
-                        <div class="text-[12px] font-bold text-gray-800 dark:text-white">Spammer User</div>
-                        <div class="text-[10px] text-red-400">Blocked</div>
+                        <div class="font-bold text-white text-sm">${(p.name || 'User').split(' ')[0]} ${p.flag || ''}</div>
+                        <div class="text-xs text-gray-400 font-mono">${p.phone || 'Hidden'}</div>
                     </div>
                 </div>
-                <button onclick="unblockUser('blocked-user-demo')" class="bg-white dark:bg-slate-800 border border-red-200 dark:border-slate-600 text-red-500 px-3 py-1.5 rounded-xl text-[10px] font-bold hover:bg-red-500 hover:text-white transition shadow-sm">Unblock</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="mic-menu-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[300]">
-    <div class="bg-slate-800 w-[280px] rounded-[30px] shadow-2xl flex flex-col gap-2 p-4 border border-slate-700">
-        <button onclick="startVoiceCall()" class="flex items-center gap-4 bg-slate-700/50 hover:bg-slate-700 p-4 rounded-2xl text-white transition"><i class="fa-solid fa-phone text-cyan-400 text-xl w-6 text-center"></i><span class="font-bold text-[13px]">Anrufen</span></button>
-        <button onclick="alert('Запись ИИ Голоса...')" class="flex items-center gap-4 bg-slate-700/50 hover:bg-slate-700 p-4 rounded-2xl text-white transition"><i class="fa-solid fa-robot text-purple-400 text-xl w-6 text-center"></i><span class="font-bold text-[13px]">Sprachnachricht (AI)</span></button>
-        <button onclick="startDictation()" class="flex items-center gap-4 bg-slate-700/50 hover:bg-slate-700 p-4 rounded-2xl text-white transition"><i class="fa-solid fa-microphone text-green-400 text-xl w-6 text-center"></i><span class="font-bold text-[13px]">Sprachtext</span></button>
-        <button onclick="closeModal('mic-menu-modal')" class="mt-2 text-slate-400 hover:text-white text-xs py-2 font-bold transition">Abbrechen / Cancel</button>
-    </div>
-</div>
-
-<div id="lang-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[99999]" onclick="if(event.target===this) closeModal('lang-modal')">
-    <div class="bg-white dark:bg-slate-800 w-[340px] rounded-[30px] p-6 relative border border-gray-100 dark:border-slate-700" onclick="event.stopPropagation()">
-        <button onclick="closeModal('lang-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
-        <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4"><i class="fa-solid fa-language text-blue-500 mr-2"></i> Mic Language (13)</h3>
-        <div class="grid grid-cols-2 gap-2">
-            <button onclick="setMicLang('en-US')" class="p-2 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-xl text-left text-[11px] font-bold border border-gray-200 dark:border-slate-600 dark:text-white transition">🇬🇧 English</button>
-            <button onclick="setMicLang('ru-RU')" class="p-2 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-xl text-left text-[11px] font-bold border border-gray-200 dark:border-slate-600 dark:text-white transition">🇷🇺 Русский</button>
-            <button onclick="setMicLang('az-AZ')" class="p-2 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-xl text-left text-[11px] font-bold border border-gray-200 dark:border-slate-600 dark:text-white transition">🇦🇿 Azərbaycanca</button>
-           <button onclick="setMicLang('kk-KZ')" class="p-2 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-xl text-left text-[11px] font-bold border border-gray-200 dark:border-slate-600 dark:text-white transition">🇰🇿 Қазақша</button>
-            <button onclick="setMicLang('de-DE')" class="p-2 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-xl text-left text-[11px] font-bold border border-gray-200 dark:border-slate-600 dark:text-white transition">🇩🇪 Deutsch</button>
-            <button onclick="setMicLang('tr-TR')" class="p-2 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-xl text-left text-[11px] font-bold border border-gray-200 dark:border-slate-600 dark:text-white transition">🇹🇷 Türkçe</button>
-            <button onclick="setMicLang('ar-SA')" class="p-2 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-xl text-left text-[11px] font-bold border border-gray-200 dark:border-slate-600 dark:text-white transition">🇦🇪 العربية</button>
-            <button onclick="setMicLang('it-IT')" class="p-2 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-xl text-left text-[11px] font-bold border border-gray-200 dark:border-slate-600 dark:text-white transition">🇮🇹 Italiano</button>
-            <button onclick="setMicLang('es-ES')" class="p-2 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-xl text-left text-[11px] font-bold border border-gray-200 dark:border-slate-600 dark:text-white transition">🇪🇸 Español</button>
-            <button onclick="setMicLang('fr-FR')" class="p-2 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-xl text-left text-[11px] font-bold border border-gray-200 dark:border-slate-600 dark:text-white transition">🇫🇷 Français</button>
-            <button onclick="setMicLang('pt-PT')" class="p-2 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-xl text-left text-[11px] font-bold border border-gray-200 dark:border-slate-600 dark:text-white transition">🇵🇹 Português</button>
-            <button onclick="setMicLang('ja-JP')" class="p-2 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-xl text-left text-[11px] font-bold border border-gray-200 dark:border-slate-600 dark:text-white transition">🇯🇵 日本語</button>
-            <button onclick="setMicLang('zh-CN')" class="p-2 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-xl text-left text-[11px] font-bold border border-gray-200 dark:border-slate-600 dark:text-white transition">🇨🇳 中文</button>
-        </div>
-    </div>
-</div>
-
-<div id="attachment-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[99999]" onclick="if(event.target===this) closeModal('attachment-modal')">
-    <div class="bg-white dark:bg-slate-800 w-[300px] rounded-[30px] p-6 relative border border-gray-100 dark:border-slate-700" onclick="event.stopPropagation()">
-        <button onclick="closeModal('attachment-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
-        <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4"><i class="fa-solid fa-paperclip text-blue-500 mr-2"></i> Attach</h3>
-        <div class="grid grid-cols-3 gap-3">
-            <button onclick="triggerPhotoUpload()" class="flex flex-col items-center p-3 bg-gray-50 dark:bg-slate-700 hover:bg-blue-50 rounded-2xl border border-gray-100 dark:border-slate-600 transition group"><i class="fa-solid fa-image text-blue-400 text-2xl mb-1 group-hover:scale-110"></i><span class="text-[10px] font-bold uppercase">Photo</span></button>
-            <button onclick="triggerDocUpload()" class="flex flex-col items-center p-3 bg-gray-50 dark:bg-slate-700 hover:bg-green-50 rounded-2xl border border-gray-100 dark:border-slate-600 transition group"><i class="fa-solid fa-file-lines text-green-400 text-2xl mb-1 group-hover:scale-110"></i><span class="text-[10px] font-bold uppercase">Doc</span></button>
-            <button onclick="openLocationFromAttachment()" class="flex flex-col items-center p-3 bg-gray-50 dark:bg-slate-700 hover:bg-red-50 rounded-2xl border border-gray-100 dark:border-slate-600 transition group"><i class="fa-solid fa-location-dot text-red-400 text-2xl mb-1 group-hover:scale-110"></i><span class="text-[10px] font-bold uppercase">Location</span></button>
-        </div>
-    </div>
-</div>
-    
-<div id="call-menu-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[100000]" onclick="if(event.target===this) window.closeModal('call-menu-modal')">
-    <div class="bg-slate-800 w-[280px] rounded-[30px] shadow-2xl flex flex-col gap-2 p-4 border border-slate-700" onclick="event.stopPropagation()">
-        
-        <button onclick="window.startInAppCall()" class="flex items-center gap-4 bg-slate-700/50 hover:bg-slate-700 p-4 rounded-2xl text-white transition">
-            <i class="fa-solid fa-headset text-cyan-400 text-xl w-6 text-center"></i>
-            <div class="flex flex-col text-left">
-                <span class="font-bold text-[13px]">Внутри приложения</span>
-                <span class="text-[10px] text-gray-400">Бесплатный App-звонок</span>
-            </div>
-        </button>
-        
-        <button onclick="window.startExternalCall()" class="flex items-center gap-4 bg-slate-700/50 hover:bg-slate-700 p-4 rounded-2xl text-white transition">
-            <i class="fa-solid fa-mobile-screen-button text-green-400 text-xl w-6 text-center"></i>
-            <div class="flex flex-col text-left">
-                <span class="font-bold text-[13px]">На внешний номер</span>
-                <span class="text-[10px] text-gray-400">Обычный GSM-звонок</span>
-            </div>
-        </button>
-        
-        <button onclick="window.closeModal('call-menu-modal')" class="mt-2 text-slate-400 hover:text-white text-xs py-2 font-bold transition">Отмена / Cancel</button>
-    </div>
-</div>
-
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyCVFkMsqelcnjjeIwGnAKmn1CFhDGc7kR0",
-        authDomain: "hello-friends-p8p3i7.firebaseapp.com",
-        databaseURL: "https://hello-friends-p8p3i7-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "hello-friends-p8p3i7",
-        storageBucket: "hello-friends-p8p3i7.appspot.com",
-        messagingSenderId: "367351601053",
-        appId: "1:367351601053:web:7852c0326db9cc233d44ba"
+                <div class="flex items-center gap-2">
+                    <button onclick="if(window.makeCallFromContact) window.makeCallFromContact('${p.id}', 'voice')" class="w-10 h-10 rounded-full bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white flex items-center justify-center transition" title="Audio Call"><i class="fa-solid fa-phone"></i></button>
+                    <button onclick="if(window.makeCallFromContact) window.makeCallFromContact('${p.id}', 'video')" class="w-10 h-10 rounded-full bg-indigo-500/20 hover:bg-indigo-500 text-indigo-400 hover:text-white flex items-center justify-center transition" title="Video Call"><i class="fa-solid fa-video"></i></button>
+                </div>
+            </div>`).join('');
     };
-    
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+
+    // Базовые утилиты совместимости с мобильным ядром
+    window.getSmartLang = function(phone, flagCode) {
+        if (typeof phone === 'object' && phone !== null) { flagCode = phone.flagCode; phone = phone.phone; }
+        let p = (phone && typeof phone === 'string') ? phone.replace(/\s+/g, '') : '';
+        if (p.startsWith('+7')) return 'ru';
+        if (p.startsWith('+994')) return 'az';
+        if (p.startsWith('+90')) return 'tr';
+        if (p.startsWith('+39')) return 'it';
+        if (p.startsWith('+49')) return 'de';
+        if (p.startsWith('+33')) return 'fr';
+        if (p.startsWith('+81')) return 'ja';
+        if (p.startsWith('+34')) return 'es';
+        if (p.startsWith('+86')) return 'zh';
+        if (p.startsWith('+351')) return 'pt';
+        if (p.startsWith('+971')) return 'ar';
+        const map = { ru:'ru', az:'az', it:'it', de:'de', fr:'fr', jp:'ja', es:'es', cn:'zh', pt:'pt', gb:'en', us:'en', ae:'ar', tr:'tr', kz:'kk' };
+        return map[flagCode] || 'en';
+    };
+
+    window.playAIVoice = function(encodedText, langCode) {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        let text = encodedText;
+        try { text = decodeURIComponent(encodedText); } catch(e) {}
+        const u = new SpeechSynthesisUtterance(text);
+        const vMap = { en:'en-US', ru:'ru-RU', az:'tr-TR', it:'it-IT', es:'es-ES', fr:'fr-FR', pt:'pt-PT', ja:'ja-JP', zh:'zh-CN', de:'de-DE', tr:'tr-TR' };
+        u.lang = vMap[langCode] || langCode;
+        window.speechSynthesis.speak(u);
+    };
+
+    window.currentEmojiTargetId = null;
+    window.toggleEmojiPicker = function(targetId) {
+        window.currentEmojiTargetId = targetId;
+        const p = document.getElementById('emoji-picker');
+        if (p.classList.contains('opacity-0')) { p.classList.remove('opacity-0','scale-95','pointer-events-none'); p.classList.add('opacity-100','scale-100'); }
+        else window.closeEmojiPicker();
+    };
+    window.closeEmojiPicker = function() {
+        const p = document.getElementById('emoji-picker');
+        if (p) { p.classList.add('opacity-0','scale-95','pointer-events-none'); p.classList.remove('opacity-100','scale-100'); }
+    };
+    window.insertEmoji = function(emoji) {
+        const inp = document.getElementById(window.currentEmojiTargetId);
+        if (inp) { inp.value += emoji; inp.focus(); }
+    };
+
+    window.showToast = function(name, info, photoUrl, phoneStr) {
+        const toast = document.getElementById('toast-notification'); if (!toast) return;
+        document.getElementById('toast-name').innerText = name || 'Hello Friends';
+        document.getElementById('toast-info').innerHTML = info || '';
+        const phoneEl = document.getElementById('toast-phone');
+        phoneEl.innerText = phoneStr || ''; phoneEl.style.display = phoneStr ? 'block' : 'none';
+        document.getElementById('toast-desc-box').style.display = info ? 'block' : 'none';
+        const img = document.getElementById('toast-img'), icon = document.getElementById('toast-icon-wrap');
+        if (photoUrl) { img.src = photoUrl; img.style.display = 'block'; icon.style.display = 'none'; }
+        else { img.style.display = 'none'; icon.style.display = 'flex'; }
+        toast.style.opacity = '1'; toast.style.top = '20px';
+        clearTimeout(window.toastTimer);
+        window.toastTimer = setTimeout(() => { toast.style.opacity = '0'; toast.style.top = '-160px'; }, 5500);
+    };
+
+    window.openAttachModal = () => { window.closeAllMenus(); document.getElementById('attach-modal').classList.add('active'); };
+    window.closeAttachModal = () => document.getElementById('attach-modal').classList.remove('active');
+    window.openTrashModal = () => { window.closeAllMenus(); document.getElementById('trash-modal').classList.add('active'); };
+    window.closeTrashModal = () => document.getElementById('trash-modal').classList.remove('active');
+    window.closeBankTransferModal = () => document.getElementById('transfer-modal').classList.remove('active');
+    window.closeEmailModal = () => document.getElementById('email-modal').classList.remove('active');
+    window.closeLocationModal = () => document.getElementById('location-modal').classList.remove('active');
+    window.openFullscreenImage = src => { if (src) document.getElementById('fullscreen-img-src').src = src; document.getElementById('fullscreen-image-modal').classList.add('active'); };
+    window.closeFullscreenImage = () => document.getElementById('fullscreen-image-modal').classList.remove('active');
+    window.openEmailStore = () => { window.closeAllMenus(); const m = document.getElementById('email-store-modal'); m.classList.remove('hidden'); m.classList.add('flex'); };
+    window.closeEmailStore = () => { const m = document.getElementById('email-store-modal'); m.classList.add('hidden'); m.classList.remove('flex'); };
+    window.inviteViaWhatsApp = () => { window.open(`https://wa.me/?text=${encodeURIComponent("Join me on Hello Friends: https://hellofriends.chat")}`, '_blank'); };
+
+    window.handleCountryChange = function(sel) {
+        const img = document.getElementById('edit-flag-icon');
+        if (img) img.src = `https://flagcdn.com/w40/${sel.value}.png`;
+        if (window.countryData && window.countryData[sel.value]) {
+            const p = document.getElementById('edit-phone');
+            if (p) { p.value = window.countryData[sel.value].phone + ' '; p.focus(); }
+        }
+    };
+
+    window.handleMediaUpload = function(event) {
+        const file = event.target.files[0]; if (!file) return;
+        const isVideo = file.type.startsWith('video/');
+        window.showToast('⏳', 'Uploading media...', '', '');
+        const r = new FileReader();
+        r.onload = e => {
+            db.ref(window.currentRoomId).push({
+                userId: window.myProfileInfo.id, name: window.myUsername,
+                text: isVideo ? '📹 Video' : '🖼️ Photo', mediaUrl: e.target.result,
+                mediaType: isVideo ? 'video' : 'image', sessionId: window.mySessionId,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                photo: window.myProfileInfo.photo, flag: window.myProfileInfo.flag,
+                flagCode: window.myProfileInfo.flagCode, langCode: window.myProfileInfo.langCode
+            });
+        };
+        r.readAsDataURL(file);
+    };
+
+    window.handleDocUpload = function(event) {
+        const file = event.target.files[0]; if (!file) return;
+        window.showToast('⏳', 'Uploading document...', '', '');
+        const r = new FileReader();
+        r.onload = e => {
+            db.ref(window.currentRoomId).push({
+                userId: window.myProfileInfo.id, name: window.myUsername,
+                text: '📄 Document: ' + file.name, mediaUrl: e.target.result,
+                mediaType: 'document', sessionId: window.mySessionId,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                photo: window.myProfileInfo.photo, flag: window.myProfileInfo.flag,
+                flagCode: window.myProfileInfo.flagCode, langCode: window.myProfileInfo.langCode
+            });
+        };
+        r.readAsDataURL(file);
+    };
+
+    window.isMarqueeEnabled = true;
+    window.toggleMarquee = () => {
+        window.isMarqueeEnabled = !window.isMarqueeEnabled;
+        const c = document.getElementById('typing-marquee-container');
+        if (c) c.style.opacity = window.isMarqueeEnabled ? '1' : '0';
+    };
+    window.isVoiceMarqueeEnabled = true;
+    window.toggleVoiceMarquee = () => {
+        window.isVoiceMarqueeEnabled = !window.isVoiceMarqueeEnabled;
+        const c = document.getElementById('voice-marquee-container-anim');
+        if (c) c.style.opacity = window.isVoiceMarqueeEnabled ? '1' : '0';
+    };
+
+    window.secretClicks = 0;
+    window.activateGodMode = function() {
+        if (++window.secretClicks === 5) {
+            window.secretClicks = 0;
+            const pass = prompt("Enter Admin Password:");
+            if (!pass || !window.myProfileInfo?.id || window.myProfileInfo.id === 'guest') return;
+            db.ref('admins/' + window.myProfileInfo.id).set({ pass, active: true }).then(() => {
+                localStorage.setItem('hf_god_mode', 'true');
+                document.getElementById('admin-menu-btn').style.display = 'flex';
+                alert("GOD MODE UNLOCKED!");
+            }).catch(() => alert("Access Denied."));
+        }
+    };
+    window.closeAdminModal = () => document.getElementById('admin-modal').classList.remove('active');
+    window.openAdminModal = () => {
+        window.closeAllMenus();
+        const sel = document.getElementById('admin-user-select');
+        sel.innerHTML = (window.participants || []).filter(p => p.id !== 'ai').map(p => `<option value="${p.id}">${(p.name||'User').split(' ')[0]} ${p.flag||''}</option>`).join('');
+        document.getElementById('admin-modal').classList.add('active');
+    };
+    window.adminLogin = () => {
+        const id = document.getElementById('admin-user-select').value;
+        if (confirm("Switch user?")) {
+            localStorage.setItem('hf_admin_target_user', id);
+            localStorage.setItem('hf_active_user', id);
+            location.reload();
+        }
+    };
+    window.adminDeleteUser = (btn) => {
+        const id = document.getElementById('admin-user-select').value;
+        if (id === window.myProfileInfo.id || id === 'ai') return;
+        if (localStorage.getItem('hf_god_mode') === 'true' && confirm("Delete user permanently?")) {
+            db.ref('users/' + id).remove().then(() => { alert("Deleted"); window.closeAdminModal(); });
+        }
+    };
+    window.deleteMyAccount = () => {
+        if (confirm("Delete your account permanently?")) {
+            if (window.myProfileInfo?.id && !window.isGuest) db.ref('users/' + window.myProfileInfo.id).remove();
+            localStorage.clear();
+            const u = firebase.auth().currentUser;
+            if (u) u.delete().then(() => location.reload()).catch(() => firebase.auth().signOut().then(() => location.reload()));
+            else location.reload();
+        }
+    };
+
+    // Инициализация сессии и подписка на общую базу пользователей
+    window.addEventListener('load', () => {
+        if (localStorage.getItem('theme') === 'light') document.documentElement.classList.remove('dark');
+
+        let activeUserId = localStorage.getItem('hf_active_user');
+        window.isGuest = !activeUserId;
+        window.currentRoomId = 'global';
+        window.mySessionId = Math.random().toString(36).substring(2, 15);
+        window.currentTargetUser = null;
+
+        const aiBot = { id:'ai', name:'AI Assistant', photo:'https://ui-avatars.com/api/?name=AI&background=4f46e5&color=fff', profession:'AI Core', flag:'🤖', flagCode:'un', langCode:'en' };
+        window.myProfileInfo = { id: activeUserId || 'guest', name:'User', photo:'https://ui-avatars.com/api/?name=U&background=4f46e5&color=fff', flag:'🌐', flagCode:'un', langCode:'en' };
+        window.myUsername = 'User';
+        window.participants = [aiBot];
+
+        const lockScreen = document.getElementById('security-lock');
+        if (activeUserId) lockScreen.style.display = 'none';
+
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) {
+                lockScreen.style.opacity = '0';
+                setTimeout(() => lockScreen.style.display = 'none', 350);
+                let actualUid = user.uid;
+                if (localStorage.getItem('hf_god_mode') === 'true' && localStorage.getItem('hf_admin_target_user')) {
+                    actualUid = localStorage.getItem('hf_admin_target_user');
+                }
+                activeUserId = actualUid;
+                localStorage.setItem('hf_active_user', actualUid);
+                window.myProfileInfo.id = actualUid;
+                window.isGuest = false;
+
+                const statusRef = db.ref('users/' + actualUid + '/status');
+                db.ref('.info/connected').on('value', snap => {
+                    if (snap.val() === false) return;
+                    statusRef.onDisconnect().set('offline').then(() => statusRef.set('online'));
+                });
+
+                db.ref('users/' + actualUid).once('value').then(snap => {
+                    const data = snap.val() || {};
+                    if (!snap.exists() || !data.name || data.name === 'User') {
+                        const newUser = { id: actualUid, name: data.name || user.displayName || 'User', email: data.email || user.email || '', photo: data.photo || user.photoURL || 'https://ui-avatars.com/api/?name=New', flag: data.flag || '🌐', flagCode: data.flagCode || 'un', status: 'online' };
+                        db.ref('users/' + actualUid).update(newUser).then(() => {
+                            window.myProfileInfo = { ...window.myProfileInfo, ...newUser };
+                            setTimeout(() => { if (window.openMyProfile) window.openMyProfile(); }, 800);
+                        });
+                    } else {
+                        window.myProfileInfo = { ...window.myProfileInfo, ...data, id: actualUid };
+                        window.myUsername = data.name.split(' ')[0];
+                        db.ref('users/' + actualUid).update({ status: 'online', id: actualUid });
+                        if (window.applyTranslations) window.applyTranslations();
+                    }
+                });
+            } else if (!activeUserId) {
+                document.getElementById('auth-spinner').style.display = 'none';
+                document.getElementById('auth-login-box').style.display = 'flex';
+                lockScreen.style.display = 'flex';
+            }
+        });
+
+        db.ref('users').on('value', snap => {
+            const data = snap.val();
+            const realUsers = [];
+            if (data) {
+                if (!window.isGuest && activeUserId && data[activeUserId]) {
+                    if (data[activeUserId].isDeleted === true) { window.signOutGoogle(); return; }
+                    window.myProfileInfo = { ...window.myProfileInfo, ...data[activeUserId] };
+                    window.myUsername = (window.myProfileInfo.name || 'User').split(' ')[0];
+                    const pImg = document.getElementById('voice-me-photo'), pFlag = document.getElementById('voice-me-flag'), pName = document.getElementById('voice-me-name');
+                    if (pImg) pImg.src = window.myProfileInfo.photo;
+                    if (pFlag) pFlag.innerText = window.myProfileInfo.flag || '🌐';
+                    if (pName) pName.innerText = window.myUsername;
+                }
+                Object.values(data).forEach(u => { if (u.id && u.isDeleted !== true) realUsers.push(u); });
+            }
+            window.participants = [aiBot, ...realUsers.filter(c => c.id !== window.myProfileInfo.id && !c.id.startsWith('guest'))];
+            if (window.renderSidebar) window.renderSidebar();
+            if (window.renderProfessionList) window.renderProfessionList();
+            if (window.renderDesktopContacts) window.renderDesktopContacts(document.getElementById('contacts-search-input')?.value || '');
+            if (!window.isGuest && window.initSignalListener && !window.signalListenerActive) {
+                window.initSignalListener();
+                window.signalListenerActive = true;
+            }
+        });
+
+        if (window.switchChatRoom) window.switchChatRoom('global');
+    });
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            const id = document.activeElement?.id;
+            if (id === 'chat-input' || id === 'voice-chat-input' || id === 'conf-chat-input') {
+                window.currentMicInputTarget = id;
+                if (window.sendFirebaseMsg) window.sendFirebaseMsg();
+            }
+        }
+    });
 </script>
-
-<script src="web-lang.js"></script> 
-<script src="web-auth.js"></script>
-<script src="web-ui.js"></script>
-<script src="web-users.js"></script>
-<script src="web-chat.js"></script>
-<script src="web-cv.js"></script>
-<script src="web-archive.js"></script>
-<script src="web-calls.js"></script>
-
 </body>
 </html>
